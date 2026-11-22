@@ -44,5 +44,15 @@ jobs:
         run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
       - name: Build
         run: cmake --build build --config Debug
+      - name: Diagnose Windows hang (temporary)
+        if: runner.os == 'Windows'
+        timeout-minutes: 3
+        env:
+          QT_LOGGING_RULES: "*=true"
+        run: |
+          for exe in $(find build -name 'HandPaintingExample.exe' -o -name 'HandPaintingExampleTests.exe'); do
+            echo "=== $exe"
+            HPQ_AUTO_QUIT=1 timeout 30 "$exe" 2>&1 | tail -40 || true
+          done
       - name: Test
         run: ctest --test-dir build -C Debug --output-on-failure --timeout 120 -V
