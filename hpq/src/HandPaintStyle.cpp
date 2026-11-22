@@ -1,10 +1,12 @@
 #include <hpq/HandPaintStyle.h>
 
+#include <QAbstractSpinBox>
 #include <QPainter>
 #include <QPolygonF>
 #include <QStyleFactory>
 #include <QStyleOption>
 #include <QStyleOptionSlider>
+#include <QStyleOptionSpinBox>
 
 #include <algorithm>
 
@@ -90,6 +92,26 @@ void draw_header_section(const QStyleOption &option, QPainter &painter) {
     painter.restore();
 }
 
+// A flat spin box: Base fill with a Dark outline, and the up and down arrows of the style
+// in their buttons, instead of Fusion's cached pixmap.
+void draw_spin_box(const QStyle &style, const QStyleOptionSpinBox &option, QPainter &painter,
+                   const QWidget *widget) {
+    painter.save();
+    painter.setPen(option.frame ? QPen(option.palette.color(QPalette::Dark)) : QPen(Qt::NoPen));
+    painter.setBrush(option.palette.color(QPalette::Base));
+    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
+    painter.restore();
+
+    if (option.buttonSymbols == QAbstractSpinBox::NoButtons) {
+        return;
+    }
+    QStyleOption arrow = option;
+    arrow.rect = style.subControlRect(QStyle::CC_SpinBox, &option, QStyle::SC_SpinBoxUp, widget);
+    style.drawPrimitive(QStyle::PE_IndicatorArrowUp, &arrow, &painter, widget);
+    arrow.rect = style.subControlRect(QStyle::CC_SpinBox, &option, QStyle::SC_SpinBoxDown, widget);
+    style.drawPrimitive(QStyle::PE_IndicatorArrowDown, &arrow, &painter, widget);
+}
+
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
@@ -130,6 +152,12 @@ void HandPaintStyle::drawComplexControl(ComplexControl control, const QStyleOpti
     if (control == CC_Slider) {
         if (const auto *slider = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
             draw_slider(*slider, *painter, widget);
+            return;
+        }
+    }
+    if (control == CC_SpinBox) {
+        if (const auto *spin_box = qstyleoption_cast<const QStyleOptionSpinBox *>(option)) {
+            draw_spin_box(*this, *spin_box, *painter, widget);
             return;
         }
     }

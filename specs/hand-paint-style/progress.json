@@ -73,9 +73,10 @@
       "depends_on": [
         "T5"
       ],
-      "status": "new",
+      "status": "review",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T6"
     },
     {
       "id": "T7",
@@ -124,11 +125,11 @@
       "depends_on": [
         "T3"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-style/T10",
-      "review": "APPROVED\n- SpinBoxTest.SpinBoxDrawsDarkFrameAndUpAndDownArrowsWithoutImage\n- SpinBoxTest.DoubleSpinBoxDrawsDarkFrameAndUpAndDownArrowsWithoutImage"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T10, run `git merge 04c86d071218aeb71a1ce78d7b8072a86024daf7`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- SpinBoxTest.SpinBoxDrawsDarkFrameAndUpAndDownArrowsWithoutImage\n- SpinBoxTest.DoubleSpinBoxDrawsDarkFrameAndUpAndDownArrowsWithoutImage",
+      "real_testing": "PASSED\n- B11: after merge 3960425, rebuilt hpq in the worktree and reran t10check (QSpinBox 42, QDoubleSpinBox 3,14 with HandPaintStyle + SketchTheme palette on a recording device, plus a real window grabbed offscreen) -> identical to the pre-merge run: images=0, one outline rect with Dark #8a867d pen, one up triangle inside SC_SpinBoxUp and one down triangle inside SC_SpinBoxDown, exit 0 \"OVERALL OK\"; screenshots: flat grey-outlined field with arrows on the right; themed window: hand-drawn frames, arrows, readable values.\nEvidence: scratchpad t10/after-merge/."
     },
     {
       "id": "T11",
