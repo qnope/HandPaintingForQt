@@ -11,6 +11,8 @@ class RoughGeometryEngine : public GeometryEngine {
 public:
     std::vector<QPainterPath> outline(const QPainterPath &shape, const RoughOptions &options,
                                       std::uint32_t seed) const override;
+    QPainterPath fill_area(const QPainterPath &shape, const RoughOptions &options,
+                           std::uint32_t seed) const override;
 };
 
 }  // namespace hpq

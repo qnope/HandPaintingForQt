@@ -1,0 +1,99 @@
+#include <hpq/RoughGeometryEngine.h>
+
+#include <QPainterPath>
+#include <QPointF>
+#include <QRectF>
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <vector>
+
+namespace {
+
+constexpr std::uint32_t Seed = 7;
+
+hpq::RoughOptions fill_options()
+{
+    hpq::RoughOptions options;
+    options.roughness = 1.0;
+    options.max_offset = 5.0;
+    return options;
+}
+
+QPainterPath rectangle_shape()
+{
+    QPainterPath shape;
+    shape.addRect(QRectF(10, 10, 100, 50));
+    return shape;
+}
+
+QPainterPath ellipse_shape()
+{
+    QPainterPath shape;
+    shape.addEllipse(QRectF(0, 0, 80, 40));
+    return shape;
+}
+
+QPointF element_point(const QPainterPath &path, int index)
+{
+    const QPainterPath::Element element = path.elementAt(index);
+    return {element.x, element.y};
+}
+
+bool is_closed(const QPainterPath &path)
+{
+    return path.elementCount() > 2 && element_point(path, 0) == element_point(path, path.elementCount() - 1);
+}
+
+bool same_elements(const QPainterPath &a, const QPainterPath &b)
+{
+    if (a.elementCount() != b.elementCount())
+        return false;
+    for (int i = 0; i < a.elementCount(); ++i) {
+        if (a.elementAt(i).type != b.elementAt(i).type || element_point(a, i) != element_point(b, i))
+            return false;
+    }
+    return true;
+}
+
+void expect_rough_fill_of(const QPainterPath &shape, QPointF center)
+{
+    const hpq::RoughOptions options = fill_options();
+    const QPainterPath fill = hpq::RoughGeometryEngine().fill_area(shape, options, Seed);
+
+    EXPECT_TRUE(is_closed(fill));
+    const double margin = options.max_offset;
+    const QRectF allowed = shape.boundingRect().adjusted(-margin, -margin, margin, margin);
+    EXPECT_TRUE(allowed.contains(fill.boundingRect()));
+    EXPECT_TRUE(fill.contains(center));
+}
+
+}  // namespace
+
+TEST(RoughFillAreaTest, RectangleFillIsClosedNearTheShapeAndContainsItsCenter)
+{
+    expect_rough_fill_of(rectangle_shape(), QPointF(60, 35));
+}
+
+TEST(RoughFillAreaTest, EllipseFillIsClosedNearTheShapeAndContainsItsCenter)
+{
+    expect_rough_fill_of(ellipse_shape(), QPointF(40, 20));
+}
+
+TEST(RoughFillAreaTest, SameShapeOptionsAndSeedGiveTheSamePaths)
+{
+    const hpq::RoughGeometryEngine engine;
+    const QPainterPath shape = rectangle_shape();
+    const hpq::RoughOptions options = fill_options();
+
+    const std::vector<QPainterPath> first_outline = engine.outline(shape, options, Seed);
+    const std::vector<QPainterPath> second_outline = engine.outline(shape, options, Seed);
+    ASSERT_EQ(first_outline.size(), second_outline.size());
+    for (std::size_t i = 0; i < first_outline.size(); ++i)
+        EXPECT_TRUE(same_elements(first_outline[i], second_outline[i]));
+
+    const QPainterPath first_fill = engine.fill_area(shape, options, Seed);
+    const QPainterPath second_fill = engine.fill_area(shape, options, Seed);
+    EXPECT_GT(first_fill.elementCount(), 0);
+    EXPECT_TRUE(same_elements(first_fill, second_fill));
+}

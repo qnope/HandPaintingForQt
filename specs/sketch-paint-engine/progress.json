@@ -21,9 +21,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/sketch-paint-engine/T2",
+      "review": "APPROVED\n- RoughGeometryEngine/ClosedShapeOutline.StrokesLookClosedAndStayNearTheShape (Rectangle, Ellipse, Triangle, RoundedRect, ClosedCubic)\n- RoughGeometryEngine.OpenCubicOutlineStaysOpen"
     },
     {
       "id": "T3",
@@ -32,9 +34,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- RoughFillAreaTest.RectangleFillIsClosedNearTheShapeAndContainsItsCenter\n- RoughFillAreaTest.EllipseFillIsClosedNearTheShapeAndContainsItsCenter\n- RoughFillAreaTest.SameShapeOptionsAndSeedGiveTheSamePaths",
+      "real_testing": "PASSED\n- B2: built hpq with the debug preset, linked a probe program (specs/sketch-paint-engine/real-testing/T3/probe.cpp) to libhpq.a through a small CMake project, called RoughGeometryEngine outline() and fill_area() twice with the same shape, options and seed 7 for rect (10,10,100,50), ellipse (0,0,80,40) and rect (0,0,20,20) with max_offset 8 -> each pair of outline() and fill_area() results was equal element by element (type, x, y). Seed 9 gave a different fill. Exit code 0 (probe-output.txt).\n- B6: called fill_area() with roughness 1, max_offset 5 (8 for the small rect), seed 7, printed its checks and rendered each result to a PNG (rect.png, ellipse.png, small.png) -> rect: 1 subpath, first point = last point (8.898,5.168), bbox (5.098,5.168 109.9x56.9) inside the limit (5,5 110x60), contains (60,35). Ellipse: 1 subpath, closed, bbox (-2.529,-4.042 86.83x46.72) inside (-5,-5 90x50), contains (40,20). Small rect: closed, bbox inside the limit, contains (10,10). None is the exact shape. In the screenshots, each orange fill is one closed blob that covers the red center and stays inside the green dashed limit box. The rect fill has gently wavy edges. The ellipse fill is recognisable but its edge is noticeably ragged. The black outline strokes on the ellipse have small hooks and spikes, but those strokes come from outline() (T1), not from fill_area().\nEvidence: specs/sketch-paint-engine/real-testing/T3/"
     },
     {
       "id": "T4",
@@ -43,9 +47,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/sketch-paint-engine/T4",
+      "review": "APPROVED\n- SketchTheme.PaletteSetsEveryRoleOfEveryGroup\n- SketchTheme.PaletteIsLightPaperWithDarkGraphite\n- SketchTheme.ActiveTextContrastIsReadableAndDisabledIsLower\n- SketchTheme.UsesSolidFillAndTwoStrokes"
     },
     {
       "id": "T5",
