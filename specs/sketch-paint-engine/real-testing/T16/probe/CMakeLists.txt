@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.21)
+project(T16Probe CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+set(ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../..)
+add_executable(probe Probe.cpp)
+target_include_directories(probe PRIVATE ${ROOT}/Examples/src)
+target_link_libraries(probe PRIVATE ${ROOT}/build/debug/Examples/libHandPaintingExampleLib.a ${ROOT}/build/debug/hpq/libhpq.a Qt6::Widgets)

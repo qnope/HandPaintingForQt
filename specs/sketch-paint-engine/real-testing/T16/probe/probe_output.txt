@@ -1,0 +1,8 @@
+visible=1 exposed=1 size=697x600
+messages=6
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
