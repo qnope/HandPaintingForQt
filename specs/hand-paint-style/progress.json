@@ -1,0 +1,163 @@
+{
+  "feature": "hand-paint-style",
+  "status": "open",
+  "test_command": "cmake --preset debug && cmake --build --preset debug && QT_QPA_PLATFORM=offscreen ctest --preset debug",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "HandPaintStyle is a proxy over Fusion",
+      "file": "tasks/T1.md",
+      "depends_on": [],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T2",
+      "title": "Flat push button panel",
+      "file": "tasks/T2.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T3",
+      "title": "Vector arrows",
+      "file": "tasks/T3.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T4",
+      "title": "Group box frame",
+      "file": "tasks/T4.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T5",
+      "title": "Push and tool button widgets",
+      "file": "tasks/T5.md",
+      "depends_on": [
+        "T2"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T6",
+      "title": "Disabled button colors",
+      "file": "tasks/T6.md",
+      "depends_on": [
+        "T5"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T7",
+      "title": "Combobox",
+      "file": "tasks/T7.md",
+      "depends_on": [
+        "T2",
+        "T3"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T8",
+      "title": "Header sections",
+      "file": "tasks/T8.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T9",
+      "title": "Scroll bar arrows",
+      "file": "tasks/T9.md",
+      "depends_on": [
+        "T3"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T10",
+      "title": "Spin boxes",
+      "file": "tasks/T10.md",
+      "depends_on": [
+        "T3"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T11",
+      "title": "Sliders",
+      "file": "tasks/T11.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T12",
+      "title": "Other widgets have no image",
+      "file": "tasks/T12.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T13",
+      "title": "apply_theme installs HandPaintStyle",
+      "file": "tasks/T13.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T14",
+      "title": "Example window looks hand-drawn",
+      "file": "tasks/T14.md",
+      "depends_on": [
+        "T4",
+        "T5",
+        "T7",
+        "T13"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    }
+  ]
+}
