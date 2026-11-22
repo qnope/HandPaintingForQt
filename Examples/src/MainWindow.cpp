@@ -90,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::select_theme(int index)
 {
     if (index == SketchIndex)
-        hpq::apply_theme(*this, std::make_shared<const hpq::Theme>(hpq::sketch_theme()),
+        hpq::apply_theme(*this, hpq::sketch_theme(),
                          std::make_shared<const hpq::RoughGeometryEngine>());
     else
         hpq::remove_theme(*this);
