@@ -1,13 +1,12 @@
 #include <hpq/RoughGeometryEngine.h>
 
-#include "SeededRandom.h"
-
 #include <QLineF>
 #include <QPolygonF>
 #include <QTransform>
 
 #include <algorithm>
 #include <cmath>
+#include <random>
 #include <vector>
 
 namespace hpq {
@@ -25,10 +24,20 @@ constexpr double WobbleSpacingPerAmplitude = 12.0;
 constexpr double FlatteningZoom = 4.0;
 constexpr double Pi = 3.14159265358979323846;
 
-// A random offset whose length is at most `amplitude`.
-QPointF random_offset(SeededRandom &random, double amplitude)
+// The generator of one shape: the same seeds always give the same numbers.
+std::mt19937 shape_generator(std::uint32_t base_seed, std::uint32_t shape_seed)
 {
-    const QPointF offset = QPointF(random.next_signed(), random.next_signed()) * amplitude;
+    std::seed_seq seeds{base_seed, shape_seed};
+    return std::mt19937(seeds);
+}
+
+// A random offset whose length is at most `amplitude`.
+QPointF random_offset(std::mt19937 &generator, double amplitude)
+{
+    std::uniform_real_distribution<double> coordinate(-1.0, 1.0);
+    const double x = coordinate(generator);
+    const double y = coordinate(generator);
+    const QPointF offset = QPointF(x, y) * amplitude;
     const double length = std::hypot(offset.x(), offset.y());
     return length > amplitude ? offset * (amplitude / length) : offset;
 }
@@ -37,13 +46,13 @@ QPointF random_offset(SeededRandom &random, double amplitude)
 // evenly spaced knots, blended with a cosine between two knots.
 class SmoothWobble {
 public:
-    SmoothWobble(double path_length, bool closed, double amplitude, SeededRandom &random)
+    SmoothWobble(double path_length, bool closed, double amplitude, std::mt19937 &generator)
     {
         const double wanted_spacing = std::max(MinWobbleSpacing, WobbleSpacingPerAmplitude * amplitude);
         const int interval_count = std::max(1, static_cast<int>(std::lround(path_length / wanted_spacing)));
         m_knot_spacing = path_length / interval_count;
         for (int i = 0; i <= interval_count; ++i)
-            m_knot_offsets.push_back(random_offset(random, amplitude));
+            m_knot_offsets.push_back(random_offset(generator, amplitude));
         // A closed path ends where it starts: the same offset there keeps the stroke closed.
         if (closed)
             m_knot_offsets.back() = m_knot_offsets.front();
@@ -76,9 +85,9 @@ double polygon_length(const QPolygonF &polygon)
 
 // The polygon drawn by hand: every point is moved by a smooth wobble, and long
 // sides get extra points so that they bend with it.
-QPainterPath rough_stroke(const QPolygonF &polygon, double amplitude, SeededRandom &random)
+QPainterPath rough_stroke(const QPolygonF &polygon, double amplitude, std::mt19937 &generator)
 {
-    const SmoothWobble wobble(polygon_length(polygon), polygon.isClosed(), amplitude, random);
+    const SmoothWobble wobble(polygon_length(polygon), polygon.isClosed(), amplitude, generator);
 
     QPainterPath stroke(polygon.first() + wobble.at(0.0));
     double arc_length = 0.0;
@@ -113,10 +122,14 @@ double wobble_amplitude(const RoughOptions &options)
 
 }  // namespace
 
+RoughGeometryEngine::RoughGeometryEngine() : RoughGeometryEngine(std::random_device()()) {}
+
+RoughGeometryEngine::RoughGeometryEngine(std::uint32_t base_seed) : m_base_seed(base_seed) {}
+
 std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape, const RoughOptions &options,
                                                        std::uint32_t seed) const
 {
-    SeededRandom random(seed);
+    std::mt19937 generator = shape_generator(m_base_seed, seed);
     const double amplitude = wobble_amplitude(options);
     const QList<QPolygonF> polygons = flattened_subpaths(shape);
 
@@ -125,7 +138,7 @@ std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape
         QPainterPath stroke;
         for (const QPolygonF &polygon : polygons) {
             if (!polygon.isEmpty())
-                stroke.addPath(rough_stroke(polygon, amplitude, random));
+                stroke.addPath(rough_stroke(polygon, amplitude, generator));
         }
         strokes.push_back(stroke);
     }
@@ -135,7 +148,7 @@ std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape
 QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const RoughOptions &options,
                                             std::uint32_t seed) const
 {
-    SeededRandom random(seed);
+    std::mt19937 generator = shape_generator(m_base_seed, seed);
     const double amplitude = wobble_amplitude(options);
 
     QPainterPath area;
@@ -143,7 +156,7 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     for (const QPolygonF &polygon : flattened_subpaths(shape)) {
         if (polygon.isEmpty())
             continue;
-        QPainterPath boundary = rough_stroke(polygon, amplitude, random);
+        QPainterPath boundary = rough_stroke(polygon, amplitude, generator);
         boundary.closeSubpath();
         area.addPath(boundary);
     }

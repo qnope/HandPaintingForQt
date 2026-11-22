@@ -9,7 +9,12 @@
 
 #include <QPainter>
 
+#include <cstdint>
+
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -98,7 +103,7 @@ TEST(HandPaintSeedTest, IdentityEngineMakesTargetReceiveTheExactRectangle) {
 }
 
 TEST(HandPaintSeedTest, SameRectangleDrawnTwiceGivesTheSamePaths) {
-    const hpq::RoughGeometryEngine geometry_engine;
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
 
     const std::vector<QPainterPath> first = paths_of(draw_rectangle(Rectangle, geometry_engine));
     const std::vector<QPainterPath> second = paths_of(draw_rectangle(Rectangle, geometry_engine));
@@ -107,7 +112,7 @@ TEST(HandPaintSeedTest, SameRectangleDrawnTwiceGivesTheSamePaths) {
 }
 
 TEST(HandPaintSeedTest, SeedUsesDeviceCoordinatesOnce) {
-    const hpq::RoughGeometryEngine geometry_engine;
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     const QPointF offset(100, 100);
 
     const std::vector<QPainterPath> moved = paths_of(draw_rectangle(Rectangle.translated(offset), geometry_engine));
@@ -119,7 +124,7 @@ TEST(HandPaintSeedTest, SeedUsesDeviceCoordinatesOnce) {
 }
 
 TEST(HandPaintSeedTest, DifferentRectanglesGiveDifferentPaths) {
-    const hpq::RoughGeometryEngine geometry_engine;
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     const QPointF offset(20, 30);
 
     const std::vector<QPainterPath> first = paths_of(draw_rectangle(Rectangle, geometry_engine));

@@ -10,7 +10,12 @@
 
 #include <functional>
 
+#include <cstdint>
+
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 constexpr int TargetSize = 200;
 constexpr int SourceSize = 10;
@@ -57,7 +62,7 @@ protected:
     }
 
     hpq::Theme m_theme = hpq::sketch_theme();
-    hpq::RoughGeometryEngine m_geometry_engine;
+    hpq::RoughGeometryEngine m_geometry_engine{BaseSeed};
     const QImage m_source = four_color_image();
 };
 

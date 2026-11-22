@@ -10,7 +10,7 @@
 namespace hpq {
 
 // Turns the shape of a primitive into the paths that are drawn instead of it.
-// The result depends only on the shape, the options and the seed.
+// For a given engine, the result depends only on the shape, the options and the seed.
 class GeometryEngine {
 public:
     GeometryEngine() = default;

@@ -14,7 +14,12 @@
 #include <cmath>
 #include <functional>
 
+#include <cstdint>
+
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::RecordingPaintDevice;
 
@@ -160,7 +165,7 @@ QColor rough_star_center_color(Qt::FillRule fill_rule) {
     image.fill(Qt::white);
     QPainter target_painter(&image);
     const hpq::Theme theme = hpq::sketch_theme();
-    const hpq::RoughGeometryEngine geometry_engine;
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
     QPainter painter(&device);
     painter.setPen(QPen(Qt::black, 1.0));

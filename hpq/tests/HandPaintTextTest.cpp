@@ -10,7 +10,12 @@
 
 #include <cmath>
 
+#include <cstdint>
+
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -37,7 +42,7 @@ protected:
     }
 
     hpq::Theme m_theme = hpq::sketch_theme();
-    hpq::RoughGeometryEngine m_geometry_engine;
+    hpq::RoughGeometryEngine m_geometry_engine{BaseSeed};
     RecordingPaintDevice m_target;
     int m_device_dpi_y = 0;
 };

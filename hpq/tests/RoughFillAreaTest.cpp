@@ -10,6 +10,9 @@
 
 namespace {
 
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
+
 constexpr std::uint32_t Seed = 7;
 
 hpq::RoughOptions fill_options()
@@ -59,7 +62,7 @@ bool same_elements(const QPainterPath &a, const QPainterPath &b)
 void expect_rough_fill_of(const QPainterPath &shape, QPointF center)
 {
     const hpq::RoughOptions options = fill_options();
-    const QPainterPath fill = hpq::RoughGeometryEngine().fill_area(shape, options, Seed);
+    const QPainterPath fill = hpq::RoughGeometryEngine(BaseSeed).fill_area(shape, options, Seed);
 
     EXPECT_TRUE(is_closed(fill));
     const double margin = options.max_offset;
@@ -82,7 +85,7 @@ TEST(RoughFillAreaTest, EllipseFillIsClosedNearTheShapeAndContainsItsCenter)
 
 TEST(RoughFillAreaTest, SameShapeOptionsAndSeedGiveTheSamePaths)
 {
-    const hpq::RoughGeometryEngine engine;
+    const hpq::RoughGeometryEngine engine(BaseSeed);
     const QPainterPath shape = rectangle_shape();
     const hpq::RoughOptions options = fill_options();
 
@@ -106,7 +109,7 @@ TEST(RoughFillAreaTest, FillAreaCoversTheWholeShape)
     const QPainterPath shape = rectangle_shape();
     const QRectF inside = shape.boundingRect().adjusted(Step, Step, -Step, -Step);
     for (std::uint32_t seed = 0; seed < 10; ++seed) {
-        const QPainterPath fill = hpq::RoughGeometryEngine().fill_area(shape, fill_options(), seed);
+        const QPainterPath fill = hpq::RoughGeometryEngine(BaseSeed).fill_area(shape, fill_options(), seed);
         for (double y = inside.top(); y <= inside.bottom(); y += Step) {
             for (double x = inside.left(); x <= inside.right(); x += Step) {
                 ASSERT_TRUE(fill.contains(QPointF(x, y))) << "seed " << seed << " point " << x << "," << y;
