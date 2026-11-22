@@ -41,6 +41,12 @@ QRegion grown(const QRegion &region, int margin) {
     return result;
 }
 
+// `outline` kept out of `frame`: it follows the edge of `frame` where it would enter it.
+QPainterPath kept_outside(QPainterPath outline, const QPainterPath &frame) {
+    outline.setFillRule(frame.fillRule());
+    return outline.united(frame);
+}
+
 std::uint32_t rounded(double coordinate) {
     return static_cast<std::uint32_t>(static_cast<std::int64_t>(std::llround(coordinate * SeedPrecision)));
 }
@@ -87,13 +93,13 @@ void HandPaintEngine::updateState(const QPaintEngineState &state) {
     }
 }
 
-void HandPaintEngine::drawPath(const QPainterPath &path) { draw_shape(path, true); }
+void HandPaintEngine::drawPath(const QPainterPath &path) { draw_shape(path, ShapeKind::Closed); }
 
 void HandPaintEngine::drawRects(const QRectF *rects, int count) {
     for (int index = 0; index < count; ++index) {
         QPainterPath shape;
         shape.addRect(rects[index]);
-        draw_shape(shape, true);
+        draw_shape(shape, ShapeKind::Rectangle);
     }
 }
 
@@ -101,14 +107,14 @@ void HandPaintEngine::drawLines(const QLineF *lines, int count) {
     for (int index = 0; index < count; ++index) {
         QPainterPath shape(lines[index].p1());
         shape.lineTo(lines[index].p2());
-        draw_shape(shape, false);
+        draw_shape(shape, ShapeKind::Open);
     }
 }
 
 void HandPaintEngine::drawEllipse(const QRectF &rect) {
     QPainterPath shape;
     shape.addEllipse(rect);
-    draw_shape(shape, true);
+    draw_shape(shape, ShapeKind::Closed);
 }
 
 // A polyline is an open shape; the other modes are closed and keep their fill rule.
@@ -125,7 +131,7 @@ void HandPaintEngine::drawPolygon(const QPointF *points, int count, PolygonDrawM
         shape.closeSubpath();
     }
     shape.setFillRule(mode == WindingMode ? Qt::WindingFill : Qt::OddEvenFill);
-    draw_shape(shape, closed);
+    draw_shape(shape, closed ? ShapeKind::Closed : ShapeKind::Open);
 }
 
 // Images reach the target unchanged.
@@ -150,16 +156,19 @@ void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap,
 
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }
 
-void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, bool closed) {
+void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
     const QPainterPath shape = m_transform.map(logical_shape);
     const RoughOptions options = m_theme.rough_options();
     const std::uint32_t shape_seed = seed(shape);
-    if (closed && m_brush.style() != Qt::NoBrush) {
+    const bool filled = m_brush.style() != Qt::NoBrush;
+    if (kind != ShapeKind::Open && filled) {
         draw_on_target(m_geometry_engine.fill_area(shape, options, shape_seed), Qt::NoPen, m_brush);
     }
     if (m_pen.style() != Qt::NoPen) {
+        // A rectangle with no area is a line: it frames nothing.
+        const bool is_frame = kind == ShapeKind::Rectangle && !filled && !shape.boundingRect().isEmpty();
         for (const QPainterPath &outline : m_geometry_engine.outline(shape, options, shape_seed)) {
-            draw_on_target(outline, m_pen, Qt::NoBrush);
+            draw_on_target(is_frame ? kept_outside(outline, shape) : outline, m_pen, Qt::NoBrush);
         }
     }
 }
