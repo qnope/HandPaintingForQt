@@ -86,10 +86,11 @@
       "depends_on": [
         "T5"
       ],
-      "status": "review",
-      "rejections": 1,
-      "note": "REJECTED\n- hpq/tests/SolidFillTest.cpp: SketchFilledRectHasHandDrawnOutline still passes when no outline is drawn. Checked on a scratch copy where `if (m_has_pen)` in draw_hand_drawn was changed to `if (false && m_has_pen)`: all 6 SolidFill tests passed. Cause: outline_is_covered_by_ink accepts any pixel for which is_ink_blend is true, and the Sketch fill #D0D0D0 lies between #FFFFFF and #333333 so it counts as ink blend; fill pixels next to the edge cover every outline point, and \"differs from plain QPainter\" also passes on a rough fill alone. -> Make the check need real ink on the outline: for each outline point, require a pixel within D that is darker than the theme fill, or that is neither background nor fill. Also check that the pixels between the inner rect (D+1 inside) and the outer band (D outside) are not all fill or background. Then confirm the test fails when the stroke is removed.",
-      "worktree": ".worktrees/hand-paint-engine/T7"
+      "status": "dev",
+      "rejections": 2,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-engine/T7, run `git merge d1a567ea880b5235250bdaadde7937d8e15f6e6b`, keep the work of both sides and make the tests pass",
+      "worktree": ".worktrees/hand-paint-engine/T7",
+      "review": "APPROVED\n- SolidFill.SketchFilledRectCenterHasThemeFillColor\n- SolidFill.SketchFilledRectIsBackgroundFartherThanDOutside\n- SolidFill.SketchFilledRectHasHandDrawnOutline\n- SolidFill.SketchHalfTransparentBrushBlendsThemeFillAtHalf\n- SolidFill.SketchHalfTransparentBrushWithoutPenHasNoInk\n- SolidFill.NoPenNoBrushShapesLeaveOnlyBackground"
     },
     {
       "id": "T8",
@@ -111,10 +112,11 @@
       "depends_on": [
         "T5"
       ],
-      "status": "review",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T9"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-engine/T9, run `git merge d1a567ea880b5235250bdaadde7937d8e15f6e6b`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- Transform.TranslatedRectIsHandDrawnOutlineOfTranslatedRect\n- Transform.TranslatedRectLeavesUntranslatedLeftEdgeBackground\n- Transform.ScaledRectIsHandDrawnOutlineOfScaledRect",
+      "real_testing": "PASSED\n- B16: merged worktree builds, ctest 3/3. translate(50,0) + drawRect(20,40,80,80), NoBrush, Sketch -> outline x 69-151, y 38-121; (30,80) background; no ink at the untransformed edge; inside empty; slightly wavy edges with small corner overshoots.\n- B16: scale(2,2) + drawRect(20,20,40,40), China Ink -> outline (38,38)-(121,121); left edge stroke 2.00 px, same as untransformed drawRect(40,40,80,80) (ratio 1.00, PNG byte-identical): stroke width not doubled.\n- B16 extra (curves after merge): drawEllipse + cubic drawPath under translate(50,0) and scale(2,2) -> at the moved/scaled place, byte-identical to the same shapes drawn untransformed, hand-drawn (doubled, wobbly), stroke stays thin under scale (655 ink px vs 952 for plain QPainter).\n- Rotate, save/restore, text/image after translate re-run: same results as before.\nEvidence: specs/hand-paint-engine/real-testing/T9/"
     },
     {
       "id": "T10",
@@ -124,9 +126,11 @@
         "T5",
         "T6"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T10",
+      "review": "APPROVED\n- Seed.SameSeedOnTwoDevicesGivesIdenticalImages\n- Seed.DifferentSeedsGiveDifferentImages\n- Seed.DevicesWithoutSeedGiveIdenticalImages"
     },
     {
       "id": "T11",

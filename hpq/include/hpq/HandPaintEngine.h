@@ -5,6 +5,7 @@
 
 #include <QPaintEngine>
 #include <QPainter>
+#include <QTransform>
 
 namespace hpq {
 
@@ -38,6 +39,7 @@ private:
     RandomGenerator m_random;
     bool m_has_pen = true;
     bool m_has_brush = false;
+    QTransform m_transform;
 };
 
 } // namespace hpq

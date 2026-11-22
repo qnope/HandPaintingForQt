@@ -1,0 +1,27 @@
+translate: ink pixels=741 bbox=(69,38)-(151,121)
+translate: pixel(30,80) bg=1; ink in untransformed left edge zone x[15,25] y[50,110]=0; ink at new left edge x[65,75] y[50,110]=163; right edge x[145,155]=143; interior x[85,135] y[60,100]=0
+scale_reference_unscaled: ink pixels=1200 bbox=(38,38)-(121,121)
+scale_reference_unscaled: mean dark run across left edge=2,00 px; ink at untransformed rect zone x[15,25] y[25,55]=0; interior x[55,105] y[55,105]=0
+scale: ink pixels=1200 bbox=(38,38)-(121,121)
+scale: mean dark run across left edge=2,00 px; ink at untransformed rect zone x[15,25] y[25,55]=0; interior x[55,105] y[55,105]=0
+scale: stroke ratio scaled/unscaled=1,00
+rotate: ink pixels=891 bbox=(30,30)-(169,169)
+rotate_reference_qpainter: ink pixels=689 bbox=(31,31)-(168,168)
+rotate: ink near untransformed top-left corner (50,50) zone x[45,55] y[45,55]=0
+save_restore: ink TR quadrant x[100,199] y[0,99]=555; BL quadrant x[0,99] y[100,199]=638; TL quadrant=0; BR quadrant=0
+text_image: red pixels=900 bbox=(110,110)-(139,139)
+text_image: ink in text zone x[15,100] y[35,65]=536; ink at untransformed text zone x[0,40] y[0,30] (minus nothing)=0
+text_image (hpq): ink pixels=1436 bbox=(21,42)-(139,139)
+text_image (plain QPainter): ink pixels=1436 bbox=(21,42)-(139,139)
+curves_translate: ink pixels=583 bbox=(48,19)-(140,152)
+curves_translate: ink top half y[0,99]=362 bottom half y[100,199]=221; left strip x[0,45]=0
+curves_translate_reference_qpainter: ink pixels=479 bbox=(49,19)-(140,152)
+curves_translate_untransformed: ink pixels=583 bbox=(48,19)-(140,152)
+curves_translate_untransformed: ink top half y[0,99]=362 bottom half y[100,199]=221; left strip x[0,45]=0
+curves_translate_untransformed_reference_qpainter: ink pixels=479 bbox=(49,19)-(140,152)
+curves_scale: ink pixels=655 bbox=(9,19)-(101,152)
+curves_scale: ink top half y[0,99]=438 bottom half y[100,199]=217; left strip x[0,5]=0
+curves_scale_reference_qpainter: ink pixels=952 bbox=(8,19)-(101,152)
+curves_scale_untransformed: ink pixels=655 bbox=(9,19)-(101,152)
+curves_scale_untransformed: ink top half y[0,99]=438 bottom half y[100,199]=217; left strip x[0,5]=0
+curves_scale_untransformed_reference_qpainter: ink pixels=546 bbox=(9,19)-(100,152)
