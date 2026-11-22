@@ -34,11 +34,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-style/T3",
-      "review": "APPROVED\n- ArrowTest.UpArrowIsOneFilledTrianglePointingUp, ArrowTest.DownArrowIsOneFilledTrianglePointingDown, ArrowTest.LeftArrowIsOneFilledTrianglePointingLeft, ArrowTest.RightArrowIsOneFilledTrianglePointingRight\n- ArrowTest.UpArrowIsOneFilledTrianglePointingUp (smallest y), ArrowTest.DownArrowIsOneFilledTrianglePointingDown (largest y), ArrowTest.LeftArrowIsOneFilledTrianglePointingLeft (smallest x), ArrowTest.RightArrowIsOneFilledTrianglePointingRight (largest x)"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/src/HandPaintStyle.cpp, hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T3, run `git merge a5d401696ebc6a0ab9d33a688e92f24af393aaa1`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- ArrowTest.UpArrowIsOneFilledTrianglePointingUp, ArrowTest.DownArrowIsOneFilledTrianglePointingDown, ArrowTest.LeftArrowIsOneFilledTrianglePointingLeft, ArrowTest.RightArrowIsOneFilledTrianglePointingRight (via arrow_triangle + expect_triangle_inside_rect in /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T3/hpq/tests/ArrowTest.cpp)\n- ArrowTest.UpArrowIsOneFilledTrianglePointingUp, ArrowTest.DownArrowIsOneFilledTrianglePointingDown, ArrowTest.LeftArrowIsOneFilledTrianglePointingLeft, ArrowTest.RightArrowIsOneFilledTrianglePointingRight (via expect_tip with is_higher / is_lower / is_more_left / is_more_right)",
+      "real_testing": "PASSED\n- B4: after merge de4c8c4, rebuilt hpq in the T3 worktree and reran the program: drawPrimitive PE_IndicatorArrowUp/Down/Left/Right on R=(10,10,20,20) on a counting engine -> each 1 polygon of 3 points, 0 images, no other calls, solid #2b2b2b (ButtonText), points inside R; tips Up (20,15) smallest y, Down (20,25) largest y, Left (15,20) smallest x, Right (25,20) largest x. Exit 0. arrows_100.png / arrows_20_x4.png: four solid dark centred triangles pointing the right way.\n- merge check: PE_PanelButtonCommand raised/sunken/on still draws 1 rect inside R, 0 images, Dark pen #8a867d, Button #fbf8ef / Midlight #f2eddf fill (panels.png). No crash.\nEvidence: scratchpad t3/."
     },
     {
       "id": "T4",
@@ -129,7 +129,7 @@
       "depends_on": [
         "T1"
       ],
-      "status": "dev",
+      "status": "real-testing",
       "rejections": 1,
       "note": "FAILED\n- B12: at the slider's normal 20 px thickness the handle outline is not closed. Horizontal QSlider 180x20 (and vertical 20x180), value 30: the handle rect from subControlRect is (19,-1, 20x20), so the outline is drawn at y=-0.5 (x=-0.5 for vertical), outside the widget. In the grabs the horizontal handle has no top border and the vertical handle no left border: pixels (58,0)/(58,1) and (0,122)/(1,122) are background #fbf8ef while the opposite sides are Dark at (58,18)/(18,122); the handle also sits 1 px off-centre. With a 40 px thick slider the outline is complete. Expected: a closed Dark handle outline fully visible inside the widget at the slider's normal size (also at sizeHint 84x20 / 20x84). Everything else holds (0 images, groove Mid fill + Dark outline, handle Button fill + Dark pen).\nEvidence: scratchpad t11/ (slider_horizontal*.png, slider_vertical*.png, pixels.txt).",
       "worktree": ".worktrees/hand-paint-style/T11",
