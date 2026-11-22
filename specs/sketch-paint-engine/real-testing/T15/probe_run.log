@@ -1,0 +1,14 @@
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+[1_startup] combo index=0 text='Sketch' effect=hpq::HandPaintEffect(HandPaintEffect) palette==Sketch:1 font='Architects Daughter' window=#fbf8ef
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+[2_china_ink] combo index=1 text='China Ink' effect=null(-) palette==Sketch:0 font='Helvetica' window=#efefef
+[3_black_slate] combo index=2 text='Black slate and chalk' effect=null(-) palette==Sketch:0 font='Helvetica' window=#efefef
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+[4_sketch_again] combo index=0 text='Sketch' effect=hpq::HandPaintEffect(HandPaintEffect) palette==Sketch:1 font='Architects Daughter' window=#fbf8ef
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+[5_china_then_sketch] combo index=0 text='Sketch' effect=hpq::HandPaintEffect(HandPaintEffect) palette==Sketch:1 font='Architects Daughter' window=#fbf8ef
+exit=0

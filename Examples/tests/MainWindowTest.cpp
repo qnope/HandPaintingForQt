@@ -14,21 +14,14 @@
 #include <QTableView>
 #include <QTreeView>
 #include <gtest/gtest.h>
+#include <hpq/HandPaintEffect.h>
+#include <hpq/SketchTheme.h>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
 {
     return w.findChild<T *>(name);
 }
-
-// Exposes the protected QObject::receivers.
-struct ReceiverCounter : QObject
-{
-    static int count(const QObject *o, const char *signal)
-    {
-        return static_cast<const ReceiverCounter *>(o)->receivers(signal);
-    }
-};
 } // namespace
 
 TEST(MainWindow, WidgetsOfTheUiExist)
@@ -104,3 +97,51 @@ TEST(MainWindow, SceneContainsEachShapeKind)
     EXPECT_TRUE(scene_has<QGraphicsPolygonItem>(scene));
     EXPECT_TRUE(scene_has<QGraphicsSimpleTextItem>(scene) || scene_has<QGraphicsTextItem>(scene));
 }
+
+namespace {
+bool has_hand_paint_effect(const QWidget &widget)
+{
+    return qobject_cast<hpq::HandPaintEffect *>(widget.graphicsEffect()) != nullptr;
+}
+
+constexpr int SketchIndex = 0;
+constexpr int ChinaInkIndex = 1;
+constexpr int BlackSlateIndex = 2;
+} // namespace
+
+TEST(MainWindow, StartsWithTheSketchThemeApplied)
+{
+    hpq::example::MainWindow w;
+    auto *combo = find<QComboBox>(w, "comboBox");
+    ASSERT_NE(combo, nullptr);
+    EXPECT_EQ(combo->currentIndex(), SketchIndex);
+    EXPECT_EQ(combo->currentText(), "Sketch");
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::SketchTheme().palette());
+    EXPECT_EQ(w.font().family(), "Architects Daughter");
+}
+
+class MainWindowOtherTheme : public ::testing::TestWithParam<int>
+{
+};
+
+TEST_P(MainWindowOtherTheme, SelectingItRemovesTheSketchTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(GetParam());
+    EXPECT_EQ(w.graphicsEffect(), nullptr);
+    EXPECT_NE(w.palette(), hpq::SketchTheme().palette());
+}
+
+TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
+{
+    hpq::example::MainWindow w;
+    auto *combo = find<QComboBox>(w, "comboBox");
+    combo->setCurrentIndex(GetParam());
+    combo->setCurrentIndex(SketchIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::SketchTheme().palette());
+}
+
+INSTANTIATE_TEST_SUITE_P(ChinaInkAndBlackSlate, MainWindowOtherTheme,
+                         ::testing::Values(ChinaInkIndex, BlackSlateIndex));
