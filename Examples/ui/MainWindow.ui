@@ -27,7 +27,7 @@
           <string>TextLabel</string>
          </property>
          <property name="buddy">
-          <cstring>label</cstring>
+          <cstring>comboBox</cstring>
          </property>
         </widget>
        </item>

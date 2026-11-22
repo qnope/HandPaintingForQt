@@ -73,6 +73,12 @@ jobs:
           mkdir -p "$RUNNER_TEMP/vcpkg-cache"
           echo "VCPKG_DEFAULT_BINARY_CACHE=$RUNNER_TEMP/vcpkg-cache" >> "$GITHUB_ENV"
 
+      # On Windows the offscreen platform does not read the system fonts: without a font
+      # directory, Qt warns and the application test reports an unexpected warning.
+      - name: Give the offscreen platform the Windows fonts
+        if: runner.os == 'Windows'
+        run: echo "QT_QPA_FONTDIR=C:/Windows/Fonts" >> "$GITHUB_ENV"
+
       - name: Configure
         run: >
           cmake -S . -B build

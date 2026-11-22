@@ -47,6 +47,16 @@ TEST(MainWindow, WidgetsOfTheUiExist)
     EXPECT_TRUE(edit->actions().isEmpty());
 }
 
+// A label that is its own buddy is told of its own destruction, after its QLabel part is
+// destroyed: a debug build of Qt stops on an assertion there.
+TEST(MainWindow, LabelBuddyIsTheComboBox)
+{
+    hpq::example::MainWindow w;
+    auto *label = find<QLabel>(w, "label");
+    ASSERT_NE(label, nullptr);
+    EXPECT_EQ(label->buddy(), find<QComboBox>(w, "comboBox"));
+}
+
 TEST(MainWindow, ComboBoxHoldsTheThreeThemes)
 {
     hpq::example::MainWindow w;
