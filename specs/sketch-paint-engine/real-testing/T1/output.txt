@@ -1,0 +1,29 @@
+== B1 seed42 m=5: 2 strokes
+  stroke 0: elements=11 first=(2,416,-3,401) last=(97,786,-1,558) dFirst=4,172 dLast=2,707 maxDistElem=3,401 maxDistFlat=3,401
+  stroke 1: elements=11 first=(3,682,-2,816) last=(103,006,-1,601) dFirst=4,636 dLast=3,406 maxDistElem=3,457 maxDistFlat=3,457
+== B1 seed7 m=15: 2 strokes
+  stroke 0: elements=11 first=(-3,305,-14,496) last=(112,023,2,488) dFirst=14,868 dLast=12,278 maxDistElem=14,868 maxDistFlat=14,868
+  stroke 1: elements=11 first=(-7,517,-0,961) last=(94,842,-10,972) dFirst=7,578 dLast=12,124 maxDistElem=10,972 maxDistFlat=10,972
+== B3 seed1: 2 strokes
+  stroke 0: elements=11 first=(0,666,2,458) last=(104,710,-0,556) dFirst=2,546 dLast=4,743 maxDistElem=4,743 maxDistFlat=4,743
+  stroke 1: elements=11 first=(2,629,3,773) last=(100,231,-2,145) dFirst=4,599 dLast=2,157 maxDistElem=3,773 maxDistFlat=3,773
+== B3 seed2: 2 strokes
+  stroke 0: elements=11 first=(0,912,2,491) last=(100,956,2,654) dFirst=2,653 dLast=2,821 maxDistElem=4,457 maxDistFlat=4,457
+  stroke 1: elements=11 first=(-1,534,2,264) last=(102,391,-2,497) dFirst=2,734 dLast=3,457 maxDistElem=3,457 maxDistFlat=3,457
+B3 seed1 == seed2 (first stroke): DIFFERENT
+seed1 repeat equal: yes
+== B4 roughness0: 2 strokes
+  stroke 0: elements=11 first=(0,000,0,000) last=(100,000,0,000) dFirst=0,000 dLast=0,000 maxDistElem=0,000 maxDistFlat=0,000
+  stroke 1: elements=11 first=(0,000,0,000) last=(100,000,0,000) dFirst=0,000 dLast=0,000 maxDistElem=0,000 maxDistFlat=0,000
+== stroke_count 5: 5 strokes
+  stroke 0: elements=11 first=(-3,865,2,003) last=(101,130,-4,271) dFirst=4,354 dLast=4,418 maxDistElem=4,418 maxDistFlat=4,418
+  stroke 1: elements=11 first=(1,362,-3,649) last=(103,887,-0,089) dFirst=3,895 dLast=3,888 maxDistElem=4,708 maxDistFlat=4,708
+  stroke 2: elements=11 first=(1,984,2,119) last=(99,802,-1,640) dFirst=2,903 dLast=1,652 maxDistElem=2,271 maxDistFlat=2,271
+  stroke 3: elements=11 first=(2,989,-1,939) last=(96,144,-3,183) dFirst=3,563 dLast=5,000 maxDistElem=3,522 maxDistFlat=3,522
+  stroke 4: elements=11 first=(2,956,4,032) last=(101,696,-3,089) dFirst=5,000 dLast=3,524 maxDistElem=4,032 maxDistFlat=4,032
+== zero-length line: 2 strokes
+  stroke 0: empty
+  stroke 1: empty
+== empty path: 2 strokes
+  stroke 0: empty
+  stroke 1: empty

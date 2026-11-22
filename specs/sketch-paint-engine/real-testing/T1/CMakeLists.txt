@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.16)
+project(T1Probe LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Gui)
+set(HPQ_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../..)
+add_library(hpq_imported STATIC IMPORTED)
+set_target_properties(hpq_imported PROPERTIES IMPORTED_LOCATION ${HPQ_ROOT}/build/debug/hpq/libhpq.a
+  INTERFACE_INCLUDE_DIRECTORIES ${HPQ_ROOT}/hpq/include)
+add_executable(probe probe.cpp)
+target_link_libraries(probe PRIVATE hpq_imported Qt6::Gui)
