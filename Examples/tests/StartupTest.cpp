@@ -2,10 +2,13 @@
 #include "PlatformMessages.h"
 
 #include <QApplication>
+#include <QComboBox>
 #include <QElapsedTimer>
+#include <QPixmap>
 #include <QTimer>
 #include <QWindow>
 #include <gtest/gtest.h>
+#include <hpq/HandPaintStyle.h>
 
 #include <string>
 #include <vector>
@@ -79,6 +82,22 @@ TEST(Startup, ThemedMainWindowExposedPaintsWithoutWarning)
         ASSERT_TRUE(wait_for_window_exposed(window));
         window.repaint();
         QCoreApplication::processEvents();
+    }
+    EXPECT_EQ(std::vector<std::string>{}, collector.warnings());
+}
+
+TEST(Startup, ThemedMainWindowGrabbedPaintsWithoutWarning)
+{
+    WarningCollector collector;
+    {
+        hpq::example::MainWindow window;
+        ASSERT_NE(qobject_cast<hpq::HandPaintStyle *>(window.findChild<QComboBox *>("comboBox")->style()),
+                  nullptr);
+        const QSize window_size(800, 600);
+        window.resize(window_size);
+        const QPixmap grab = window.grab();
+        EXPECT_FALSE(grab.isNull());
+        EXPECT_EQ(grab.size() / grab.devicePixelRatio(), window_size);
     }
     EXPECT_EQ(std::vector<std::string>{}, collector.warnings());
 }
