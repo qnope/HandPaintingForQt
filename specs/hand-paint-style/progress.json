@@ -129,11 +129,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
-      "rejections": 1,
-      "note": "FAILED\n- B12: at the slider's normal 20 px thickness the handle outline is not closed. Horizontal QSlider 180x20 (and vertical 20x180), value 30: the handle rect from subControlRect is (19,-1, 20x20), so the outline is drawn at y=-0.5 (x=-0.5 for vertical), outside the widget. In the grabs the horizontal handle has no top border and the vertical handle no left border: pixels (58,0)/(58,1) and (0,122)/(1,122) are background #fbf8ef while the opposite sides are Dark at (58,18)/(18,122); the handle also sits 1 px off-centre. With a 40 px thick slider the outline is complete. Expected: a closed Dark handle outline fully visible inside the widget at the slider's normal size (also at sizeHint 84x20 / 20x84). Everything else holds (0 images, groove Mid fill + Dark outline, handle Button fill + Dark pen).\nEvidence: scratchpad t11/ (slider_horizontal*.png, slider_vertical*.png, pixels.txt).",
-      "worktree": ".worktrees/hand-paint-style/T11",
-      "review": "APPROVED\n- SliderTest.HorizontalSliderDrawsGrooveAndHandleAsVectorShapes\n- SliderTest.VerticalSliderDrawsGrooveAndHandleAsVectorShapes"
+      "status": "done",
+      "rejections": 2,
+      "note": "hpq/include/hpq/HandPaintStyle.h, hpq/src/HandPaintStyle.cpp, hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T11, run `git merge 08681aed70318877936555be842d1ba2ef93675e`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- SliderTest.HorizontalSliderDrawsGrooveAndHandleAsVectorShapes\n- SliderTest.VerticalSliderDrawsGrooveAndHandleAsVectorShapes",
+      "real_testing": "PASSED\n- B12: after merge 20cfa2a, rebuilt hpq in the T11 worktree and reran t11/hint/probe offscreen. Horizontal 180x20 and vertical 20x180 QSlider, SketchTheme palette, recording engine -> images=0 (also with tick marks). Groove vector rect (h 0,7.5 180x4; v 7.5,0 4x180) Dark #8a867d; handle vector rect (h 48.5,0.5 19x19; v 0.5,112.5 19x19) solid Button #fbf8ef + Dark pen. Pixel probe: handle interior all Button, outline Dark on every side (corners antialiased). Screenshots: closed centred handle outline, ticks on both sides. Outputs and 8 PNGs byte-identical to before the merge.\nEvidence: scratchpad t11/after-merge/."
     },
     {
       "id": "T12",

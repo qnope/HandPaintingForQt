@@ -4,6 +4,7 @@
 #include <QPolygonF>
 #include <QStyleFactory>
 #include <QStyleOption>
+#include <QStyleOptionSlider>
 
 #include <algorithm>
 
@@ -12,6 +13,23 @@ namespace hpq {
 namespace {
 
 const QString BaseStyleName("Fusion");
+// Thickness, in pixels, of the line along which the slider handle moves.
+constexpr qreal SliderTrackThickness = 4.0;
+
+// Fusion may place the handle 1 px outside the slider: fit it across the slider and centre it,
+// so that its whole outline is visible.
+QRectF fitted_handle(const QRect &handle, const QStyleOptionSlider &option) {
+    QRectF fitted = handle;
+    const QRectF bounds = option.rect;
+    if (option.orientation == Qt::Horizontal) {
+        fitted.setHeight(std::min(fitted.height(), bounds.height()));
+        fitted.moveTop(bounds.center().y() - fitted.height() / 2);
+    } else {
+        fitted.setWidth(std::min(fitted.width(), bounds.width()));
+        fitted.moveLeft(bounds.center().x() - fitted.width() / 2);
+    }
+    return fitted;
+}
 
 // Flat push button: Button fill when raised, Midlight fill when sunken or on, Dark outline.
 void draw_button_panel(const QStyleOption &option, QPainter &painter) {
@@ -74,6 +92,52 @@ void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
     default:
         QProxyStyle::drawPrimitive(element, option, painter, widget);
         return;
+    }
+}
+
+void HandPaintStyle::drawComplexControl(ComplexControl control, const QStyleOptionComplex *option,
+                                        QPainter *painter, const QWidget *widget) const {
+    if (control == CC_Slider) {
+        if (const auto *slider = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
+            draw_slider(*slider, *painter, widget);
+            return;
+        }
+    }
+    QProxyStyle::drawComplexControl(control, option, painter, widget);
+}
+
+// Fusion caches the groove and the handle in pixmaps: draw them as flat shapes instead,
+// and let Fusion draw the tick marks, which it draws with lines.
+void HandPaintStyle::draw_slider(const QStyleOptionSlider &option, QPainter &painter,
+                                 const QWidget *widget) const {
+    const QRect groove = subControlRect(CC_Slider, &option, SC_SliderGroove, widget);
+    const QRect handle = subControlRect(CC_Slider, &option, SC_SliderHandle, widget);
+    const QPalette &palette = option.palette;
+
+    painter.save();
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(palette.color(QPalette::Dark));
+    if (option.subControls & SC_SliderGroove) {
+        QRectF track = groove;
+        if (option.orientation == Qt::Horizontal) {
+            track.setHeight(SliderTrackThickness);
+        } else {
+            track.setWidth(SliderTrackThickness);
+        }
+        track.moveCenter(QRectF(groove).center());
+        painter.setBrush(palette.color(QPalette::Mid));
+        painter.drawRect(track);
+    }
+    if (option.subControls & SC_SliderHandle) {
+        painter.setBrush(palette.color(QPalette::Button));
+        painter.drawRect(fitted_handle(handle, option).adjusted(0.5, 0.5, -0.5, -0.5));
+    }
+    painter.restore();
+
+    if (option.subControls & SC_SliderTickmarks) {
+        QStyleOptionSlider tick_marks = option;
+        tick_marks.subControls = SC_SliderTickmarks;
+        QProxyStyle::drawComplexControl(CC_Slider, &tick_marks, &painter, widget);
     }
 }
 
