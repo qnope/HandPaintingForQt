@@ -14,6 +14,8 @@
 #include <QPen>
 #include <QPolygonF>
 #include <QStandardItemModel>
+#include <cstdio>
+#define TRACE(x) (std::fprintf(stderr, "TRACE %s\n", x), std::fflush(stderr))
 
 namespace hpq::example {
 
@@ -62,20 +64,26 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_ui(std::make_unique<Ui::MainWindow>())
 {
+    TRACE("before setupUi");
     m_ui->setupUi(this);
+    TRACE("after setupUi");
     m_ui->comboBox->addItems({"None", "Sketch", "China Ink", "Black slate and chalk"});
 
+    TRACE("before table");
     auto table_model = create_table_model();
     table_model->setParent(this);
     m_ui->tableView->setModel(table_model.release());
 
+    TRACE("before tree");
     auto tree_model = create_tree_model();
     tree_model->setParent(this);
     m_ui->treeView->setModel(tree_model.release());
 
+    TRACE("before scene");
     m_ui->graphicsView->setScene(create_shapes_scene(this));
 }
 
+// end
 MainWindow::~MainWindow() = default;
 
 } // namespace hpq::example

@@ -126,9 +126,9 @@
         "T5",
         "T6"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
+      "status": "dev",
+      "rejections": 1,
+      "note": "FAILED\n- B18 / other: probe painted the same rect (no brush) + ellipse + polygon (blue brush) twice on one HandPaintDevice with seed 7, and twice on one device with no seed -> the second paint is not the same image: the rectangle drawn with no brush comes out filled grey the second time (repaint/side_by_side.png, repaint/default_seed_second_paint.png; \"first==second 0\"). When the drawing first sets a different brush then Qt::NoBrush, the two paints are identical. The seed is reset at begin() and the strokes repeat, but the engine keeps the previous painter's brush: a new QPainter starts with NoBrush, so it never sends a brush change and the stale blue brush is used. -> B18 says an unseeded device \"gives the same image every time\", and HandPaintDevice.h says \"painting the same drawing gives the same image, on this device or on another with the same seed\". A second paint of the same drawing on the same device must give the same image, with the rectangle not filled.\n- B17 OK (seed 42 on two devices equal, 3 themes). B18 seeds 1 vs 2 differ; no seed vs DefaultSeed equal; two process runs byte-identical.\nEvidence: specs/hand-paint-engine/real-testing/T10/",
       "worktree": ".worktrees/hand-paint-engine/T10",
       "review": "APPROVED\n- Seed.SameSeedOnTwoDevicesGivesIdenticalImages\n- Seed.DifferentSeedsGiveDifferentImages\n- Seed.DevicesWithoutSeedGiveIdenticalImages"
     },

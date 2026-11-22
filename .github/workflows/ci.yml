@@ -51,9 +51,8 @@ jobs:
           QT_LOGGING_RULES: "*=true"
         run: |
           T=build/Examples/tests/Debug/HandPaintingExampleTests.exe
-          for t in FontComboBox Graphics Table MainWin; do
-            timeout 60 $T --gtest_filter=Diag.$t > out.txt 2>&1; echo "RESULT Diag.$t exit $?"
-          done
+          timeout 60 $T --gtest_filter=MainWindow.WidgetsOfTheUiExist > out.txt 2>&1; echo "RESULT exit $?"
+          grep -E "TRACE|RUN|OK|FAIL" out.txt | sed 's/^/RESULT /'
           true
       - name: Test
-        run: ctest --test-dir build -C Debug --output-on-failure --timeout 120 -V
+        run: ctest --test-dir build -C Debug --output-on-failure --timeout 30 -V
