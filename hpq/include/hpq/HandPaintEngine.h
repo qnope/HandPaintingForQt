@@ -6,6 +6,7 @@
 #include <QPaintEngine>
 #include <QPainterPath>
 #include <QPen>
+#include <QTransform>
 
 #include <cstdint>
 
@@ -46,12 +47,24 @@ private:
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
     void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush);
     std::uint32_t seed(const QPainterPath &shape) const;
+    // Saves the target state, then intersects the target clip with the device painter's clip.
+    // What is drawn next is in device coordinates; restore the target when done.
+    void save_target_in_device_coordinates();
+    // Like save_target_in_device_coordinates, then composes the device painter's world transform,
+    // so that what is drawn next is in the device painter's logical coordinates.
+    void save_target_in_logical_coordinates();
 
     QPainter &m_target;
     const Theme &m_theme;
     const GeometryEngine &m_geometry_engine;
     QPen m_pen;
     QBrush m_brush;
+    // The device painter's world transform: shapes are mapped by it to device coordinates
+    // before the geometry engine deforms them, so that max_offset stays in device pixels.
+    QTransform m_transform;
+    // The device painter's clip, in device coordinates; used only when m_clipping is true.
+    QPainterPath m_clip;
+    bool m_clipping = false;
 };
 
 }  // namespace hpq

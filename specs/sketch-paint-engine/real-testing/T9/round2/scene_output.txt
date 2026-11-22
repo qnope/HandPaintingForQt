@@ -1,0 +1,67 @@
+qt.qpa.fonts: Populating font family aliases took 43 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+scene
+  pixmap bounds hand                 (400,170 60x40)
+  pixmap bounds plain                (400,170 60x40)
+  magenta bounds hand                (400,170 30x40)
+  magenta bounds plain               (400,170 30x40)
+  pixmap-color pixel mask differences = 0 (mag 0, cya 0)
+  blue text bounds hand              (200,240 122x19)
+  blue text bounds plain             (201,240 124x19)
+  all ink hand                       (27,27 433x296)
+  all ink plain                      (29,29 431x292)
+  expected: pixmap (400,170 60x40); text near (200,240)
+ts_text_pixmap
+  pixmap bounds hand                 (100,50 120x80)
+  pixmap bounds plain                (100,50 120x80)
+  magenta bounds hand                (100,50 60x80)
+  magenta bounds plain               (100,50 60x80)
+  pixmap-color pixel mask differences = 0 (mag 0, cya 0)
+  blue text bounds hand              (100,172 143x38)
+  blue text bounds plain             (102,174 142x37)
+  all ink hand                       (100,50 143x161)
+  all ink plain                      (100,50 144x161)
+  expected: pixmap (100,50 120x80); text baseline y=210 x>=100, ~48px glyphs
+rotate_text_pixmap
+  pixmap bounds hand                 (65,169 230x141)
+  pixmap bounds plain                (65,169 230x141)
+  magenta bounds hand                (65,169 205x141)
+  magenta bounds plain               (65,169 205x141)
+  pixmap-color pixel mask differences = 0 (mag 0, cya 0)
+  blue text bounds hand              (175,115 83x55)
+  blue text bounds plain             (175,113 78x55)
+  all ink hand                       (63,114 234x198)
+  all ink plain                      (63,112 234x200)
+clip_text_pixmap
+  pixmap bounds hand                 (50,50 200x100)
+  pixmap bounds plain                (50,50 200x100)
+  magenta bounds hand                (50,50 200x100)
+  magenta bounds plain               (50,50 200x100)
+  pixmap-color pixel mask differences = 557 (mag 336, cya 221)
+  blue text bounds hand              (101,129 149x21)
+  blue text bounds plain             (102,125 148x25)
+  all ink hand                       (50,50 200x100)
+  all ink plain                      (50,50 200x100)
+  hand ink outside clip (50,50,200,100) = 0
+trs_clip_text_pixmap
+  pixmap bounds hand                 (90,83 101x80)
+  pixmap bounds plain                (90,83 101x80)
+  magenta bounds hand                (90,83 58x68)
+  magenta bounds plain               (90,83 58x68)
+  pixmap-color pixel mask differences = 0 (mag 0, cya 0)
+  blue text bounds hand              (80,213 90x27)
+  blue text bounds plain             (80,211 105x29)
+  all ink hand                       (80,82 240x158)
+  all ink plain                      (80,82 240x158)
+  hand ink outside clip (80,60,240,180) = 0
+target_offset_text_pixmap
+  pixmap bounds hand                 (60,40 220x80)
+  pixmap bounds plain                (60,40 220x80)
+  magenta bounds hand                (60,40 160x80)
+  magenta bounds plain               (60,40 160x80)
+  pixmap-color pixel mask differences = 0 (mag 0, cya 0)
+  blue text bounds hand              (60,140 159x30)
+  blue text bounds plain             (61,142 130x24)
+  all ink hand                       (60,40 220x200)
+  all ink plain                      (60,40 220x200)
+  hand ink outside union((60,40,220,100) text/pixmaps, (54,34,..)) check: ink in y>240 = 0, ink below 175 outside (60,180,100,60) = 0
+exit 0

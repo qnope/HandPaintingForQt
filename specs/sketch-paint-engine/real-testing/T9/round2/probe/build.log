@@ -1,0 +1,54 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages are already installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 47.9 us
+-- Running vcpkg install - done
+-- The CXX compiler identification is AppleClang 21.0.0.21000401
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Configuring done (2.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: /private/tmp/claude-501/-Users-amorrier-Programmation-HandPaintingForQt/85ebdcd8-99a9-4512-93fd-0e849de00285/scratchpad/t9b
+[1/19] Automatic MOC and UIC for target hpq
+[2/19] Building CXX object hpq_build/CMakeFiles/hpq_resources_1.dir/.qt/rcc/qrc_hpq_fonts_init.cpp.o
+[3/19] Running rcc for resource hpq_fonts
+[4/19] Building CXX object hpq_build/CMakeFiles/hpq.dir/hpq_autogen/mocs_compilation.cpp.o
+[5/19] Building CXX object hpq_build/CMakeFiles/hpq.dir/src/Hpq.cpp.o
+[6/19] Building CXX object hpq_build/CMakeFiles/hpq.dir/.qt/rcc/qrc_hpq_fonts.cpp.o
+[7/19] Building CXX object hpq_build/CMakeFiles/hpq.dir/src/SketchTheme.cpp.o
+[8/19] Building CXX object hpq_build/CMakeFiles/hpq.dir/src/RoughGeometryEngine.cpp.o
+[9/19] Building CXX object hpq_build/CMakeFiles/hpq.dir/src/HandPaintDevice.cpp.o
+[10/19] Building CXX object hpq_build/CMakeFiles/hpq.dir/src/HandPaintEngine.cpp.o
+[11/19] Linking CXX static library hpq_build/libhpq.a
+[12/19] Automatic MOC and UIC for target probe
+[13/19] Automatic MOC and UIC for target scene
+[14/19] Building CXX object CMakeFiles/probe.dir/probe_autogen/mocs_compilation.cpp.o
+[15/19] Building CXX object CMakeFiles/scene.dir/scene_autogen/mocs_compilation.cpp.o
+[16/19] Building CXX object CMakeFiles/probe.dir/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/sketch-paint-engine/T9/specs/sketch-paint-engine/real-testing/T9/probe/main.cpp.o
+[17/19] Building CXX object CMakeFiles/scene.dir/scene.cpp.o
+[18/19] Linking CXX executable probe
+[19/19] Linking CXX executable scene

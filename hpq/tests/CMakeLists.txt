@@ -7,3 +7,4 @@ target_sources(HpqTests PRIVATE RecordingPaintDevice.h RecordingPaintDevice.cpp 
 target_sources(HpqTests PRIVATE HandPaintPrimitivesTest.cpp)
 target_sources(HpqTests PRIVATE HandPaintTextTest.cpp)
 target_sources(HpqTests PRIVATE HandPaintImageTest.cpp)
+target_sources(HpqTests PRIVATE HandPaintTransformClipTest.cpp)
