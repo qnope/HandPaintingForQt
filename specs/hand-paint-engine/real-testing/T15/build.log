@@ -1,0 +1,15 @@
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/build/debug
+ninja: no work to do.
+Test project /Users/amorrier/Programmation/HandPaintingForQt/build/debug
+    Start 1: HpqTests
+1/4 Test #1: HpqTests ...........................   Passed    0.57 sec
+    Start 2: HpqTestsPixelRatio2
+2/4 Test #2: HpqTestsPixelRatio2 ................   Passed    0.03 sec
+    Start 3: HandPaintingExampleTests
+3/4 Test #3: HandPaintingExampleTests ...........   Passed    0.20 sec
+    Start 4: HandPaintingExampleRunsOffscreen
+4/4 Test #4: HandPaintingExampleRunsOffscreen ...   Passed    0.08 sec
+
+100% tests passed out of 4
+
+Total Test time (real) =   0.88 sec

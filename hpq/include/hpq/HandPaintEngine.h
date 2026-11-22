@@ -31,8 +31,10 @@ public:
     Type type() const override;
 
 private:
-    // Sets the painter state to QPainter's defaults: a pen, no brush (opaque), the identity transform.
+    // Sets the painter state to QPainter's defaults: a pen, no brush (opaque), the identity transform, no clip.
     void reset_painter_state();
+    // Applies the painter clip of the state to the target painter.
+    void update_clip(const QPaintEngineState& state);
     // Draws ideal hand-drawn on the target; filled_with_brush tells whether the brush fills it.
     void draw_hand_drawn(const QPainterPath& ideal, bool filled_with_brush);
 

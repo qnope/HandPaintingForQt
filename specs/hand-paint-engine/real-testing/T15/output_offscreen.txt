@@ -1,0 +1,29 @@
+TRACE before setupUi
+TRACE after setupUi
+TRACE before table
+TRACE before tree
+TRACE before scene
+This plugin does not support propagateSizeHints()
+platform=offscreen window=697x600 dpr=1,0 empty1=(3,24) empty2=(694,159)
+start: empty1=#EFEFEF empty2=#EFEFEF
+  menuBar        effect=none theme=-
+  centralWidget  effect=none theme=-
+  statusBar      effect=none theme=-
+selected "Sketch": empty1=#FFFFFF empty2=#FFFFFF
+  menuBar        effect=HandPaintEffect theme=sketch
+  centralWidget  effect=HandPaintEffect theme=sketch
+  statusBar      effect=HandPaintEffect theme=sketch
+selected "China Ink": empty1=#F5EFE0 empty2=#F5EFE0
+  menuBar        effect=HandPaintEffect theme=china_ink
+  centralWidget  effect=HandPaintEffect theme=china_ink
+  statusBar      effect=HandPaintEffect theme=china_ink
+selected "Black slate and chalk": empty1=#2F3B33 empty2=#2F3B33
+  menuBar        effect=HandPaintEffect theme=chalk
+  centralWidget  effect=HandPaintEffect theme=chalk
+  statusBar      effect=HandPaintEffect theme=chalk
+selected "None": empty1=#EFEFEF empty2=#EFEFEF
+  menuBar        effect=none theme=-
+  centralWidget  effect=none theme=-
+  statusBar      effect=none theme=-
+grab after None == grab at start: YES
+chalk->None grab == start: YES

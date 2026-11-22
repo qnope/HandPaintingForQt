@@ -1,0 +1,4 @@
+qt.qpa.fonts: Populating font family aliases took 46 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support propagateSizeHints()
+style=fusion
+menubar geom=0,0 300x20 nativeMenuBar=0

@@ -6,11 +6,15 @@
 #include <hpq/HandPaintEffect.h>
 #include <hpq/Theme.h>
 
+#include <QBrush>
 #include <QColor>
 #include <QImage>
+#include <QPainter>
 #include <QPainterPath>
 #include <QPixmap>
+#include <QRect>
 #include <QRectF>
+#include <QWidget>
 
 namespace {
 
@@ -42,6 +46,27 @@ protected:
 
     hpq_tests::RectWidget m_widget;
     hpq::HandPaintEffect* m_effect = nullptr;
+};
+
+// A 40x30 widget at (30, 25) of its parent that fills a rect wider than itself: from (5, 5) to
+// (95, 75) in parent coordinates.
+class OverflowingChild : public QWidget
+{
+public:
+    explicit OverflowingChild(QWidget* parent)
+        : QWidget(parent)
+    {
+        setGeometry(30, 25, 40, 30);
+    }
+
+protected:
+    void paintEvent(QPaintEvent* /*event*/) override
+    {
+        QPainter painter(this);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QBrush(Qt::blue));
+        painter.drawRect(QRect(-25, -20, 90, 70));
+    }
 };
 
 QPainterPath rect_outline()
@@ -101,4 +126,15 @@ TEST_F(HandPaintEffectTest, RenderOnImageIsHandDrawnOutlineOfTheRectOnSketchBack
     m_widget.render(&image);
     EXPECT_EQ(QColor(image.pixel(50, 40)), QColor("#FFFFFF"));
     EXPECT_TRUE(hpq_tests::is_hand_drawn_outline(image, rect_outline(), hpq::Theme::sketch()));
+}
+
+TEST_F(HandPaintEffectTest, ChildPaintingIsClippedToTheChild)
+{
+    auto* child = new OverflowingChild(&m_widget); // m_widget owns the child
+    child->show();
+    const QImage image = grabbed();
+    EXPECT_EQ(QColor(image.pixel(50, 40)), hpq::Theme::sketch().fill());
+    // Inside the rect outline of m_widget, outside the child.
+    EXPECT_EQ(QColor(image.pixel(20, 40)), QColor("#FFFFFF"));
+    EXPECT_EQ(QColor(image.pixel(80, 40)), QColor("#FFFFFF"));
 }

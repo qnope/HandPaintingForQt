@@ -4,6 +4,9 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
+#include <hpq/HandPaintEffect.h>
+#include <hpq/Theme.h>
+
 #include <QBrush>
 #include <QtMath>
 #include <cmath>
@@ -14,6 +17,10 @@
 #include <QPen>
 #include <QPolygonF>
 #include <QStandardItemModel>
+#include <QMenuBar>
+#include <QStatusBar>
+#include <initializer_list>
+#include <optional>
 #include <cstdio>
 #define TRACE(x) (std::fprintf(stderr, "TRACE %s\n", x), std::fflush(stderr))
 
@@ -58,6 +65,21 @@ QGraphicsScene *create_shapes_scene(QObject *parent)
     text->setPos(370, 270);
     return scene;
 }
+
+// The theme of each comboBox item, in item order; the item "None" has no theme.
+std::optional<Theme> theme_of_item(int index)
+{
+    switch (index) {
+    case 1:
+        return Theme::sketch();
+    case 2:
+        return Theme::china_ink();
+    case 3:
+        return Theme::chalk();
+    default:
+        return std::nullopt;
+    }
+}
 } // namespace
 
 MainWindow::MainWindow(QWidget *parent)
@@ -68,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->setupUi(this);
     TRACE("after setupUi");
     m_ui->comboBox->addItems({"None", "Sketch", "China Ink", "Black slate and chalk"});
+    connect(m_ui->comboBox, &QComboBox::currentIndexChanged, this, &MainWindow::apply_theme);
 
     TRACE("before table");
     auto table_model = create_table_model();
@@ -85,5 +108,13 @@ MainWindow::MainWindow(QWidget *parent)
 
 // end
 MainWindow::~MainWindow() = default;
+
+void MainWindow::apply_theme(int index)
+{
+    const std::optional<Theme> theme = theme_of_item(index);
+    // Each widget takes ownership of its own effect.
+    for (QWidget *widget : std::initializer_list<QWidget *>{menuBar(), centralWidget(), statusBar()})
+        widget->setGraphicsEffect(theme ? new HandPaintEffect(*theme) : nullptr);
+}
 
 } // namespace hpq::example

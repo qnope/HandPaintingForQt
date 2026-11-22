@@ -1,0 +1,21 @@
+-- The CXX compiler identification is AppleClang 21.0.0.21000401
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Configuring done (0.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /private/tmp/claude-501/-Users-amorrier-Programmation-HandPaintingForQt/254a45d3-9e8a-4310-a96c-174b8de23003/scratchpad/probe-build
+[1/4] Building CXX object CMakeFiles/menubar_probe.dir/menubar_probe.cpp.o
+[2/4] Building CXX object CMakeFiles/t15_probe.dir/probe.cpp.o
+[3/4] Linking CXX executable menubar_probe
+[4/4] Linking CXX executable t15_probe

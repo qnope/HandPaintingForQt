@@ -6,6 +6,7 @@
 #include <QPen>
 #include <QPolygonF>
 #include <QRect>
+#include <QRegion>
 
 namespace hpq {
 
@@ -19,6 +20,28 @@ namespace {
 // rasterize such shapes itself and send them as images, so they would not be hand-drawn.
 constexpr QPaintEngine::PaintEngineFeatures HandledFeatures = QPaintEngine::PrimitiveTransform
     | QPaintEngine::PixmapTransform | QPaintEngine::AlphaBlend | QPaintEngine::Antialiasing;
+
+// Keeps the target painter state for one draw: on destruction, the painter gets back its state, with
+// the painter clip and the identity transform. The draw is also clipped to the system clip, which
+// QWidget::render sets, in device coordinates, to the widget being painted; it changes between draws
+// without a state update.
+class TargetDrawScope
+{
+public:
+    TargetDrawScope(QPainter& painter, const QRegion& system_clip)
+        : m_painter(painter)
+    {
+        m_painter.save();
+        if (!system_clip.isEmpty())
+            m_painter.setClipRegion(system_clip, Qt::IntersectClip);
+    }
+    ~TargetDrawScope() { m_painter.restore(); }
+    TargetDrawScope(const TargetDrawScope&) = delete;
+    TargetDrawScope& operator=(const TargetDrawScope&) = delete;
+
+private:
+    QPainter& m_painter;
+};
 
 } // namespace
 
@@ -49,6 +72,7 @@ void HandPaintEngine::reset_painter_state()
     m_has_brush = false;
     m_brush_alpha = 255;
     m_transform = QTransform();
+    m_painter.setClipping(false);
 }
 
 void HandPaintEngine::updateState(const QPaintEngineState& state)
@@ -60,8 +84,22 @@ void HandPaintEngine::updateState(const QPaintEngineState& state)
         m_has_brush = state.brush().style() != Qt::NoBrush;
         m_brush_alpha = state.brush().color().alpha();
     }
+    // The transform comes first: a clip is given in logical coordinates, with the transform at clip time.
     if (state.state() & DirtyTransform)
         m_transform = state.transform();
+    update_clip(state);
+}
+
+// The target painter keeps the identity transform between draws, so it holds the clip in device
+// coordinates and applies it to every draw.
+void HandPaintEngine::update_clip(const QPaintEngineState& state)
+{
+    if (state.state() & DirtyClipRegion)
+        m_painter.setClipRegion(m_transform.map(state.clipRegion()), state.clipOperation());
+    if (state.state() & DirtyClipPath)
+        m_painter.setClipPath(m_transform.map(state.clipPath()), state.clipOperation());
+    if (state.state() & DirtyClipEnabled)
+        m_painter.setClipping(state.isClipEnabled());
 }
 
 void HandPaintEngine::drawPath(const QPainterPath& path) { draw_hand_drawn(path, true); }
@@ -90,6 +128,7 @@ void HandPaintEngine::draw_hand_drawn(const QPainterPath& ideal, bool filled_wit
 {
     const Theme& theme = m_device.theme();
     const HandDrawnShape shape = m_device.geometry_engine().hand_draw(m_transform.map(ideal), theme, m_random);
+    const TargetDrawScope scope(m_painter, systemClip());
     if (filled_with_brush && m_has_brush)
     {
         QColor fill = theme.fill();
@@ -102,28 +141,28 @@ void HandPaintEngine::draw_hand_drawn(const QPainterPath& ideal, bool filled_wit
 
 void HandPaintEngine::drawPixmap(const QRectF& target_rect, const QPixmap& pixmap, const QRectF& source_rect)
 {
+    const TargetDrawScope scope(m_painter, systemClip());
     m_painter.setTransform(m_transform);
     m_painter.drawPixmap(target_rect, pixmap, source_rect);
-    m_painter.resetTransform();
 }
 
 void HandPaintEngine::drawImage(const QRectF& target_rect, const QImage& image, const QRectF& source_rect,
                                 Qt::ImageConversionFlags flags)
 {
+    const TargetDrawScope scope(m_painter, systemClip());
     m_painter.setTransform(m_transform);
     m_painter.drawImage(target_rect, image, source_rect, flags);
-    m_painter.resetTransform();
 }
 
 // Text keeps its shape: it is drawn unchanged, only in the theme ink color.
 // Text, images and pixmaps are drawn with the painter transform.
 void HandPaintEngine::drawTextItem(const QPointF& position, const QTextItem& text_item)
 {
+    const TargetDrawScope scope(m_painter, systemClip());
     m_painter.setPen(m_device.theme().ink());
     m_painter.setFont(text_item.font());
     m_painter.setTransform(m_transform);
     m_painter.drawText(position, text_item.text());
-    m_painter.resetTransform();
 }
 
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }

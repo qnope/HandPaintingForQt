@@ -1,11 +1,16 @@
 #include "MainWindow.h"
 
+#include <hpq/HandPaintEffect.h>
+#include <hpq/Theme.h>
+
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGroupBox>
+#include <QImage>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -15,6 +20,8 @@
 #include <QTableView>
 #include <QTreeView>
 #include <gtest/gtest.h>
+
+#include <vector>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
@@ -113,4 +120,121 @@ TEST(MainWindow, SceneContainsEachShapeKind)
     EXPECT_TRUE(scene_has<QGraphicsLineItem>(scene));
     EXPECT_TRUE(scene_has<QGraphicsPolygonItem>(scene));
     EXPECT_TRUE(scene_has<QGraphicsSimpleTextItem>(scene) || scene_has<QGraphicsTextItem>(scene));
+}
+
+namespace {
+struct ThemeChoice
+{
+    const char *text;
+    hpq::Theme theme;
+};
+
+// Lets the window lay out and paint, so that grabs are stable.
+void settle()
+{
+    for (int i = 0; i < 5; ++i)
+        QApplication::processEvents();
+}
+
+void show_and_settle(hpq::example::MainWindow &w)
+{
+    w.show();
+    settle();
+}
+
+void select_theme(hpq::example::MainWindow &w, const QString &text)
+{
+    auto *combo = find<QComboBox>(w, "comboBox");
+    combo->setCurrentIndex(combo->findText(text));
+    settle();
+}
+
+// The widgets that a theme paints by hand.
+std::vector<QWidget *> themed_widgets(hpq::example::MainWindow &w)
+{
+    return {w.menuBar(), w.centralWidget(), w.statusBar()};
+}
+
+const hpq::HandPaintEffect *hand_paint_effect(QWidget *widget)
+{
+    return dynamic_cast<const hpq::HandPaintEffect *>(widget->graphicsEffect());
+}
+} // namespace
+
+TEST(MainWindow, SelectingAThemeSetsAHandPaintEffectWithThatTheme)
+{
+    const ThemeChoice choices[] = {{"Sketch", hpq::Theme::sketch()},
+                                   {"China Ink", hpq::Theme::china_ink()},
+                                   {"Black slate and chalk", hpq::Theme::chalk()}};
+    hpq::example::MainWindow w;
+    show_and_settle(w);
+    for (const auto &choice : choices) {
+        SCOPED_TRACE(choice.text);
+        select_theme(w, choice.text);
+        for (QWidget *widget : themed_widgets(w)) {
+            const auto *effect = hand_paint_effect(widget);
+            ASSERT_NE(effect, nullptr) << widget->objectName().toStdString();
+            EXPECT_TRUE(effect->theme() == choice.theme) << widget->objectName().toStdString();
+        }
+    }
+}
+
+TEST(MainWindow, ChalkThemeShowsTheSlateBackgroundInTheCentralWidget)
+{
+    hpq::example::MainWindow w;
+    show_and_settle(w);
+    select_theme(w, "Black slate and chalk");
+
+    const QImage image = w.grab().toImage();
+    const qreal ratio = image.devicePixelRatio();
+    // The top left corner of the central widget lies in the margin of its layout: no child there.
+    const QPoint empty = w.centralWidget()->mapTo(&w, QPoint(2, 2));
+    const QColor pixel = image.pixelColor(QPoint(qRound(empty.x() * ratio), qRound(empty.y() * ratio)));
+    EXPECT_EQ(pixel.name().toStdString(), QColor("#2F3B33").name().toStdString());
+}
+
+TEST(MainWindow, SelectingNoneRemovesTheEffectsAndRestoresTheDrawing)
+{
+    hpq::example::MainWindow w;
+    show_and_settle(w);
+    const QImage start = w.grab().toImage();
+
+    select_theme(w, "Sketch");
+    select_theme(w, "None");
+
+    for (QWidget *widget : themed_widgets(w))
+        EXPECT_EQ(widget->graphicsEffect(), nullptr) << widget->objectName().toStdString();
+    EXPECT_TRUE(w.grab().toImage() == start);
+}
+
+namespace {
+// Whether the image has a dark pixel, as the ink of a label, in the middle rows of the rect
+// (in logical coordinates); the top and bottom rows are left out, where the outline of a panel may be.
+bool has_dark_pixel_in_middle_rows(const QImage &image, const QRect &rect)
+{
+    const qreal ratio = image.devicePixelRatio();
+    const int top = qRound((rect.top() + rect.height() / 4) * ratio);
+    const int bottom = qRound((rect.bottom() - rect.height() / 4) * ratio);
+    for (int y = top; y <= bottom; ++y) {
+        for (int x = qRound(rect.left() * ratio); x <= qRound(rect.right() * ratio); ++x) {
+            if (image.pixelColor(x, y).lightness() < 128)
+                return true;
+        }
+    }
+    return false;
+}
+} // namespace
+
+TEST(MainWindow, SketchThemeKeepsTheFileLabelOfTheMenuBar)
+{
+    hpq::example::MainWindow w;
+    show_and_settle(w);
+    select_theme(w, "Sketch");
+
+    auto *file = find<QMenu>(w, "menuFile");
+    ASSERT_NE(file, nullptr);
+    const QRect file_item = w.menuBar()->actionGeometry(file->menuAction());
+    ASSERT_FALSE(file_item.isEmpty());
+    const QImage image = w.menuBar()->grab().toImage();
+    EXPECT_TRUE(has_dark_pixel_in_middle_rows(image, file_item));
 }
