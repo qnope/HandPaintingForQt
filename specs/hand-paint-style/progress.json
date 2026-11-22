@@ -73,11 +73,11 @@
       "depends_on": [
         "T5"
       ],
-      "status": "real-testing",
+      "status": "done",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/hand-paint-style/T6",
-      "review": "APPROVED\n- DisabledButtonTest.DisabledPushButtonUsesTheDisabledPaletteColors (/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T6/hpq/tests/DisabledButtonTest.cpp)"
+      "review": "APPROVED\n- DisabledButtonTest.DisabledPushButtonUsesTheDisabledPaletteColors (/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T6/hpq/tests/DisabledButtonTest.cpp)",
+      "real_testing": "PASSED\n- B14: program linking worktree libhpq.a puts HandPaintStyle on an enabled and a disabled QPushButton, counting engine records brush/pen colors, grabs PNGs, offscreen. Custom palette (Active Button #99ff99 / Dark #006600; Disabled Button #ff9999 / Dark #0000ff): disabled panel = one rect filled #ff9999 outlined #0000ff; enabled panel filled #99ff99 outlined #006600. SketchTheme palette (Disabled == Active for Button/Dark): both panels #fbf8ef / #8a867d. No image; exit 0. grab_custom.png: green/dark-green enabled, pink/blue disabled with greyed text; grab_sketch.png: flat paper panels, greyed disabled label.\nEvidence: scratchpad t6/ (main.cpp, CMakeLists.txt, run.txt, grab_custom.png, grab_sketch.png, grabw_*.png)."
     },
     {
       "id": "T7",
@@ -87,9 +87,9 @@
         "T2",
         "T3"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
+      "status": "dev",
+      "rejections": 1,
+      "note": "hpq/include/hpq/HandPaintStyle.h, hpq/src/HandPaintStyle.cpp, hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T7, run `git merge 625bc326f5c21920aacac5ac2fc523bad49f0719`, keep the work of both sides and make the tests pass",
       "worktree": ".worktrees/hand-paint-style/T7",
       "review": "APPROVED\n- ComboBoxTest.NonEditableComboBoxIsDarkOutlineAndDownArrowWithoutImage\n- ComboBoxTest.EditableComboBoxIsDarkOutlineAndDownArrowWithoutImage"
     },
