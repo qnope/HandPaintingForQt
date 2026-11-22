@@ -39,7 +39,7 @@ struct Grab {
 // Builds a 400x260 window with `build`, gives it the Fusion style, the Sketch palette and
 // font, applies the theme when `themed`, and grabs it.
 Grab grab_window(const Builder &build, bool themed) {
-    const auto theme = std::make_shared<const hpq::Theme>(hpq::sketch_theme());
+    const hpq::Theme theme = hpq::sketch_theme();
     std::unique_ptr<QStyle> style(QStyleFactory::create("Fusion"));
     QMainWindow window;
     auto *central = new QWidget;
@@ -49,8 +49,8 @@ Grab grab_window(const Builder &build, bool themed) {
     if (themed) {
         hpq::apply_theme(window, theme, std::make_shared<const hpq::RoughGeometryEngine>());
     } else {
-        window.setPalette(theme->palette());
-        window.setFont(theme->font());
+        window.setPalette(theme.palette());
+        window.setFont(theme.font());
         window.setStyle(style.get());
         for (QWidget *descendant : window.findChildren<QWidget *>()) {
             descendant->setStyle(style.get());

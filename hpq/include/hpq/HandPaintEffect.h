@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hpq/FwdDecls.h>
+#include <hpq/Theme.h>
 
 #include <QGraphicsEffect>
 
@@ -14,7 +15,7 @@ class HandPaintEffect : public QGraphicsEffect {
     Q_OBJECT
 
 public:
-    HandPaintEffect(std::shared_ptr<const Theme> theme,
+    HandPaintEffect(Theme theme,
                     std::shared_ptr<const GeometryEngine> geometry_engine,
                     QObject *parent = nullptr);
 
@@ -22,7 +23,7 @@ protected:
     void draw(QPainter *painter) override;
 
 private:
-    std::shared_ptr<const Theme> m_theme;
+    Theme m_theme;
     std::shared_ptr<const GeometryEngine> m_geometry_engine;
 };
 
