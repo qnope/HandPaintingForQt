@@ -79,7 +79,7 @@ protected:
     }
 
     void expect_flat_sections(const std::vector<DrawCall> &calls, const QHeaderView &header) const {
-        const QPalette palette = hpq::SketchTheme().palette();
+        const QPalette palette = hpq::sketch_theme().palette();
         const std::vector<QRect> rects = section_rects(m_table, header);
         ASSERT_EQ(rects.size(), static_cast<size_t>(CellCount));
         for (const QRect &rect : rects) {

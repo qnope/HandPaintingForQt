@@ -14,9 +14,9 @@ namespace {
 using hpq::test::DrawCall;
 using hpq::test::render_with_style;
 
-// The SketchTheme palette, with Disabled panel colors that differ from the Active ones.
+// The Sketch theme palette, with Disabled panel colors that differ from the Active ones.
 QPalette palette_with_distinct_disabled_colors() {
-    QPalette palette = hpq::SketchTheme().palette();
+    QPalette palette = hpq::sketch_theme().palette();
     palette.setColor(QPalette::Disabled, QPalette::Button, QColor(200, 30, 30));
     palette.setColor(QPalette::Disabled, QPalette::Dark, QColor(30, 200, 30));
     return palette;

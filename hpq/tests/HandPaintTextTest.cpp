@@ -36,7 +36,7 @@ protected:
         return m_target.engine().calls();
     }
 
-    hpq::SketchTheme m_theme;
+    hpq::Theme m_theme = hpq::sketch_theme();
     hpq::RoughGeometryEngine m_geometry_engine;
     RecordingPaintDevice m_target;
     int m_device_dpi_y = 0;
