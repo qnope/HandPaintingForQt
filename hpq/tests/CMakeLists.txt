@@ -3,3 +3,4 @@ target_sources(HpqTests PRIVATE TestMain.cpp RoughGeometryEngineTest.cpp RoughFi
 target_link_libraries(HpqTests PRIVATE hpq::hpq GTest::gtest)
 add_test(NAME HpqTests COMMAND HpqTests)
 target_sources(HpqTests PRIVATE SketchThemeTest.cpp)
+target_sources(HpqTests PRIVATE RecordingPaintDevice.h RecordingPaintDevice.cpp HandPaintDeviceTest.cpp)
