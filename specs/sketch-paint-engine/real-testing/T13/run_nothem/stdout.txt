@@ -1,0 +1,10 @@
+graphicsEffect is HandPaintEffect: 0
+exposed: 1
+checkbox width: 618 center click toggled: 0
+checkbox before: 0 after: 1
+button clicked count: 1
+line edit text: 'hello hpq'
+checkbox after 2nd click: 1
+scroll value: 433
+elapsed ms: 1441
+non-ignored warnings: 0
