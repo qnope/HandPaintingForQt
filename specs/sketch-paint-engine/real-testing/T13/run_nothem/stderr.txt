@@ -1,0 +1,2 @@
+[WARNING][qt.qpa.fonts][ignored] Populating font family aliases took 41 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+[WARNING][default][ignored] This plugin does not support propagateSizeHints()

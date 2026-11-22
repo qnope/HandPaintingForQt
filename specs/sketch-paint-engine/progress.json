@@ -171,11 +171,11 @@
       "depends_on": [
         "T12"
       ],
-      "status": "real-testing",
+      "status": "done",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/sketch-paint-engine/T13",
-      "review": "APPROVED\n- ApplyThemeTest.ThemedWindowPaintsWithoutWarning\n- ApplyThemeTest.ThemedWindowChildGetsMouseClick"
+      "review": "APPROVED\n- ApplyThemeTest.ThemedWindowPaintsWithoutWarning\n- ApplyThemeTest.ThemedWindowChildGetsMouseClick",
+      "real_testing": "PASSED\n- B23: Built hpq with the debug preset and a standalone probe app (Ninja) that links the built `libhpq.a`. Ran it with `QT_QPA_PLATFORM=offscreen` and a message handler that logs every message. The probe is a `QMainWindow` themed with `apply_theme(SketchTheme, RoughGeometryEngine)`, holding a label, push button, checkbox, line edit, combo box, table view, tree widget, graphics view, tab widget and a scroll area with 40 buttons. It runs show, `qWaitForWindowExposed`, repeated `repaint()`/`update()` with event-loop waits, hover moves, clicks, typing, combo and row selection, two resizes, switching all three tabs and scrolling, and saves six PNG grabs -> exit code 0 in about 1.5 s, so no crash and no recursion. The window's graphics effect is `HandPaintEffect`. Only two messages were logged, `qt.qpa.fonts` \"Populating font family aliases...\" and \"This plugin does not support propagateSizeHints()\", both on the ignore list, so 0 warnings come from hpq. In the screenshots the whole window is painted in the sketch style: wobbly hand-drawn outlines, the Architects Daughter font and a paper background. The table, tree, yellow ellipse and rectangle in the graphics view, and the scrolled buttons (rows 14-25, scrollbar at 434) are readable, and the layout is not broken.\n- B24: In the themed window, a `QTest::mouseClick` on the unchecked checkbox's indicator -> it became checked, and the grab shows the tick. The button's `clicked` signal fired once, and \"hello hpq\" typed with key events appears in `text()` and in the grab. A click at the exact center of the checkbox did nothing, but that checkbox is 618 px wide so its center is off the indicator and label, and the unthemed control run behaves the same, so this is normal Qt behaviour and not caused by hpq.\nEvidence: specs/sketch-paint-engine/real-testing/T13/"
     },
     {
       "id": "T14",
@@ -197,9 +197,10 @@
       "depends_on": [
         "T14"
       ],
-      "status": "new",
+      "status": "dev",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/sketch-paint-engine/T15"
     },
     {
       "id": "T16",
