@@ -73,10 +73,11 @@
       "depends_on": [
         "T5"
       ],
-      "status": "review",
+      "status": "real-testing",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/hand-paint-style/T6"
+      "worktree": ".worktrees/hand-paint-style/T6",
+      "review": "APPROVED\n- DisabledButtonTest.DisabledPushButtonUsesTheDisabledPaletteColors (/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T6/hpq/tests/DisabledButtonTest.cpp)"
     },
     {
       "id": "T7",
@@ -112,11 +113,11 @@
       "depends_on": [
         "T3"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-style/T9",
-      "review": "APPROVED\n- ScrollBarTest.HorizontalScrollBarDrawsOneLeftAndOneRightVectorArrow\n- ScrollBarTest.VerticalScrollBarDrawsOneUpAndOneDownVectorArrow"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/src/HandPaintStyle.cpp, hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T9, run `git merge 836acd0e7a7b7e747f536388670fcd939d13d364`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- ScrollBarTest.HorizontalScrollBarDrawsOneLeftAndOneRightVectorArrow\n- ScrollBarTest.VerticalScrollBarDrawsOneUpAndOneDownVectorArrow",
+      "real_testing": "PASSED\n- B10: after merge 745df9d, rebuilt hpq (up to date), relinked and ran the program offscreen: horizontal QScrollBar 0..100 180x16 -> images=0, 2 triangles [left,right]; vertical 16x180 -> images=0, [up,down]; QTableView in an apply_theme window: both bars HandPaintStyle, images=0, correct triangles. Exit 0. Screenshots: dark triangle arrows in hand-drawn button boxes, sketchy table with readable text, layout intact. Output and screenshots byte-identical to before the merge.\nEvidence: scratchpad t9/after-merge/."
     },
     {
       "id": "T10",
