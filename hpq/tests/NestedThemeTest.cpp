@@ -25,7 +25,12 @@
 #include <functional>
 #include <memory>
 
+#include <cstdint>
+
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 // Builds the central widget of a window and returns the widget the test looks at.
 using Builder = std::function<QWidget *(QWidget &central)>;
@@ -47,7 +52,7 @@ Grab grab_window(const Builder &build, bool themed) {
     window.setCentralWidget(central);
     window.resize(400, 260);
     if (themed) {
-        hpq::apply_theme(window, theme, std::make_shared<const hpq::RoughGeometryEngine>());
+        hpq::apply_theme(window, theme, std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
     } else {
         window.setPalette(theme.palette());
         window.setFont(theme.font());

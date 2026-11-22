@@ -10,24 +10,16 @@
 #include <QTextItem>
 
 #include <cmath>
+#include <cstddef>
+#include <random>
+#include <vector>
 
 namespace hpq {
 
 namespace {
 
-constexpr std::uint32_t FnvOffsetBasis = 2166136261u;
-constexpr std::uint32_t FnvPrime = 16777619u;
-// Coordinates are rounded to this fraction of a device pixel before hashing.
+// Coordinates are rounded to this fraction of a device pixel before they make the seed.
 constexpr double SeedPrecision = 100.0;
-
-// FNV-1a: mixes the four bytes of `value` into `hash`.
-std::uint32_t fnv1a(std::uint32_t hash, std::uint32_t value) {
-    for (int byte = 0; byte < 4; ++byte) {
-        hash ^= (value >> (8 * byte)) & 0xFFu;
-        hash *= FnvPrime;
-    }
-    return hash;
-}
 
 // `region` with each of its rectangles grown by `margin` on every side.
 QRegion grown(const QRegion &region, int margin) {
@@ -51,16 +43,20 @@ std::uint32_t rounded(double coordinate) {
     return static_cast<std::uint32_t>(static_cast<std::int64_t>(std::llround(coordinate * SeedPrecision)));
 }
 
-// A hash of the element types and rounded coordinates of `path`.
-std::uint32_t path_hash(const QPainterPath &path) {
-    std::uint32_t hash = FnvOffsetBasis;
+// A seed that std::seed_seq makes from the element types and rounded coordinates of `path`.
+std::uint32_t path_seed(const QPainterPath &path) {
+    std::vector<std::uint32_t> values;
+    values.reserve(3 * static_cast<std::size_t>(path.elementCount()));
     for (int index = 0; index < path.elementCount(); ++index) {
         const QPainterPath::Element element = path.elementAt(index);
-        hash = fnv1a(hash, static_cast<std::uint32_t>(element.type));
-        hash = fnv1a(hash, rounded(element.x));
-        hash = fnv1a(hash, rounded(element.y));
+        values.push_back(static_cast<std::uint32_t>(element.type));
+        values.push_back(rounded(element.x));
+        values.push_back(rounded(element.y));
     }
-    return hash;
+    std::seed_seq seeds(values.begin(), values.end());
+    std::uint32_t seed = 0;
+    seeds.generate(&seed, &seed + 1);
+    return seed;
 }
 
 }  // namespace
@@ -209,7 +205,7 @@ void HandPaintEngine::save_target_in_logical_coordinates() {
 
 // `shape` is already in device coordinates: the same primitive drawn at the same place on the
 // device gets the same seed, and so the same rough paths.
-std::uint32_t HandPaintEngine::seed(const QPainterPath &shape) const { return path_hash(shape); }
+std::uint32_t HandPaintEngine::seed(const QPainterPath &shape) const { return path_seed(shape); }
 
 namespace {
 

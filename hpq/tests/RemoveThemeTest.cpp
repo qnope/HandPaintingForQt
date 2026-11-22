@@ -14,10 +14,15 @@
 
 #include <memory>
 
+#include <cstdint>
+
 namespace {
 
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
+
 std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
-    return std::make_shared<const hpq::RoughGeometryEngine>();
+    return std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed);
 }
 
 // A window with its own "Windows" style and a child button with the application style.

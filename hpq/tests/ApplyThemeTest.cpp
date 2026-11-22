@@ -28,12 +28,17 @@
 #include <string>
 #include <vector>
 
+#include <cstdint>
+
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 const QString ThemeFontFamily("Architects Daughter");
 
 std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
-    return std::make_shared<const hpq::RoughGeometryEngine>();
+    return std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed);
 }
 
 TEST(ApplyThemeTest, SetsPaletteFontHandPaintStyleAndEffect) {
