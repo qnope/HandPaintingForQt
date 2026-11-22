@@ -1,0 +1,16 @@
+[sketch horizontal] D=2,50 non_bg=353 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=1,58 uncovered=0 worst_cov=0,71 diff_vs_plain=350 strong-ink-runs x40:1 x100:1 x160:1 -> OK
+  pixel (172,29) #ebebeb center-dist 2,55 (square-dist 1,84) D 2,50
+[sketch diagonal] D=2,50 non_bg=385 not_blend=0 red_like=0 far_center(>D)=1 far_square(>D)=0 max_center_dist=2,55 uncovered=0 worst_cov=0,71 diff_vs_plain=527 strong-ink-runs -> OK
+[sketch vertical] D=2,50 non_bg=437 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=1,58 uncovered=0 worst_cov=0,71 diff_vs_plain=436 strong-ink-runs -> OK
+[sketch reverse_shallow] D=2,50 non_bg=470 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=1,82 uncovered=0 worst_cov=0,71 diff_vs_plain=469 strong-ink-runs -> OK
+[china_ink horizontal] D=3,50 non_bg=632 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,12 uncovered=0 worst_cov=0,71 diff_vs_plain=350 strong-ink-runs x40:1 x100:1 x160:1 -> OK
+[china_ink diagonal] D=3,50 non_bg=771 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,55 uncovered=0 worst_cov=0,71 diff_vs_plain=631 strong-ink-runs -> OK
+[china_ink vertical] D=3,50 non_bg=497 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,12 uncovered=0 worst_cov=0,71 diff_vs_plain=485 strong-ink-runs -> OK
+[china_ink reverse_shallow] D=3,50 non_bg=642 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,12 uncovered=0 worst_cov=0,71 diff_vs_plain=459 strong-ink-runs -> OK
+[chalk horizontal] D=4,00 non_bg=591 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,55 uncovered=0 worst_cov=0,71 diff_vs_plain=267 strong-ink-runs x40:1 x100:1 x160:1 -> OK
+[chalk diagonal] D=4,00 non_bg=821 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,55 uncovered=0 worst_cov=0,71 diff_vs_plain=717 strong-ink-runs -> OK
+[chalk vertical] D=4,00 non_bg=614 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,55 uncovered=0 worst_cov=0,71 diff_vs_plain=317 strong-ink-runs -> OK
+[chalk reverse_shallow] D=4,00 non_bg=724 not_blend=0 red_like=0 far_center(>D)=0 far_square(>D)=0 max_center_dist=2,55 uncovered=0 worst_cov=0,71 diff_vs_plain=564 strong-ink-runs -> OK
+[info] two default-seed devices identical: yes
+PROBE: ALL OK
+exit=0

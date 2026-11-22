@@ -16,7 +16,7 @@ namespace hpq {
 class HandPaintDevice : public QPaintDevice
 {
 public:
-    // Uses the default geometry engine.
+    // Uses a RoughGeometryEngine.
     HandPaintDevice(QPaintDevice& target, Theme theme);
     // geometry_engine must not be null.
     HandPaintDevice(QPaintDevice& target, Theme theme, std::unique_ptr<GeometryEngine> geometry_engine);

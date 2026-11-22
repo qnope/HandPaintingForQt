@@ -47,9 +47,11 @@
       "depends_on": [
         "T3"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- RoughLine.SketchInkIsWithinToleranceOfTheLine\n- RoughLine.SketchInkCoversEveryPointOfTheLine\n- RoughLine.SketchLineDiffersFromPlainLine\n- RoughLine.SketchLineHasOnlyBackgroundAndInkBlendPixels",
+      "real_testing": "PASSED\n- B5: probe (specs/hand-paint-engine/real-testing/T4/probe/probe.cpp) linked to libhpq, QPainter on hpq::HandPaintDevice(image, theme) with the default engine, red pen width 1, NoBrush, drawLine on a red-prefilled 200x200 image, offscreen, Sketch/China Ink/Chalk x 4 lines (horizontal (20,100)-(180,100), diagonal, vertical, reversed shallow) -> all 12 cases pass, exit 0. No red or non-blend pixel; no pixel farther than D from the segment (one faint #ebebeb AA pixel center at 2.55 px vs D=2.5, its square overlaps the band \u2014 same rule as the test helper); no gaps (ink within 0.71 px of every point); each drawing differs from a plain line by 267-717 px. Enlarged crops show two slightly offset, crossing passes with non-aligned ends and a slight bow. With D = 2.5-4 px the hand-drawn look is subtle at normal size (expected with the spec's roughness values). Same default seed -> identical images.\nEvidence: specs/hand-paint-engine/real-testing/T4/"
     },
     {
       "id": "T5",
