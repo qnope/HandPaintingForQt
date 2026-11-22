@@ -1,0 +1,11 @@
+This plugin does not support propagateSizeHints()
+before theme: families contains AD = 0
+theme.font().family() = 'Architects Daughter'
+QFontInfo(font).family() = 'Architects Daughter'
+after theme: families contains AD = 1
+exists :/hpq/fonts/ArchitectsDaughter-Regular.ttf = 1 size=43352
+exists :/hpq/fonts/OFL.txt = 1 size=4362
+OFL head: Copyright (c) 2010, Kimberly Geswein (kimberlygeswein.com)
+OFL contains 'SIL OPEN FONT LICENSE' = 1
+grab saved=1 ../label_grab.png
+painter saved=1
