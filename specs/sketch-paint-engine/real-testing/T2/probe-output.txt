@@ -1,0 +1,109 @@
+rectangle_s1 seed=1: 2 strokes, shape bbox (10,0,10,0 100,0x50,0)
+  stroke 0: elements=77 subpaths=1 start=(10,67,12,46) end=(10,67,12,46) start-end=0,00 bbox=(8,04,9,44)-(111,61,62,94) inside=1
+  stroke 1: elements=77 subpaths=1 start=(9,55,10,30) end=(9,55,10,30) start-end=0,00 bbox=(6,61,6,67)-(111,64,63,84) inside=1
+  fill_area: elements=77 bbox inside=1 contains center=1
+  -> png/rectangle_s1.png OK
+ellipse_s1 seed=1: 2 strokes, shape bbox (0,0,0,0 80,0x40,0)
+  stroke 0: elements=73 subpaths=1 start=(80,67,22,46) end=(80,67,22,46) start-end=0,00 bbox=(2,00,2,60)-(80,67,40,01) inside=1
+  stroke 1: elements=73 subpaths=1 start=(77,86,22,94) end=(77,86,22,94) start-end=0,00 bbox=(-0,70,0,62)-(77,86,41,37) inside=1
+  fill_area: elements=73 bbox inside=1 contains center=1
+  -> png/ellipse_s1.png OK
+triangle_s1 seed=1: 2 strokes, shape bbox (0,0,0,0 100,0x80,0)
+  stroke 0: elements=74 subpaths=1 start=(0,67,2,46) end=(0,67,2,46) start-end=0,00 bbox=(0,67,-0,55)-(100,32,81,03) inside=1
+  stroke 1: elements=74 subpaths=1 start=(-0,45,0,30) end=(-0,45,0,30) start-end=0,00 bbox=(-0,45,-3,32)-(101,10,81,68) inside=1
+  fill_area: elements=74 bbox inside=1 contains center=1
+  -> png/triangle_s1.png OK
+roundedrect_s1 seed=1: 2 strokes, shape bbox (0,0,0,0 100,0x60,0)
+  stroke 0: elements=97 subpaths=1 start=(0,67,14,46) end=(0,67,14,46) start-end=0,00 bbox=(-1,20,-0,55)-(101,69,62,94) inside=1
+  stroke 1: elements=97 subpaths=1 start=(-0,45,12,30) end=(-0,45,12,30) start-end=0,00 bbox=(-2,55,-3,33)-(101,64,63,84) inside=1
+  fill_area: elements=97 bbox inside=1 contains center=1
+  -> png/roundedrect_s1.png OK
+closedcubic_s1 seed=1: 2 strokes, shape bbox (-3,2,-10,9 107,1x103,9)
+  stroke 0: elements=129 subpaths=1 start=(0,67,2,46) end=(0,67,2,46) start-end=0,00 bbox=(-3,00,-10,76)-(106,74,95,13) inside=1
+  stroke 1: elements=129 subpaths=1 start=(-0,64,-3,33) end=(-0,64,-3,33) start-end=0,00 bbox=(-4,26,-10,37)-(102,38,89,28) inside=1
+  fill_area: elements=129 bbox inside=1 contains center=1
+  -> png/closedcubic_s1.png OK
+star_s1 seed=1: 2 strokes, shape bbox (23,9,20,0 152,2x144,7)
+  stroke 0: elements=151 subpaths=1 start=(100,67,22,46) end=(100,67,22,46) start-end=0,00 bbox=(25,37,22,46)-(175,53,167,66) inside=1
+  stroke 1: elements=151 subpaths=1 start=(99,96,16,23) end=(99,96,16,23) start-end=0,00 bbox=(27,10,16,23)-(176,24,165,59) inside=1
+  fill_area: elements=151 bbox inside=1 contains center=1
+  -> png/star_s1.png OK
+opencubic_s1 seed=1: 2 strokes, shape bbox (0,0,-11,5 100,0x23,1)
+  stroke 0: elements=43 subpaths=1 start=(0,67,2,46) end=(99,44,2,63) start-end=98,78 bbox=(0,67,-10,31)-(99,44,13,02) inside=1
+    open: start->path start=2,55 end->path end=2,69
+  stroke 1: elements=43 subpaths=1 start=(3,77,0,23) end=(99,04,1,05) start-end=95,27 bbox=(3,77,-10,32)-(99,04,13,36) inside=1
+    open: start->path start=3,78 end->path end=1,42
+  -> png/opencubic_s1.png OK
+rectangle_s42 seed=42: 2 strokes, shape bbox (10,0,10,0 100,0x50,0)
+  stroke 0: elements=77 subpaths=1 start=(12,42,6,60) end=(12,42,6,60) start-end=0,00 bbox=(8,67,6,60)-(106,64,63,06) inside=1
+  stroke 1: elements=77 subpaths=1 start=(10,13,10,20) end=(10,13,10,20) start-end=0,00 bbox=(10,13,7,03)-(107,44,61,88) inside=1
+  fill_area: elements=77 bbox inside=1 contains center=1
+  -> png/rectangle_s42.png OK
+ellipse_s42 seed=42: 2 strokes, shape bbox (0,0,0,0 80,0x40,0)
+  stroke 0: elements=73 subpaths=1 start=(82,42,16,60) end=(82,42,16,60) start-end=0,00 bbox=(-3,06,1,42)-(82,42,38,18) inside=1
+  stroke 1: elements=73 subpaths=1 start=(78,40,21,18) end=(78,40,21,18) start-end=0,00 bbox=(-1,43,0,34)-(78,40,40,11) inside=1
+  fill_area: elements=73 bbox inside=1 contains center=1
+  -> png/ellipse_s42.png OK
+triangle_s42 seed=42: 2 strokes, shape bbox (0,0,0,0 100,0x80,0)
+  stroke 0: elements=74 subpaths=1 start=(2,42,-3,40) end=(2,42,-3,40) start-end=0,00 bbox=(2,42,-3,40)-(96,37,82,47) inside=1
+  stroke 1: elements=74 subpaths=1 start=(0,13,0,20) end=(0,13,0,20) start-end=0,00 bbox=(0,13,-2,96)-(96,97,80,32) inside=1
+  fill_area: elements=74 bbox inside=1 contains center=1
+  -> png/triangle_s42.png OK
+roundedrect_s42 seed=42: 2 strokes, shape bbox (0,0,0,0 100,0x60,0)
+  stroke 0: elements=97 subpaths=1 start=(2,42,8,60) end=(2,42,8,60) start-end=0,00 bbox=(-0,28,-2,99)-(96,64,63,02) inside=1
+  stroke 1: elements=97 subpaths=1 start=(0,13,12,20) end=(0,13,12,20) start-end=0,00 bbox=(0,13,-2,96)-(96,18,61,89) inside=1
+  fill_area: elements=97 bbox inside=1 contains center=1
+  -> png/roundedrect_s42.png OK
+closedcubic_s42 seed=42: 2 strokes, shape bbox (-3,2,-10,9 107,1x103,9)
+  stroke 0: elements=129 subpaths=1 start=(2,42,-3,40) end=(2,42,-3,40) start-end=0,00 bbox=(-2,91,-13,02)-(100,83,94,78) inside=1
+  stroke 1: elements=129 subpaths=1 start=(1,65,-2,97) end=(1,65,-2,97) start-end=0,00 bbox=(-3,98,-11,90)-(106,12,92,98) inside=1
+  fill_area: elements=129 bbox inside=1 contains center=1
+  -> png/closedcubic_s42.png OK
+star_s42 seed=42: 2 strokes, shape bbox (23,9,20,0 152,2x144,7)
+  stroke 0: elements=151 subpaths=1 start=(102,42,16,60) end=(102,42,16,60) start-end=0,00 bbox=(19,95,16,60)-(172,17,165,91) inside=1
+  stroke 1: elements=151 subpaths=1 start=(101,00,21,20) end=(101,00,21,20) start-end=0,00 bbox=(26,53,21,20)-(178,50,168,13) inside=1
+  fill_area: elements=151 bbox inside=1 contains center=1
+  -> png/star_s42.png OK
+opencubic_s42 seed=42: 2 strokes, shape bbox (0,0,-11,5 100,0x23,1)
+  stroke 0: elements=43 subpaths=1 start=(2,42,-3,40) end=(96,09,3,12) start-end=93,90 bbox=(2,42,-14,26)-(96,09,13,03) inside=1
+    open: start->path start=4,17 end->path end=5,00
+  stroke 1: elements=43 subpaths=1 start=(-2,82,3,01) end=(97,05,-0,07) start-end=99,91 bbox=(-2,82,-9,27)-(97,05,11,98) inside=1
+    open: start->path start=4,12 end->path end=2,95
+  -> png/opencubic_s42.png OK
+rectangle_s12345 seed=12345: 2 strokes, shape bbox (10,0,10,0 100,0x50,0)
+  stroke 0: elements=77 subpaths=1 start=(6,33,7,05) end=(6,33,7,05) start-end=0,00 bbox=(6,33,6,76)-(110,07,63,66) inside=1
+  stroke 1: elements=77 subpaths=1 start=(12,65,13,78) end=(12,65,13,78) start-end=0,00 bbox=(6,85,8,92)-(113,31,59,43) inside=1
+  fill_area: elements=77 bbox inside=1 contains center=1
+  -> png/rectangle_s12345.png OK
+ellipse_s12345 seed=12345: 2 strokes, shape bbox (0,0,0,0 80,0x40,0)
+  stroke 0: elements=73 subpaths=1 start=(76,33,17,05) end=(76,33,17,05) start-end=0,00 bbox=(-1,91,-1,82)-(76,33,36,80) inside=1
+  stroke 1: elements=73 subpaths=1 start=(79,80,23,68) end=(79,80,23,68) start-end=0,00 bbox=(-0,34,3,76)-(79,80,39,90) inside=1
+  fill_area: elements=73 bbox inside=1 contains center=1
+  -> png/ellipse_s12345.png OK
+triangle_s12345 seed=12345: 2 strokes, shape bbox (0,0,0,0 100,0x80,0)
+  stroke 0: elements=74 subpaths=1 start=(-3,67,-2,95) end=(-3,67,-2,95) start-end=0,00 bbox=(-3,67,-3,24)-(99,42,80,60) inside=1
+  stroke 1: elements=74 subpaths=1 start=(2,65,3,78) end=(2,65,3,78) start-end=0,00 bbox=(2,65,-1,08)-(103,15,78,52) inside=1
+  fill_area: elements=74 bbox inside=1 contains center=1
+  -> png/triangle_s12345.png OK
+roundedrect_s12345 seed=12345: 2 strokes, shape bbox (0,0,0,0 100,0x60,0)
+  stroke 0: elements=97 subpaths=1 start=(-3,67,9,05) end=(-3,67,9,05) start-end=0,00 bbox=(-3,67,-3,24)-(100,06,63,67) inside=1
+  stroke 1: elements=97 subpaths=1 start=(2,65,15,78) end=(2,65,15,78) start-end=0,00 bbox=(-1,55,-1,08)-(102,98,58,87) inside=1
+  fill_area: elements=97 bbox inside=1 contains center=1
+  -> png/roundedrect_s12345.png OK
+closedcubic_s12345 seed=12345: 2 strokes, shape bbox (-3,2,-10,9 107,1x103,9)
+  stroke 0: elements=129 subpaths=1 start=(-3,67,-2,95) end=(-3,67,-2,95) start-end=0,00 bbox=(-6,68,-14,05)-(101,44,95,50) inside=1
+  stroke 1: elements=129 subpaths=1 start=(4,70,-1,08) end=(4,70,-1,08) start-end=0,00 bbox=(-2,18,-11,14)-(103,06,90,55) inside=1
+  fill_area: elements=129 bbox inside=1 contains center=1
+  -> png/closedcubic_s12345.png OK
+star_s12345 seed=12345: 2 strokes, shape bbox (23,9,20,0 152,2x144,7)
+  stroke 0: elements=151 subpaths=1 start=(96,33,17,05) end=(96,33,17,05) start-end=0,00 bbox=(26,76,17,05)-(176,15,168,50) inside=1
+  stroke 1: elements=151 subpaths=1 start=(96,76,17,42) end=(96,76,17,42) start-end=0,00 bbox=(23,03,17,42)-(172,16,168,45) inside=1
+  fill_area: elements=151 bbox inside=1 contains center=1
+  -> png/star_s12345.png OK
+opencubic_s12345 seed=12345: 2 strokes, shape bbox (0,0,-11,5 100,0x23,1)
+  stroke 0: elements=43 subpaths=1 start=(-3,67,-2,95) end=(100,07,-1,63) start-end=103,75 bbox=(-3,67,-14,60)-(100,07,9,32) inside=1
+    open: start->path start=4,71 end->path end=1,63
+  stroke 1: elements=43 subpaths=1 start=(-3,77,-0,69) end=(96,85,-1,20) start-end=100,62 bbox=(-3,77,-10,70)-(96,85,12,46) inside=1
+    open: start->path start=3,84 end->path end=3,37
+  -> png/opencubic_s12345.png OK
+violations: 0
