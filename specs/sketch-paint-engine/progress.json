@@ -1,0 +1,190 @@
+{
+  "feature": "sketch-paint-engine",
+  "status": "open",
+  "test_command": "cmake --preset debug && cmake --build --preset debug && QT_QPA_PLATFORM=offscreen ctest --preset debug",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Rough outline of a straight line",
+      "file": "tasks/T1.md",
+      "depends_on": [],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- RoughGeometryEngine.LineOutlineHasStrokeCountStrokesNearTheSegment\n- RoughGeometryEngine.DifferentSeedsGiveDifferentLineOutlines\n- RoughGeometryEngine.ZeroRoughnessKeepsTheLineGeometry",
+      "real_testing": "PASSED\n- B1: built a small probe program (specs/sketch-paint-engine/real-testing/T1/probe.cpp) linked to the built libhpq.a. It calls RoughGeometryEngine::outline through the GeometryEngine interface on the line (0,0)->(100,0) with roughness 1, stroke_count 2, max_offset 5 and seed 42, then renders the strokes over the max_offset band to b1_seed42.png -> exactly 2 strokes. The first points are 4.17 and 4.64 from (0,0) and the last points are 2.71 and 3.41 from (100,0). The largest distance from the segment is 3.46, both at the path elements and on the flattened curve. The PNG shows 2 smooth, slightly bowed hand-drawn lines that cross near the ends and stay inside the pink 5 px band. A second run with max_offset 15 and seed 7 also kept every point within 15 (max 14.87).\n- B3: same line and options with seeds 1 and 2, drawn in blue and red in b3_seeds1_2.png -> the first strokes differ (\"DIFFERENT\"), and the PNG shows two clearly different pairs of wobbly lines, all inside the band. Running seed 1 again gives the same strokes.\n- B4: roughness 0 with seed 42 (b4_roughness0.png) -> 2 strokes, each from (0.000,0.000) to (100.000,0.000), with a largest distance of 0.000 from the segment. The PNG shows one straight line exactly on the original, with the 2 strokes on top of each other. Extra checks with stroke_count 5, a zero-length line and an empty path did not crash: 5 strokes inside the band, then 2 empty paths for each of the other two. Exit code 0 and no Qt warnings. The project build and ctest also pass, 3/3.\nEvidence: specs/sketch-paint-engine/real-testing/T1/"
+    },
+    {
+      "id": "T2",
+      "title": "Rough outline of closed and open shapes",
+      "file": "tasks/T2.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T3",
+      "title": "Rough fill area and determinism",
+      "file": "tasks/T3.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T4",
+      "title": "Theme interface and Sketch palette",
+      "file": "tasks/T4.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T5",
+      "title": "Embedded Architects Daughter font",
+      "file": "tasks/T5.md",
+      "depends_on": [
+        "T4"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T6",
+      "title": "HandPaintDevice draws a rough rectangle",
+      "file": "tasks/T6.md",
+      "depends_on": [
+        "T2",
+        "T3",
+        "T4"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T7",
+      "title": "All vector primitives go through the geometry engine",
+      "file": "tasks/T7.md",
+      "depends_on": [
+        "T6"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T8",
+      "title": "Pluggable geometry engine and stable seed",
+      "file": "tasks/T8.md",
+      "depends_on": [
+        "T6"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T9",
+      "title": "World transform and clipping",
+      "file": "tasks/T9.md",
+      "depends_on": [
+        "T6"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T10",
+      "title": "Text drawn in the theme font",
+      "file": "tasks/T10.md",
+      "depends_on": [
+        "T5",
+        "T6"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T11",
+      "title": "Pixmaps and images forwarded unchanged",
+      "file": "tasks/T11.md",
+      "depends_on": [
+        "T6"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T12",
+      "title": "HandPaintEffect and apply_theme",
+      "file": "tasks/T12.md",
+      "depends_on": [
+        "T5",
+        "T7",
+        "T9",
+        "T10",
+        "T11"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T13",
+      "title": "Themed window paints safely and keeps input",
+      "file": "tasks/T13.md",
+      "depends_on": [
+        "T12"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T14",
+      "title": "remove_theme restores the window",
+      "file": "tasks/T14.md",
+      "depends_on": [
+        "T12"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T15",
+      "title": "Example combobox switches the Sketch theme",
+      "file": "tasks/T15.md",
+      "depends_on": [
+        "T14"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T16",
+      "title": "Themed example runs offscreen without warning",
+      "file": "tasks/T16.md",
+      "depends_on": [
+        "T15"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    }
+  ]
+}

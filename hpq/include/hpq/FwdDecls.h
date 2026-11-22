@@ -2,6 +2,8 @@
 
 namespace hpq {
 
-// Forward declarations of the hpq library (none yet).
+class GeometryEngine;
+class RoughGeometryEngine;
+struct RoughOptions;
 
 } // namespace hpq
