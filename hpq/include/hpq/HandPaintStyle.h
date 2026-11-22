@@ -26,6 +26,11 @@ public:
     void drawComplexControl(ComplexControl control, const QStyleOptionComplex *option, QPainter *painter,
                             const QWidget *widget = nullptr) const override;
 
+    // The grid lines of a table are between the Window and the Mid colors of the palette:
+    // lighter than a dark window, where Fusion only darkens the Window color.
+    int styleHint(StyleHint hint, const QStyleOption *option = nullptr, const QWidget *widget = nullptr,
+                  QStyleHintReturn *return_data = nullptr) const override;
+
 private:
     void draw_slider(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
     void draw_combo_box(const QStyleOptionComboBox &option, QPainter &painter, const QWidget *widget) const;
