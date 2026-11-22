@@ -204,9 +204,11 @@
       "depends_on": [
         "T15"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- MainWindow.ChalkThemedWindowStillReactsToTheUser\n- MainWindow.SwitchingEveryThemeGivesNoQtWarning",
+      "real_testing": "PASSED\n- B27: project built, ctest 4/4. Probe with hpq::example::MainWindow + QTest, offscreen: \"Black slate and chalk\" selected, QTest::mouseClick(checkBox), QTest::keyClicks(lineEdit, \"abc\") -> `checkBox before=0 after=1 lineEdit='abc'`. shots/b27_after_offscreen.png: chalk-themed window with a checkmark in the CheckBox and \"abc\" in the line edit (before PNG: empty box and field). Native macOS extra: same result; checkbox indicator and combo arrows not drawn there (known QMacCGContext limitation).\n- B28: offscreen with QT_MESSAGE_PATTERN='[%{type}] %{message}', selecting Sketch, China Ink, Black slate and chalk, None with event processing -> exit 0, no crash, window visible after each step; only Qt message \"[warning] This plugin does not support propagateSizeHints()\" at show(), 0 warnings after show; stderr otherwise only the accepted TRACE lines. Real HandPaintingExample offscreen with HPQ_AUTO_QUIT: exit 0, only the propagateSizeHints notice. Native display (optional): no crash; only the accepted \"QMacCGContext:: Unsupported paint engine type 50\" warnings.\nEvidence: specs/hand-paint-engine/real-testing/T16/"
     }
   ]
 }

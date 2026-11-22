@@ -11,7 +11,7 @@ if(APPLE)
   endif()
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Test)
 
 find_package(GTest CONFIG REQUIRED)
 

@@ -18,7 +18,9 @@
 #include <QStandardItemModel>
 #include <QStatusBar>
 #include <QTableView>
+#include <QTest>
 #include <QTreeView>
+#include <QtGlobal>
 #include <gtest/gtest.h>
 
 #include <vector>
@@ -237,4 +239,71 @@ TEST(MainWindow, SketchThemeKeepsTheFileLabelOfTheMenuBar)
     ASSERT_FALSE(file_item.isEmpty());
     const QImage image = w.menuBar()->grab().toImage();
     EXPECT_TRUE(has_dark_pixel_in_middle_rows(image, file_item));
+}
+
+TEST(MainWindow, ChalkThemedWindowStillReactsToTheUser)
+{
+    hpq::example::MainWindow w;
+    show_and_settle(w);
+    select_theme(w, "Black slate and chalk");
+
+    auto *check_box = find<QCheckBox>(w, "checkBox");
+    auto *line_edit = find<QLineEdit>(w, "lineEdit");
+    ASSERT_NE(check_box, nullptr);
+    ASSERT_NE(line_edit, nullptr);
+    const bool was_checked = check_box->isChecked();
+
+    QTest::mouseClick(check_box, Qt::LeftButton);
+    QTest::keyClicks(line_edit, "abc");
+
+    EXPECT_NE(check_box->isChecked(), was_checked);
+    EXPECT_EQ(line_edit->text().toStdString(), "abc");
+}
+
+namespace {
+// Records the Qt warnings, critical and fatal messages while it lives.
+class QtWarningRecorder
+{
+public:
+    QtWarningRecorder()
+    {
+        recorded().clear();
+        m_previous = qInstallMessageHandler(&QtWarningRecorder::record);
+    }
+    ~QtWarningRecorder() { qInstallMessageHandler(m_previous); }
+    QtWarningRecorder(const QtWarningRecorder &) = delete;
+    QtWarningRecorder &operator=(const QtWarningRecorder &) = delete;
+
+    const QStringList &warnings() const { return recorded(); }
+
+private:
+    static QStringList &recorded()
+    {
+        static QStringList messages;
+        return messages;
+    }
+
+    static void record(QtMsgType type, const QMessageLogContext &, const QString &message)
+    {
+        if (type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg)
+            recorded().append(message);
+    }
+
+    QtMessageHandler m_previous = nullptr;
+};
+} // namespace
+
+TEST(MainWindow, SwitchingEveryThemeGivesNoQtWarning)
+{
+    hpq::example::MainWindow w;
+    // The offscreen platform warns at show() that it "does not support propagateSizeHints()":
+    // a message of Qt itself, not of the themes. So the recording starts once the window is shown.
+    show_and_settle(w);
+    QtWarningRecorder recorder;
+
+    for (const char *text : {"Sketch", "China Ink", "Black slate and chalk", "None"})
+        select_theme(w, text);
+
+    EXPECT_TRUE(recorder.warnings().isEmpty()) << recorder.warnings().join("\n").toStdString();
+    EXPECT_TRUE(w.isVisible());
 }

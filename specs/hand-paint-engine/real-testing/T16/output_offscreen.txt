@@ -1,0 +1,16 @@
+TRACE before setupUi
+TRACE after setupUi
+TRACE before table
+TRACE before tree
+TRACE before scene
+[warning] This plugin does not support propagateSizeHints()
+exposed=1
+warnings after show (offscreen plugin notice expected) = 1
+found combo=1 check=1 line=1
+B28 selected 'Sketch' -> visible=1, warnings since show=0
+B28 selected 'China Ink' -> visible=1, warnings since show=0
+B28 selected 'Black slate and chalk' -> visible=1, warnings since show=0
+B28 selected 'None' -> visible=1, warnings since show=0
+B27 theme='Black slate and chalk' checkBox before=0 after=1 lineEdit='abc'
+total warnings since show=0
+exit=0

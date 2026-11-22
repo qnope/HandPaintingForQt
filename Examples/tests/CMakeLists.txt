@@ -1,7 +1,7 @@
 add_executable(HandPaintingExampleTests)
 target_sources(HandPaintingExampleTests PRIVATE TestMain.cpp StartupTest.cpp MainWindowTest.cpp
   TableModelFactoryTest.cpp TreeModelFactoryTest.cpp HpqTest.cpp)
-target_link_libraries(HandPaintingExampleTests PRIVATE HandPaintingExampleLib GTest::gtest)
+target_link_libraries(HandPaintingExampleTests PRIVATE HandPaintingExampleLib Qt6::Test GTest::gtest)
 set_target_properties(HandPaintingExampleTests PROPERTIES AUTOMOC ON)
 add_test(NAME HandPaintingExampleTests COMMAND HandPaintingExampleTests)
 

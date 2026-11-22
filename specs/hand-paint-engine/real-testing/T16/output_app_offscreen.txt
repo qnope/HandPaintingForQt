@@ -1,0 +1,7 @@
+TRACE before setupUi
+TRACE after setupUi
+TRACE before table
+TRACE before tree
+TRACE before scene
+[warning] This plugin does not support propagateSizeHints()
+exit=0
