@@ -5,6 +5,18 @@
 #include <QApplication>
 #include <QTimer>
 
+namespace {
+void show_main_window(QWidget &window)
+{
+#ifdef Q_OS_WASM
+    // In a browser the page is the window frame: the window fills it, without a title bar.
+    window.showFullScreen();
+#else
+    window.show();
+#endif
+}
+} // namespace
+
 int main(int argc, char *argv[])
 {
     const bool auto_quit = qEnvironmentVariableIsSet("HPQ_AUTO_QUIT");
@@ -15,7 +27,7 @@ int main(int argc, char *argv[])
     hpq::example::apply_default_font();
 
     hpq::example::MainWindow window;
-    window.show();
+    show_main_window(window);
 
     // Used by the smoke test: quit as soon as the event loop starts.
     if (auto_quit)

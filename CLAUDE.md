@@ -32,6 +32,8 @@ ctest --preset debug
 
 Sans le preset : `cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=<qt>`, puis `cmake --build build --config Debug` et `ctest --test-dir build -C Debug --output-on-failure`.
 
+WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/web`, déploiement GitHub Pages par `.github/workflows/pages.yml` (voir README).
+
 ## Directories
 
 1. Examples

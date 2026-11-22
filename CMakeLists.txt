@@ -13,8 +13,13 @@ endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-find_package(GTest CONFIG REQUIRED)
+# The tests need GoogleTest. A build that only wants the library and the example
+# (Qt for WebAssembly, for instance) turns them off.
+option(HPQ_BUILD_TESTS "Build the hpq and example tests" ON)
+if(HPQ_BUILD_TESTS)
+  find_package(GTest CONFIG REQUIRED)
+  enable_testing()
+endif()
 
-enable_testing()
 add_subdirectory(hpq)
 add_subdirectory(Examples)

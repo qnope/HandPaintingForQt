@@ -1,0 +1,128 @@
+name: Pages
+
+# Builds the example application with Qt for WebAssembly, checks that it starts in a browser
+# and, on main, publishes it on GitHub Pages.
+# The repository setting "Pages > Build and deployment > Source" must be "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  # A deployment in progress is left to finish; only the builds of a pull request are replaced.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  QtVersion: '6.8.3'
+  # Emscripten release the Qt for WebAssembly binaries of QtVersion are built with:
+  # https://doc.qt.io/qt-6.8/wasm.html
+  EmscriptenVersion: '3.1.56'
+  # Used by the smoke test only.
+  PlaywrightVersion: '1.63.0'
+
+jobs:
+  build:
+    name: WebAssembly site
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Installs Qt for WebAssembly and the desktop Qt whose tools (moc, uic, rcc) run during
+      # the build. Sets QT_ROOT_DIR (WebAssembly) and QT_HOST_PATH (desktop).
+      - name: Install Qt for WebAssembly
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QtVersion }}
+          target: wasm
+          arch: wasm_singlethread
+          cache: true
+
+      - name: Restore Emscripten cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/emsdk
+          key: emsdk-${{ runner.os }}-${{ runner.arch }}-${{ env.EmscriptenVersion }}
+
+      - name: Set up Emscripten
+        run: |
+          if [ ! -d "$RUNNER_TEMP/emsdk" ]; then
+            git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+            "$RUNNER_TEMP/emsdk/emsdk" install "$EmscriptenVersion"
+          fi
+          "$RUNNER_TEMP/emsdk/emsdk" activate "$EmscriptenVersion"
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          echo "EMSDK=$EMSDK" >> "$GITHUB_ENV"
+          echo "EM_CONFIG=${EM_CONFIG:-$EMSDK/.emscripten}" >> "$GITHUB_ENV"
+          echo "$EMSDK/upstream/emscripten" >> "$GITHUB_PATH"
+
+      # The tests are not built: they run on the desktop platforms, in the CI workflow.
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          "-DCMAKE_TOOLCHAIN_FILE=$QT_ROOT_DIR/lib/cmake/Qt6/qt.toolchain.cmake"
+          "-DQT_CHAINLOAD_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
+          "-DQT_HOST_PATH:PATH=$QT_HOST_PATH"
+          -DHPQ_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Assemble the site
+        run: |
+          mkdir _site
+          cp -r build/Examples/index.html build/Examples/fonts \
+            build/Examples/HandPaintingExample.js build/Examples/HandPaintingExample.wasm \
+            build/Examples/qtloader.js _site/
+          ls -lR _site
+
+      # Opens the site in the Chrome of the runner (CHROME_BIN) and waits for the application window.
+      - name: Check that the application starts in a browser
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/smoke-test" "playwright@$PlaywrightVersion"
+          export CHROME_BIN="${CHROME_BIN:-$(command -v google-chrome)}"
+          NODE_PATH="$RUNNER_TEMP/smoke-test/node_modules" \
+            node .github/scripts/WasmSmokeTest.cjs _site "$RUNNER_TEMP/application.png"
+
+      - name: Upload the screenshot of the application
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: application-screenshot
+          path: ${{ runner.temp }}/application.png
+          if-no-files-found: ignore
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
