@@ -81,10 +81,28 @@ void draw_group_box_frame(const QStyleOption &option, QPainter &painter) {
     painter.restore();
 }
 
+// A header section as a flat rectangle: Button fill, Dark outline, no cached pixmap.
+void draw_header_section(const QStyleOption &option, QPainter &painter) {
+    painter.save();
+    painter.setPen(option.palette.color(QPalette::Dark));
+    painter.setBrush(option.palette.color(QPalette::Button));
+    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
+    painter.restore();
+}
+
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
 HandPaintStyle::HandPaintStyle() : QProxyStyle(QStyleFactory::create(BaseStyleName)) {}
+
+void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
+                                 const QWidget *widget) const {
+    if (element == CE_HeaderSection) {
+        draw_header_section(*option, *painter);
+        return;
+    }
+    QProxyStyle::drawControl(element, option, painter, widget);
+}
 
 void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,
                                    const QWidget *widget) const {
