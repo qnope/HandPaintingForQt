@@ -1,4 +1,5 @@
 #include <hpq/HandPaintEffect.h>
+#include <hpq/HandPaintStyle.h>
 #include <hpq/Theme.h>
 #include <hpq/Theming.h>
 
@@ -7,7 +8,6 @@
 #include <QPalette>
 #include <QPointer>
 #include <QStyle>
-#include <QStyleFactory>
 #include <QWidget>
 
 #include <optional>
@@ -17,11 +17,11 @@
 namespace hpq {
 namespace {
 
-// One Fusion style for all themed widgets, alive as long as the application.
-QStyle *fusion_style() {
+// One HandPaintStyle for all themed widgets, alive as long as the application.
+QStyle *hand_paint_style() {
     static QPointer<QStyle> style;
     if (!style) {
-        style = QStyleFactory::create("Fusion");
+        style = new HandPaintStyle;
         style->setParent(qApp);
     }
     return style;
@@ -87,7 +87,7 @@ void apply_theme(QWidget &window, std::shared_ptr<const Theme> theme,
     }
     window.setPalette(theme->palette());
     window.setFont(theme->font());
-    QStyle *style = fusion_style();
+    QStyle *style = hand_paint_style();
     window.setStyle(style);
     for (QWidget *descendant : window.findChildren<QWidget *>()) {
         descendant->setStyle(style);

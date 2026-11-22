@@ -1,4 +1,5 @@
 #include <hpq/HandPaintEffect.h>
+#include <hpq/HandPaintStyle.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/Theming.h>
@@ -29,7 +30,6 @@
 
 namespace {
 
-const QString FusionStyleName("fusion");
 const QString ThemeFontFamily("Architects Daughter");
 
 std::shared_ptr<const hpq::Theme> sketch_theme() {
@@ -40,7 +40,7 @@ std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
     return std::make_shared<const hpq::RoughGeometryEngine>();
 }
 
-TEST(ApplyThemeTest, SetsPaletteFontFusionStyleAndEffect) {
+TEST(ApplyThemeTest, SetsPaletteFontHandPaintStyleAndEffect) {
     QMainWindow window;
     auto *central = new QWidget(&window);
     auto *layout = new QVBoxLayout(central);
@@ -55,9 +55,11 @@ TEST(ApplyThemeTest, SetsPaletteFontFusionStyleAndEffect) {
 
     EXPECT_EQ(window.palette(), theme->palette());
     EXPECT_EQ(window.font().family(), ThemeFontFamily);
-    EXPECT_EQ(window.style()->name(), FusionStyleName);
-    EXPECT_EQ(button->style()->name(), FusionStyleName);
-    EXPECT_EQ(check_box->style()->name(), FusionStyleName);
+    const auto *style = qobject_cast<hpq::HandPaintStyle *>(window.style());
+    ASSERT_NE(style, nullptr);
+    for (QWidget *descendant : window.findChildren<QWidget *>()) {
+        EXPECT_EQ(descendant->style(), style) << descendant->metaObject()->className();
+    }
     EXPECT_NE(qobject_cast<hpq::HandPaintEffect *>(window.graphicsEffect()), nullptr);
 }
 

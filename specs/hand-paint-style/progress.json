@@ -155,11 +155,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
+      "status": "done",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/hand-paint-style/T13",
-      "review": "APPROVED\n- ApplyThemeTest.SetsPaletteFontHandPaintStyleAndEffect\n- RemoveThemeTest.RestoresEffectPaletteFontAndStyles"
+      "review": "APPROVED\n- ApplyThemeTest.SetsPaletteFontHandPaintStyleAndEffect\n- RemoveThemeTest.RestoresEffectPaletteFontAndStyles",
+      "real_testing": "PASSED\n- B15: program against worktree hpq, QMainWindow with 35 widgets (push button, combobox, group box + line edit, QTableView, a button with its own \"Windows\" style), apply_theme(SketchTheme, RoughGeometryEngine) offscreen -> window style is hpq::HandPaintStyle (base \"fusion\"), all 35 widgets share the same style object, 0 differ. themed.png shows sketch palette and font.\n- B16: remove_theme -> 0 of 35 widgets differ from their style before; the \"Custom style\" button is back to its Windows style, window back to QFusionStyle; restored.png shows normal Qt look. Examples app offscreen 4 s: no crash, only offscreen \"propagateSizeHints()\" notes.\nEvidence: scratchpad t13/ (main.cpp, CMakeLists.txt, run.txt, example.txt, themed.png, restored.png)."
     },
     {
       "id": "T14",
