@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -141,7 +142,7 @@ int main(int argc, char *argv[]) {
 
     QCommandLineParser parser;
     parser.addOptions({{"theme", "none, sketch, sketch-hachure, slate or slate-hachure.", "theme", "sketch"},
-                       {"scenario", "full, line-edit, button or table.", "scenario", "full"},
+                       {"scenario", "full, resize, table, line-edit, button or rectangles.", "scenario", "full"},
                        {"size", "Size of the window, as WIDTHxHEIGHT.", "size"},
                        {"repetitions", "Measured repaints.", "count", "200"},
                        {"warmup", "Repaints before the measure.", "count", "20"},
@@ -179,13 +180,38 @@ int main(int argc, char *argv[]) {
     window.show();
     QApplication::processEvents();
 
-    QWidget *widget = widget_of(scenario, window);
-    if (!widget || repetitions <= 0) {
+    if (repetitions <= 0) {
+        err << "No repetition\n";
+        return 2;
+    }
+    std::function<void(int)> repaint;
+    if (scenario == "resize") {
+        // A new size at every repetition, never the same twice: most shapes move or change,
+        // and are drawn for the first time, as when the user resizes the window.
+        const QSize size = window.size();
+        repaint = [&window, size](int index) {
+            window.resize(size.width() + (index * 7) % 211, size.height() + (index * 5) % 197);
+            // The offscreen platform tells of the new size, then asks for the repaint.
+            QApplication::processEvents();
+            QApplication::processEvents();
+        };
+    } else if (scenario == "rectangles") {
+        // Small parts of the window, here and there: checks, with --backing-store, that
+        // repaints of parts leave the window as a repaint of the whole draws it.
+        repaint = [&window](int index) {
+            const QSize size = window.size();
+            const QRect part((index * 97) % size.width(), (index * 61) % size.height(), 20 + (index * 13) % 120,
+                             10 + (index * 29) % 90);
+            window.repaint(part);
+        };
+    } else if (QWidget *widget = widget_of(scenario, window)) {
+        repaint = [widget](int) { widget->repaint(); };
+    } else {
         err << "Unknown scenario: " << scenario << "\n";
         return 2;
     }
     for (int index = 0; index < warmup; ++index) {
-        widget->repaint();
+        repaint(repetitions + index);
     }
     timed_engine->take_milliseconds();
     timed_engine->take_calls();
@@ -195,7 +221,7 @@ int main(int argc, char *argv[]) {
     QElapsedTimer timer;
     for (int index = 0; index < repetitions; ++index) {
         timer.start();
-        widget->repaint();
+        repaint(index);
         durations.push_back(static_cast<double>(timer.nsecsElapsed()) / NanosecondsPerMillisecond);
     }
     const double geometry = timed_engine->take_milliseconds() / repetitions;
