@@ -87,8 +87,8 @@
         "T5"
       ],
       "status": "dev",
-      "rejections": 2,
-      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-engine/T7, run `git merge d1a567ea880b5235250bdaadde7937d8e15f6e6b`, keep the work of both sides and make the tests pass",
+      "rejections": 3,
+      "note": "FAILED\n- other: in each preset, a filled rect (40,40,120,120) with an alpha-128 brush and NoPen after painter.translate(30,0), and a filled ellipse (30,50,140,100) with an alpha-128 brush and a pen after the same translate -> colour is right (centre (130,100) = #E7E7E7 / #BAB7B0 / #677169, no blue), but each shape is moved 60 px instead of 30: the rect covers x 100..199 (runs off the right edge) instead of 70..189; the ellipse starts at x 89 instead of ~60. Outline moves with the fill (both wrong place). Narrowed down: the same rect with pen only (NoBrush) lands correctly at x 69..190; with an opaque blue brush + pen it lands at x 99..199. So whenever a brush is set, the whole shape gets the translation twice (likely QPainter emulation pre-transforms the path for brushed shapes and the engine applies m_transform again). Same in all three presets -> drawing must follow the painter transform once: translate(30,0) moves fill and outline by 30 px (rect at x 70..190), theme fill blended at the brush alpha.\n- B11, B12, B13 without transform still pass in all three presets.\nEvidence: specs/hand-paint-engine/real-testing/T7/ (sketch_translate_rect_pen_only.png vs sketch_translate_rect_opaque_brush.png, *_translate_rect_a128.png, *_translate_ellipse_a128.png, sheet.png)",
       "worktree": ".worktrees/hand-paint-engine/T7",
       "review": "APPROVED\n- SolidFill.SketchFilledRectCenterHasThemeFillColor\n- SolidFill.SketchFilledRectIsBackgroundFartherThanDOutside\n- SolidFill.SketchFilledRectHasHandDrawnOutline\n- SolidFill.SketchHalfTransparentBrushBlendsThemeFillAtHalf\n- SolidFill.SketchHalfTransparentBrushWithoutPenHasNoInk\n- SolidFill.NoPenNoBrushShapesLeaveOnlyBackground"
     },
@@ -126,7 +126,7 @@
         "T5",
         "T6"
       ],
-      "status": "dev",
+      "status": "real-testing",
       "rejections": 1,
       "note": "FAILED\n- B18 / other: probe painted the same rect (no brush) + ellipse + polygon (blue brush) twice on one HandPaintDevice with seed 7, and twice on one device with no seed -> the second paint is not the same image: the rectangle drawn with no brush comes out filled grey the second time (repaint/side_by_side.png, repaint/default_seed_second_paint.png; \"first==second 0\"). When the drawing first sets a different brush then Qt::NoBrush, the two paints are identical. The seed is reset at begin() and the strokes repeat, but the engine keeps the previous painter's brush: a new QPainter starts with NoBrush, so it never sends a brush change and the stale blue brush is used. -> B18 says an unseeded device \"gives the same image every time\", and HandPaintDevice.h says \"painting the same drawing gives the same image, on this device or on another with the same seed\". A second paint of the same drawing on the same device must give the same image, with the rectangle not filled.\n- B17 OK (seed 42 on two devices equal, 3 themes). B18 seeds 1 vs 2 differ; no seed vs DefaultSeed equal; two process runs byte-identical.\nEvidence: specs/hand-paint-engine/real-testing/T10/",
       "worktree": ".worktrees/hand-paint-engine/T10",

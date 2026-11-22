@@ -51,7 +51,7 @@ jobs:
           QT_LOGGING_RULES: "*=true"
         run: |
           T=build/Examples/tests/Debug/HandPaintingExampleTests.exe
-          timeout 60 $T --gtest_filter=MainWindow.WidgetsOfTheUiExist > out.txt 2>&1; echo "RESULT exit $?"
+          timeout 60 $T --gtest_filter=MainWindow.WidgetsOfTheUiExist > out.txt 2>&1 || echo "RESULT exit $?"
           grep -E "TRACE|RUN|OK|FAIL" out.txt | sed 's/^/RESULT /'
           true
       - name: Test
