@@ -1,30 +1,12 @@
 #include <hpq/SketchTheme.h>
 
-#include <QColor>
-#include <QFontDatabase>
-#include <QString>
+#include "HandFont.h"
 
-// The resource of a static library must be initialized by hand, outside any namespace.
-static void init_hpq_fonts_resource() {
-    Q_INIT_RESOURCE(hpq_fonts);
-}
+#include <QColor>
 
 namespace hpq {
 
 namespace {
-
-constexpr auto FontResource = ":/hpq/fonts/ArchitectsDaughter-Regular.ttf";
-
-// Registers the embedded font once and returns its family name.
-QString font_family() {
-    static const QString family = [] {
-        init_hpq_fonts_resource();
-        const int font_id = QFontDatabase::addApplicationFont(FontResource);
-        const QStringList families = QFontDatabase::applicationFontFamilies(font_id);
-        return families.isEmpty() ? QString() : families.first();
-    }();
-    return family;
-}
 
 // One color for each role of a color group.
 struct GroupColors {
@@ -114,7 +96,7 @@ QPalette sketch_palette(FillStyle fill_style) {
 }  // namespace
 
 Theme sketch_theme(FillStyle fill_style) {
-    return Theme(sketch_palette(fill_style), QFont(font_family()), RoughOptions{}, fill_style);
+    return Theme(sketch_palette(fill_style), QFont(hand_font_family()), RoughOptions{}, fill_style);
 }
 
 }  // namespace hpq

@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <hpq/HandPaintEffect.h>
 #include <hpq/SketchTheme.h>
+#include <hpq/SlateTheme.h>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
@@ -167,17 +168,35 @@ TEST(MainWindow, CheckingHachuresUnderAnotherThemeKeepsTheThemeRemoved)
     EXPECT_EQ(w.graphicsEffect(), nullptr);
 }
 
-class MainWindowOtherTheme : public ::testing::TestWithParam<int>
-{
-};
-
-TEST_P(MainWindowOtherTheme, SelectingItRemovesTheSketchTheme)
+TEST(MainWindow, CheckingHachuresUnderBlackSlateAppliesTheHatchedSlateTheme)
 {
     hpq::example::MainWindow w;
-    find<QComboBox>(w, "comboBox")->setCurrentIndex(GetParam());
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(BlackSlateIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::slate_theme(hpq::FillStyle::Hachure).palette());
+}
+
+TEST(MainWindow, SelectingChinaInkRemovesTheSketchTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
     EXPECT_EQ(w.graphicsEffect(), nullptr);
     EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
 }
+
+TEST(MainWindow, SelectingBlackSlateAppliesTheSlateTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(BlackSlateIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::slate_theme().palette());
+    EXPECT_EQ(w.font().family(), "Architects Daughter");
+}
+
+class MainWindowOtherTheme : public ::testing::TestWithParam<int>
+{
+};
 
 TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
 {

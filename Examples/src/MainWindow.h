@@ -15,8 +15,8 @@ public:
     ~MainWindow() override;
 
 private:
-    // Applies the Sketch theme for the "Sketch" entry of comboBox, with hatched fills when
-    // checkBox is checked, and removes the theme otherwise.
+    // Applies the theme of the entry of comboBox: Sketch, or slate for "Black slate and chalk",
+    // with hatched fills when checkBox is checked. Removes the theme for the other entries.
     void update_theme();
 
     std::unique_ptr<Ui::MainWindow> m_ui;
