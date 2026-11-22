@@ -1,0 +1,65 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages will be built and installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+Additional packages (*) will be modified to complete this operation.
+Restored 3 package(s) from /Users/amorrier/.cache/vcpkg/archives in 58.8 ms. Use --debug to see more details.
+Installing 1/3 vcpkg-cmake-config:arm64-osx@2026-07-21...
+vcpkg-cmake-config:arm64-osx@2026-07-21 package ABI: 87d7a199c85027953eb2ee7ca9a115adf3f3cb47dc1fc0d831f8a5e16c248806
+Elapsed time to handle vcpkg-cmake-config:arm64-osx: 1.29 ms
+Installing 2/3 vcpkg-cmake:arm64-osx@2026-11-09...
+vcpkg-cmake:arm64-osx@2026-11-09 package ABI: 7deebf91e2e7afa4cc8b019c8faf41864a1f568e1c7391ae367f283000e08086
+Elapsed time to handle vcpkg-cmake:arm64-osx: 1.48 ms
+Installing 3/3 gtest:arm64-osx@1.18.0...
+gtest:arm64-osx@1.18.0 package ABI: 816f3c2bd7928df8c0aafae447a861cf09bd78a34d182f0d694e3145c93abbda
+Elapsed time to handle gtest:arm64-osx: 9.66 ms
+Installed contents are licensed to you by owners. Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Packages installed in this vcpkg installation declare the following licenses:
+BSD-3-Clause
+MIT
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 13.2 ms
+-- Running vcpkg install - done
+-- The CXX compiler identification is AppleClang 21.0.0.21000401
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Configuring done (1.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/specs/sketch-paint-engine/real-testing/T10/probe/build-merged
+[1/11] Running rcc for resource hpq_fonts
+[2/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/Hpq.cpp.o
+[3/11] Building CXX object hpq/CMakeFiles/hpq_resources_1.dir/.qt/rcc/qrc_hpq_fonts_init.cpp.o
+[4/11] Building CXX object hpq/CMakeFiles/hpq.dir/.qt/rcc/qrc_hpq_fonts.cpp.o
+[5/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/RoughGeometryEngine.cpp.o
+[6/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/SketchTheme.cpp.o
+[7/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/HandPaintDevice.cpp.o
+[8/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/HandPaintEngine.cpp.o
+[9/11] Linking CXX static library hpq/libhpq.a
+[10/11] Building CXX object CMakeFiles/probe.dir/main.cpp.o
+/Users/amorrier/Programmation/HandPaintingForQt/specs/sketch-paint-engine/real-testing/T10/probe/main.cpp:52:22: warning: unused variable 'colormatch' [-Wunused-variable]
+   52 |         int ink = 0, colormatch = 0; QRect bb;
+      |                      ^~~~~~~~~~
+1 warning generated.
+[11/11] Linking CXX executable probe

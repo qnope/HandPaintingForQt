@@ -4,7 +4,11 @@
 #include <hpq/RoughOptions.h>
 #include <hpq/Theme.h>
 
+#include <QPaintDevice>
 #include <QPainter>
+#include <QTextItem>
+
+#include <cmath>
 
 namespace hpq {
 
@@ -80,5 +84,29 @@ void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, 
 
 // The same seed for every shape, for now.
 std::uint32_t HandPaintEngine::seed(const QPainterPath &) const { return 0; }
+
+namespace {
+
+constexpr double PointsPerInch = 72.0;
+
+// Pixel size of `font` on `device`: its pixel size, or its point size converted with the device DPI.
+int pixel_size(const QFont &font, const QPaintDevice &device) {
+    if (font.pixelSize() > 0) {
+        return font.pixelSize();
+    }
+    return static_cast<int>(std::lround(font.pointSizeF() * device.logicalDpiY() / PointsPerInch));
+}
+
+}  // namespace
+
+void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &text_item) {
+    QFont font = m_theme.font();
+    font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
+    m_target.save();
+    m_target.setPen(m_pen);
+    m_target.setFont(font);
+    m_target.drawText(position, text_item.text());
+    m_target.restore();
+}
 
 }  // namespace hpq
