@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <random>
 #include <vector>
 
@@ -23,6 +24,11 @@ constexpr double WobbleSpacingPerAmplitude = 12.0;
 // Curves are flattened as if zoomed by this factor, so that they look smooth when drawn.
 constexpr double FlatteningZoom = 4.0;
 constexpr double Pi = 3.14159265358979323846;
+// A shape narrower than this many hachure gaps is too small to hatch: it would get
+// too few lines to look filled.
+constexpr double MinHachureGapsAcross = 4.0;
+// The ends of a hachure move by at most this fraction of the gap.
+constexpr double HachureJitterPerGap = 0.25;
 
 // The generator of one shape: the same seeds always give the same numbers.
 std::mt19937 shape_generator(std::uint32_t base_seed, std::uint32_t shape_seed)
@@ -120,6 +126,55 @@ double wobble_amplitude(const RoughOptions &options)
     return std::min(options.roughness * options.max_offset, options.max_offset);
 }
 
+// Where a horizontal line crosses a side of a polygon, and whether the side goes down (+1) or up (-1).
+struct Crossing {
+    double x;
+    int direction;
+};
+
+// A part of a horizontal line, from `left` to `right`.
+struct Span {
+    double left;
+    double right;
+};
+
+// The crossings of the horizontal line at `y` with the sides of `polygons`, from left to right.
+// A polygon that is not closed gets a side from its last point to its first, as a fill does.
+std::vector<Crossing> crossings_at(const QList<QPolygonF> &polygons, double y)
+{
+    std::vector<Crossing> crossings;
+    for (const QPolygonF &polygon : polygons) {
+        for (int i = 0; i < polygon.size(); ++i) {
+            const QPointF from = polygon[i];
+            const QPointF to = polygon[(i + 1) % polygon.size()];
+            // The top end of a side belongs to it, the bottom end does not: a line through
+            // a vertex crosses one of the two sides that meet there.
+            if ((from.y() <= y) == (to.y() <= y))
+                continue;
+            const double t = (y - from.y()) / (to.y() - from.y());
+            crossings.push_back({from.x() + t * (to.x() - from.x()), to.y() > from.y() ? 1 : -1});
+        }
+    }
+    std::sort(crossings.begin(), crossings.end(),
+              [](const Crossing &a, const Crossing &b) { return a.x < b.x; });
+    return crossings;
+}
+
+// The parts of the horizontal line at `y` that are inside `polygons`, for a fill rule.
+std::vector<Span> spans_inside(const QList<QPolygonF> &polygons, double y, Qt::FillRule fill_rule)
+{
+    const std::vector<Crossing> crossings = crossings_at(polygons, y);
+    std::vector<Span> spans;
+    int winding = 0;
+    for (std::size_t i = 0; i + 1 < crossings.size(); ++i) {
+        winding += fill_rule == Qt::WindingFill ? crossings[i].direction : 1;
+        const bool inside = fill_rule == Qt::WindingFill ? winding != 0 : winding % 2 != 0;
+        if (inside)
+            spans.push_back({crossings[i].x, crossings[i + 1].x});
+    }
+    return spans;
+}
+
 }  // namespace
 
 RoughGeometryEngine::RoughGeometryEngine() : RoughGeometryEngine(std::random_device()()) {}
@@ -163,6 +218,39 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     // The area wobbles outward only: it always covers the whole shape, so that adjacent fills
     // (for example the rectangles of a widget background region) leave no unpainted seam.
     return area.united(shape);
+}
+
+QPainterPath RoughGeometryEngine::hachure(const QPainterPath &shape, const RoughOptions &options,
+                                          std::uint32_t seed) const
+{
+    QPainterPath lines;
+    const double gap = options.hachure_gap;
+    const QRectF bounds = shape.boundingRect();
+    if (gap <= 0.0 || std::min(bounds.width(), bounds.height()) < MinHachureGapsAcross * gap)
+        return lines;
+
+    std::mt19937 generator = shape_generator(m_base_seed, seed);
+    const double jitter = std::min(wobble_amplitude(options), HachureJitterPerGap * gap);
+    // Turned back by the angle, the hachures are horizontal lines.
+    const QTransform to_device = QTransform().rotate(options.hachure_angle);
+    const QPainterPath turned_shape = to_device.inverted().map(shape);
+    const QList<QPolygonF> polygons = turned_shape.toSubpathPolygons();
+    const QRectF extent = turned_shape.boundingRect();
+
+    // The lines are on a grid that starts at the origin of the device, not at the shape.
+    for (double row = std::floor(extent.top() / gap);; ++row) {
+        const double y = (row + 0.5) * gap;
+        if (y >= extent.bottom())
+            break;
+        for (const Span &span : spans_inside(polygons, y, shape.fillRule())) {
+            // A line shorter than its jitter would be a random speck.
+            if (span.right - span.left <= jitter)
+                continue;
+            lines.moveTo(to_device.map(QPointF(span.left, y)) + random_offset(generator, jitter));
+            lines.lineTo(to_device.map(QPointF(span.right, y)) + random_offset(generator, jitter));
+        }
+    }
+    return lines;
 }
 
 }  // namespace hpq

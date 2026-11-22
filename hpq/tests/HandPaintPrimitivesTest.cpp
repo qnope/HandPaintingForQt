@@ -36,6 +36,10 @@ public:
         return shape;
     }
 
+    QPainterPath hachure(const QPainterPath &, const hpq::RoughOptions &, std::uint32_t) const override {
+        return {};
+    }
+
     const std::vector<QPainterPath> &outline_shapes() const { return m_outline_shapes; }
 
 private:

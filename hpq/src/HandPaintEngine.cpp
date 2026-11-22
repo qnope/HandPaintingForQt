@@ -1,5 +1,6 @@
 #include <hpq/HandPaintEngine.h>
 
+#include <hpq/FillStyle.h>
 #include <hpq/GeometryEngine.h>
 #include <hpq/RoughOptions.h>
 #include <hpq/Theme.h>
@@ -18,6 +19,8 @@ namespace hpq {
 
 namespace {
 
+// Width, in device pixels, of the lines of a hatched fill.
+constexpr double HachureWidth = 1.0;
 // Coordinates are rounded to this fraction of a device pixel before they make the seed.
 constexpr double SeedPrecision = 100.0;
 
@@ -158,24 +161,49 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
     const std::uint32_t shape_seed = seed(shape);
     const bool filled = m_brush.style() != Qt::NoBrush;
     if (kind != ShapeKind::Open && filled) {
-        draw_on_target(m_geometry_engine.fill_area(shape, options, shape_seed), Qt::NoPen, m_brush);
+        fill_shape(shape, options, shape_seed);
     }
     if (m_pen.style() != Qt::NoPen) {
         // A rectangle with no area is a line: it frames nothing.
         const bool is_frame = kind == ShapeKind::Rectangle && !filled && !shape.boundingRect().isEmpty();
+        // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
+        // the edge of a widget would be cut by the widget's area without this margin.
+        const int system_clip_margin = static_cast<int>(std::ceil(options.max_offset + m_pen.widthF()));
         for (const QPainterPath &outline : m_geometry_engine.outline(shape, options, shape_seed)) {
-            draw_on_target(is_frame ? kept_outside(outline, shape) : outline, m_pen, Qt::NoBrush);
+            draw_on_target(is_frame ? kept_outside(outline, shape) : outline, m_pen, Qt::NoBrush,
+                           system_clip_margin);
         }
     }
 }
 
-void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush) {
-    // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
-    // the edge of a widget would be cut by the widget's area without this margin.
-    const int system_clip_margin =
-        pen.style() == Qt::NoPen
-            ? 0
-            : static_cast<int>(std::ceil(m_theme.rough_options().max_offset + pen.widthF()));
+void HandPaintEngine::fill_shape(const QPainterPath &shape, const RoughOptions &options, std::uint32_t shape_seed) {
+    const QPainterPath area = m_geometry_engine.fill_area(shape, options, shape_seed);
+    const QPainterPath hachure =
+        is_hatched(m_brush) ? m_geometry_engine.hachure(shape, options, shape_seed) : QPainterPath();
+    if (hachure.isEmpty()) {
+        draw_on_target(area, Qt::NoPen, m_brush);
+        return;
+    }
+    // The paper shows between the hachures, and hides what was drawn under the shape.
+    draw_on_target(area, Qt::NoPen, m_theme.palette().window());
+    draw_on_target(hachure, QPen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap), Qt::NoBrush);
+}
+
+bool HandPaintEngine::is_hatched(const QBrush &brush) const {
+    if (m_theme.fill_style() != FillStyle::Hachure) {
+        return false;
+    }
+    // A brush that lets the drawing under it show is a tint: the paper must not hide that drawing.
+    if (!brush.isOpaque()) {
+        return false;
+    }
+    // Hachures in the color of the paper would not show.
+    const QBrush paper = m_theme.palette().window();
+    return brush.style() != Qt::SolidPattern || brush.color() != paper.color();
+}
+
+void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
+                                     int system_clip_margin) {
     save_target_in_device_coordinates(system_clip_margin);
     m_target.setPen(pen);
     m_target.setBrush(brush);

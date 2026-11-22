@@ -9,6 +9,7 @@
 #include <hpq/Theming.h>
 
 #include <QBrush>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QtMath>
 #include <cmath>
@@ -82,18 +83,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_ui->graphicsView->setScene(create_shapes_scene(this));
 
+    m_ui->checkBox->setText("Hachures");
     connect(m_ui->comboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            &MainWindow::select_theme);
-    select_theme(m_ui->comboBox->currentIndex());
+            &MainWindow::update_theme);
+    connect(m_ui->checkBox, &QCheckBox::toggled, this, &MainWindow::update_theme);
+    update_theme();
 }
 
-void MainWindow::select_theme(int index)
+void MainWindow::update_theme()
 {
-    if (index == SketchIndex)
-        hpq::apply_theme(*this, hpq::sketch_theme(),
-                         std::make_shared<const hpq::RoughGeometryEngine>());
-    else
+    if (m_ui->comboBox->currentIndex() != SketchIndex) {
         hpq::remove_theme(*this);
+        return;
+    }
+    const hpq::FillStyle fill_style =
+        m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
+    hpq::apply_theme(*this, hpq::sketch_theme(fill_style),
+                     std::make_shared<const hpq::RoughGeometryEngine>());
 }
 
 MainWindow::~MainWindow() = default;

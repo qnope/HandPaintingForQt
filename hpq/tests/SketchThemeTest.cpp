@@ -79,6 +79,21 @@ TEST(SketchTheme, UsesSolidFillAndTwoStrokes) {
     EXPECT_EQ(theme.rough_options().stroke_count, 2);
 }
 
+TEST(SketchTheme, HachureVariantUsesHachureFill) {
+    EXPECT_EQ(hpq::sketch_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
+}
+
+// The paper shows between the hachures of a selection: its text must be readable on the paper.
+TEST(SketchTheme, HachureVariantSelectionTextIsReadableOnPaper) {
+    const QPalette palette = hpq::sketch_theme(hpq::FillStyle::Hachure).palette();
+
+    for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
+        const QColor text = palette.color(group, QPalette::HighlightedText);
+        EXPECT_GE(contrast_ratio(text, palette.color(group, QPalette::Window)), 4.5);
+        EXPECT_GE(contrast_ratio(text, palette.color(group, QPalette::Highlight)), 3.0);
+    }
+}
+
 TEST(SketchTheme, FontIsArchitectsDaughter) {
     const hpq::Theme theme = hpq::sketch_theme();
 
