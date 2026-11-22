@@ -54,6 +54,17 @@ private:
     // Whether a shape filled with `brush` gets hachures: the theme asks for them, and they
     // would show on the paper without hiding a drawing that `brush` lets through.
     bool is_hatched(const QBrush &brush) const;
+    // Draws one stroke (of an outline, or the lines of a hatched fill) on the target with `pen`
+    // and the medium of the theme. `stroke_seed` gives a chalk stroke its pressure and its gaps.
+    // The stroke is at most `max_offset` pixels away from the shape it belongs to.
+    void draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed, double max_offset);
+    // `brush` as the medium of the theme lays it on an area: unchanged by a pencil; with chalk,
+    // rubbed on the grain, or the slate itself when it has the color of the slate.
+    QBrush seen_through_medium(const QBrush &brush) const;
+    bool is_slate(const QColor &color) const;
+    // `pen`, drawing through the grain of the slate instead of its plain color.
+    QPen chalk_pen(QPen pen, ChalkGrain grain) const;
+    double target_pixel_ratio() const;
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
     // The system clip is grown by `system_clip_margin`.
     void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,

@@ -33,12 +33,6 @@ QRectF fitted_handle(const QRect &handle, const QStyleOptionSlider &option) {
     return fitted;
 }
 
-// The pen of an outline: one pixel wide, in the Dark brush of the palette. The brush and not
-// only its color, so that a theme can give it a texture.
-QPen outline_pen(const QPalette &palette) {
-    return QPen(palette.brush(QPalette::Dark), 1.0);
-}
-
 // How far the grid lines of a table are from the Window color, towards the Mid color.
 constexpr double GridLineBlend = 0.4;
 
@@ -60,8 +54,8 @@ void draw_button_panel(const QStyleOption &option, QPainter &painter) {
     const QPalette::ColorRole fill_role = is_pressed ? QPalette::Midlight : QPalette::Button;
 
     painter.save();
-    painter.setBrush(option.palette.brush(fill_role));
-    painter.setPen(outline_pen(option.palette));
+    painter.setBrush(option.palette.color(fill_role));
+    painter.setPen(option.palette.color(QPalette::Dark));
     painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
     painter.restore();
 }
@@ -90,7 +84,7 @@ QPolygonF arrow_triangle(QStyle::PrimitiveElement arrow, const QRectF &rect) {
 void draw_arrow(QStyle::PrimitiveElement arrow, const QStyleOption &option, QPainter &painter) {
     painter.save();
     painter.setPen(Qt::NoPen);
-    painter.setBrush(option.palette.brush(QPalette::ButtonText));
+    painter.setBrush(option.palette.color(QPalette::ButtonText));
     painter.drawPolygon(arrow_triangle(arrow, option.rect));
     painter.restore();
 }
@@ -98,7 +92,7 @@ void draw_arrow(QStyle::PrimitiveElement arrow, const QStyleOption &option, QPai
 // One rectangle outline inside the option rectangle, in the palette Dark color, without fill.
 void draw_group_box_frame(const QStyleOption &option, QPainter &painter) {
     painter.save();
-    painter.setPen(outline_pen(option.palette));
+    painter.setPen(option.palette.color(QPalette::Dark));
     painter.setBrush(Qt::NoBrush);
     painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
     painter.restore();
@@ -107,8 +101,8 @@ void draw_group_box_frame(const QStyleOption &option, QPainter &painter) {
 // A header section as a flat rectangle: Button fill, Dark outline, no cached pixmap.
 void draw_header_section(const QStyleOption &option, QPainter &painter) {
     painter.save();
-    painter.setPen(outline_pen(option.palette));
-    painter.setBrush(option.palette.brush(QPalette::Button));
+    painter.setPen(option.palette.color(QPalette::Dark));
+    painter.setBrush(option.palette.color(QPalette::Button));
     painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
     painter.restore();
 }
@@ -118,8 +112,8 @@ void draw_header_section(const QStyleOption &option, QPainter &painter) {
 void draw_spin_box(const QStyle &style, const QStyleOptionSpinBox &option, QPainter &painter,
                    const QWidget *widget) {
     painter.save();
-    painter.setPen(option.frame ? outline_pen(option.palette) : QPen(Qt::NoPen));
-    painter.setBrush(option.palette.brush(QPalette::Base));
+    painter.setPen(option.frame ? QPen(option.palette.color(QPalette::Dark)) : QPen(Qt::NoPen));
+    painter.setBrush(option.palette.color(QPalette::Base));
     painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
     painter.restore();
 
@@ -215,7 +209,7 @@ void HandPaintStyle::draw_slider(const QStyleOptionSlider &option, QPainter &pai
 
     painter.save();
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(outline_pen(palette));
+    painter.setPen(palette.color(QPalette::Dark));
     if (option.subControls & SC_SliderGroove) {
         QRectF track = groove;
         if (option.orientation == Qt::Horizontal) {
@@ -224,11 +218,11 @@ void HandPaintStyle::draw_slider(const QStyleOptionSlider &option, QPainter &pai
             track.setWidth(SliderTrackThickness);
         }
         track.moveCenter(QRectF(groove).center());
-        painter.setBrush(palette.brush(QPalette::Mid));
+        painter.setBrush(palette.color(QPalette::Mid));
         painter.drawRect(track);
     }
     if (option.subControls & SC_SliderHandle) {
-        painter.setBrush(palette.brush(QPalette::Button));
+        painter.setBrush(palette.color(QPalette::Button));
         painter.drawRect(fitted_handle(handle, option).adjusted(0.5, 0.5, -0.5, -0.5));
     }
     painter.restore();
@@ -247,8 +241,8 @@ void HandPaintStyle::draw_combo_box(const QStyleOptionComboBox &option, QPainter
     const QPalette::ColorRole fill_role = option.editable ? QPalette::Base : QPalette::Button;
 
     painter.save();
-    painter.setPen(outline_pen(option.palette));
-    painter.setBrush(option.palette.brush(fill_role));
+    painter.setPen(option.palette.color(QPalette::Dark));
+    painter.setBrush(option.palette.color(fill_role));
     painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
     painter.restore();
 

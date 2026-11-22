@@ -5,11 +5,15 @@
 #include <hpq/RoughOptions.h>
 #include <hpq/Theme.h>
 
+#include "ChalkStroke.h"
+#include "ChalkTexture.h"
+
 #include <QPaintDevice>
 #include <QPainter>
 #include <QRegion>
 #include <QTextItem>
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <random>
@@ -60,6 +64,21 @@ std::uint32_t path_seed(const QPainterPath &path) {
     std::uint32_t seed = 0;
     seeds.generate(&seed, &seed + 1);
     return seed;
+}
+
+// Chalk is blunt: its line is this much wider, in pixels, than the pen it stands for.
+constexpr double ChalkExtraWidth = 1.2;
+// A chalk ribbon is at most this many times wider than its width.
+constexpr double ChalkWidestPressure = 2.0;
+
+// Width, in pixels, of the chalk line drawn for `pen`; a cosmetic pen is one pixel wide.
+double chalk_width(const QPen &pen) {
+    return std::max(pen.widthF(), 1.0) + ChalkExtraWidth;
+}
+
+// True when `pen` draws a plain line of one color, which chalk can follow with uneven pressure.
+bool is_plain_line(const QPen &pen) {
+    return pen.style() == Qt::SolidLine && pen.brush().style() == Qt::SolidPattern;
 }
 
 }  // namespace
@@ -166,12 +185,10 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
     if (m_pen.style() != Qt::NoPen) {
         // A rectangle with no area is a line: it frames nothing.
         const bool is_frame = kind == ShapeKind::Rectangle && !filled && !shape.boundingRect().isEmpty();
-        // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
-        // the edge of a widget would be cut by the widget's area without this margin.
-        const int system_clip_margin = static_cast<int>(std::ceil(options.max_offset + m_pen.widthF()));
+        std::uint32_t stroke_seed = shape_seed;
         for (const QPainterPath &outline : m_geometry_engine.outline(shape, options, shape_seed)) {
-            draw_on_target(is_frame ? kept_outside(outline, shape) : outline, m_pen, Qt::NoBrush,
-                           system_clip_margin);
+            // Each stroke of the outline gets its own seed: with chalk, its own pressure and gaps.
+            draw_stroke(is_frame ? kept_outside(outline, shape) : outline, m_pen, ++stroke_seed, options.max_offset);
         }
     }
 }
@@ -181,12 +198,12 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, const RoughOptions &
     const QPainterPath hachure =
         is_hatched(m_brush) ? m_geometry_engine.hachure(shape, options, shape_seed) : QPainterPath();
     if (hachure.isEmpty()) {
-        draw_on_target(area, Qt::NoPen, m_brush);
+        draw_on_target(area, Qt::NoPen, seen_through_medium(m_brush));
         return;
     }
     // The paper shows between the hachures, and hides what was drawn under the shape.
-    draw_on_target(area, Qt::NoPen, m_theme.palette().window());
-    draw_on_target(hachure, QPen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap), Qt::NoBrush);
+    draw_on_target(area, Qt::NoPen, seen_through_medium(m_theme.palette().window()));
+    draw_stroke(hachure, QPen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap), shape_seed, 0.0);
 }
 
 bool HandPaintEngine::is_hatched(const QBrush &brush) const {
@@ -200,6 +217,55 @@ bool HandPaintEngine::is_hatched(const QBrush &brush) const {
     // Hachures in the color of the paper would not show.
     const QBrush paper = m_theme.palette().window();
     return brush.style() != Qt::SolidPattern || brush.color() != paper.color();
+}
+
+void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed,
+                                  double max_offset) {
+    // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
+    // the edge of a widget would be cut by the widget's area without this margin.
+    if (m_theme.medium() != Medium::Chalk) {
+        draw_on_target(stroke, pen, Qt::NoBrush, static_cast<int>(std::ceil(max_offset + pen.widthF())));
+        return;
+    }
+    const double width = chalk_width(pen);
+    const int system_clip_margin = static_cast<int>(std::ceil(max_offset + width * ChalkWidestPressure));
+    if (is_plain_line(pen)) {
+        draw_on_target(chalk_ribbon(stroke, width, stroke_seed), Qt::NoPen,
+                       chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()), system_clip_margin);
+    } else {
+        // A dashed line keeps its dashes: it only gets the grain.
+        QPen grainy_pen = chalk_pen(pen, ChalkGrain::Stroke);
+        grainy_pen.setWidthF(width);
+        draw_on_target(stroke, grainy_pen, Qt::NoBrush, system_clip_margin);
+    }
+}
+
+QBrush HandPaintEngine::seen_through_medium(const QBrush &brush) const {
+    if (m_theme.medium() != Medium::Chalk || brush.style() != Qt::SolidPattern) {
+        return brush;
+    }
+    const QColor color = brush.color();
+    return is_slate(color) ? slate_brush(color, target_pixel_ratio())
+                           : chalk_brush(color, ChalkGrain::Fill, target_pixel_ratio());
+}
+
+// Chalk cannot paint the slate: a fill of the color of the window or of a view is the slate.
+bool HandPaintEngine::is_slate(const QColor &color) const {
+    const QPalette palette = m_theme.palette();
+    return color == palette.color(QPalette::Active, QPalette::Window) ||
+           color == palette.color(QPalette::Active, QPalette::Base);
+}
+
+// A pen that already draws a pattern or a gradient is returned unchanged.
+QPen HandPaintEngine::chalk_pen(QPen pen, ChalkGrain grain) const {
+    if (pen.brush().style() == Qt::SolidPattern) {
+        pen.setBrush(chalk_brush(pen.color(), grain, target_pixel_ratio()));
+    }
+    return pen;
+}
+
+double HandPaintEngine::target_pixel_ratio() const {
+    return m_target.device()->devicePixelRatioF();
 }
 
 void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
@@ -253,7 +319,7 @@ void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &tex
     QFont font = m_theme.font();
     font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
     save_target_in_logical_coordinates();
-    m_target.setPen(m_pen);
+    m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text) : m_pen);
     m_target.setFont(font);
     m_target.drawText(position, text_item.text());
     m_target.restore();
