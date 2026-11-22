@@ -88,6 +88,10 @@ jobs:
             build/Examples/qtloader.js _site/
           ls -lR _site
 
+      # Without asyncify the application starts as well, but exec() of a dialog or a menu never returns.
+      - name: Check that the application is linked with asyncify
+        run: grep -q 'Asyncify' _site/HandPaintingExample.js
+
       # Opens the site in the Chrome of the runner (CHROME_BIN) and waits for the application window.
       - name: Check that the application starts in a browser
         run: |
