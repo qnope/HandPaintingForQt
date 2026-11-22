@@ -64,6 +64,9 @@ std::vector<QPainterPath> rough_line_outline(double roughness, std::uint32_t see
 const QPointF LineStart(0, 0);
 const QPointF LineEnd(100, 0);
 
+// An offset of exactly max_offset can measure a few ulps more, depending on the platform.
+const double RoundingTolerance = 1e-9;
+
 }  // namespace
 
 TEST(RoughGeometryEngine, LineOutlineHasStrokeCountStrokesNearTheSegment)
@@ -74,10 +77,10 @@ TEST(RoughGeometryEngine, LineOutlineHasStrokeCountStrokesNearTheSegment)
     ASSERT_EQ(2u, strokes.size());
     for (const QPainterPath &stroke : strokes) {
         ASSERT_GE(stroke.elementCount(), 2);
-        EXPECT_LE(distance(first_point(stroke), LineStart), max_offset);
-        EXPECT_LE(distance(last_point(stroke), LineEnd), max_offset);
+        EXPECT_LE(distance(first_point(stroke), LineStart), max_offset + RoundingTolerance);
+        EXPECT_LE(distance(last_point(stroke), LineEnd), max_offset + RoundingTolerance);
         for (int i = 0; i < stroke.elementCount(); ++i)
-            EXPECT_LE(distance_to_segment(element_point(stroke, i), LineStart, LineEnd), max_offset);
+            EXPECT_LE(distance_to_segment(element_point(stroke, i), LineStart, LineEnd), max_offset + RoundingTolerance);
     }
 }
 
@@ -216,8 +219,8 @@ TEST(RoughGeometryEngine, OpenCubicOutlineStaysOpen)
         ASSERT_EQ(2u, strokes.size());
         for (const QPainterPath &stroke : strokes) {
             ASSERT_GE(stroke.elementCount(), 2);
-            EXPECT_LE(distance(first_point(stroke), start), max_offset);
-            EXPECT_LE(distance(last_point(stroke), end), max_offset);
+            EXPECT_LE(distance(first_point(stroke), start), max_offset + RoundingTolerance);
+            EXPECT_LE(distance(last_point(stroke), end), max_offset + RoundingTolerance);
             EXPECT_GT(distance(first_point(stroke), last_point(stroke)), max_offset);
         }
     }
