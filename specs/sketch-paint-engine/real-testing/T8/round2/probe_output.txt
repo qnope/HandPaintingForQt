@@ -1,0 +1,7 @@
+qt.qpa.fonts: Populating font family aliases took 43 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+B15 identity vs direct: 0 differing pixels, 10984 non-white pixels in identity image
+B15 identity+translate(100,60) vs direct Qt: 0 differing pixels
+B16 session1 vs session2: 0 differing pixels (non-white 17524)
+B16 rect B vs rect C: 9858 differing pixels
+translate(100,100)+rect(10,10) vs rect(110,110): 0 differing pixels (non-white 6814 / 6814)
+Scene render1 vs render2: 0 differing pixels (non-white 37070)

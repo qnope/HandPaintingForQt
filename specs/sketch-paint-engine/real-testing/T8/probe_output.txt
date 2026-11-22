@@ -1,0 +1,6 @@
+B15 identity vs direct: 0 differing pixels, 10984 non-white pixels in identity image
+B16 session1 vs session2: 0 differing pixels (non-white 17524)
+B16 rect B vs rect C: 9858 differing pixels
+B16 rect B vs same device rect via translate: 11635 differing pixels
+B16 rect B vs rect shifted 1px (re-aligned): 2134 differing pixels
+Identity engine with translate(100,60) vs direct Qt: 11224 differing pixels

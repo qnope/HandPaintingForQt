@@ -101,11 +101,11 @@
       "depends_on": [
         "T6"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/sketch-paint-engine/T8",
-      "review": "APPROVED\n- HandPaintSeedTest.IdentityEngineMakesTargetReceiveTheExactRectangle\n- HandPaintSeedTest.SameRectangleDrawnTwiceGivesTheSamePaths\n- HandPaintSeedTest.DifferentRectanglesGiveDifferentPaths"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/src/HandPaintEngine.cpp, hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/sketch-paint-engine/T8, run `git merge 82483d3d47db866aa534e96d1b5854370b7eed98`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- HandPaintSeedTest.IdentityEngineMakesTargetReceiveTheExactRectangle\n- HandPaintSeedTest.SameRectangleDrawnTwiceGivesTheSamePaths\n- HandPaintSeedTest.DifferentRectanglesGiveDifferentPaths",
+      "real_testing": "PASSED\n- B15: I plugged my own pass-through GeometryEngine into HandPaintDevice and drew two pen-and-brush rects, then drew the same rects with a plain QPainter and compared the two images. A second run added translate(100,60) on both sides. -> 0 differing pixels both times (10984 non-white pixels drawn). In b15_identity_device.png the two orange rects with dark-blue straight outlines look the same as Qt's own drawing.\n- B16: I used RoughGeometryEngine to draw rect (20,20,160,100) in two separate painting sessions, and a different rect (40,30,150,110) in a third. -> The two sessions differ by 0 pixels (17524 non-white). The different rect differs by 9858 pixels, and in b16_rough_other_rect.png its wobble is visibly different.\n- B16 (transform, T9): I drew rect (10,10,100,60) after translate(100,100), and rect (110,110,100,60) with no transform. -> 0 differing pixels (6814 non-white each). b16_translate100_rect10.png shows one rough orange rect at about (110,110), so the transform is applied only once.\n- B16 (scene): I rendered a small scene twice: two filled rects, an ellipse, a polygon, the text \"Hello sketch 123\", and a rotated rect drawn with save/translate/rotate. -> 0 differing pixels (37070 non-white). In scene_render1.png every shape has a hand-drawn wobbly outline and the text is in a handwritten font. The layout is not broken and nothing is garbled.\nThe project's test command builds and all 3 tests pass.\nEvidence: specs/sketch-paint-engine/real-testing/T8/"
     },
     {
       "id": "T9",
