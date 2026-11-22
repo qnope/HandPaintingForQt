@@ -40,7 +40,7 @@ struct GroupColors {
 
 constexpr QPalette::ColorGroup PaletteGroups[] = {QPalette::Active, QPalette::Inactive, QPalette::Disabled};
 
-GroupColors colors_for(QPalette::ColorGroup group) {
+GroupColors colors_for(QPalette::ColorGroup group, FillStyle fill_style) {
     GroupColors colors{
         QColor(0xfb, 0xf8, 0xef),  // paper
         QColor(0xf2, 0xed, 0xdf),  // paper_alternate
@@ -55,6 +55,12 @@ GroupColors colors_for(QPalette::ColorGroup group) {
         colors.graphite = QColor(0xa8, 0xa4, 0x9a);
         colors.highlight = QColor(0xb8, 0xb4, 0xaa);
         colors.link = QColor(0x9a, 0xa4, 0xb4);
+    }
+    // The paper shows between the hachures of a selection: its text is read on the paper,
+    // through hachures light enough not to hide it.
+    if (fill_style == FillStyle::Hachure) {
+        colors.highlighted_text = colors.graphite;
+        colors.highlight = group == QPalette::Disabled ? QColor(0xcf, 0xcb, 0xc1) : colors.graphite_light;
     }
     return colors;
 }
@@ -93,10 +99,10 @@ QColor color_for(QPalette::ColorRole role, const GroupColors &colors) {
     }
 }
 
-QPalette sketch_palette() {
+QPalette sketch_palette(FillStyle fill_style) {
     QPalette palette;
     for (const QPalette::ColorGroup group : PaletteGroups) {
-        const GroupColors colors = colors_for(group);
+        const GroupColors colors = colors_for(group, fill_style);
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
             const auto color_role = static_cast<QPalette::ColorRole>(role);
             palette.setColor(group, color_role, color_for(color_role, colors));
@@ -107,8 +113,8 @@ QPalette sketch_palette() {
 
 }  // namespace
 
-Theme sketch_theme() {
-    return Theme(sketch_palette(), QFont(font_family()), RoughOptions{}, FillStyle::Solid);
+Theme sketch_theme(FillStyle fill_style) {
+    return Theme(sketch_palette(fill_style), QFont(font_family()), RoughOptions{}, fill_style);
 }
 
 }  // namespace hpq

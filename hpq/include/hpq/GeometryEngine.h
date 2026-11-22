@@ -26,6 +26,11 @@ public:
     // shape, or adjacent fills leave unpainted seams between them.
     virtual QPainterPath fill_area(const QPainterPath &shape, const RoughOptions &options,
                                    std::uint32_t seed) const = 0;
+
+    // The lines that hatch the inside of `shape`, all in one path. An empty path means that
+    // the shape cannot be hatched (it is too small, for example): it is filled instead.
+    virtual QPainterPath hachure(const QPainterPath &shape, const RoughOptions &options,
+                                 std::uint32_t seed) const = 0;
 };
 
 }  // namespace hpq

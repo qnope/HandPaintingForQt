@@ -131,6 +131,42 @@ TEST(MainWindow, StartsWithTheSketchThemeApplied)
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
+TEST(MainWindow, HachuresCheckBoxStartsUnchecked)
+{
+    hpq::example::MainWindow w;
+    auto *check_box = find<QCheckBox>(w, "checkBox");
+    ASSERT_NE(check_box, nullptr);
+    EXPECT_EQ(check_box->text(), "Hachures");
+    EXPECT_FALSE(check_box->isChecked());
+}
+
+TEST(MainWindow, CheckingHachuresAppliesTheHatchedSketchTheme)
+{
+    hpq::example::MainWindow w;
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::sketch_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
+}
+
+TEST(MainWindow, UncheckingHachuresAppliesTheSolidSketchThemeAgain)
+{
+    hpq::example::MainWindow w;
+    auto *check_box = find<QCheckBox>(w, "checkBox");
+    check_box->setChecked(true);
+    check_box->setChecked(false);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
+}
+
+TEST(MainWindow, CheckingHachuresUnderAnotherThemeKeepsTheThemeRemoved)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_EQ(w.graphicsEffect(), nullptr);
+}
+
 class MainWindowOtherTheme : public ::testing::TestWithParam<int>
 {
 };

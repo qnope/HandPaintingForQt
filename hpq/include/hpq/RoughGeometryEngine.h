@@ -22,6 +22,10 @@ public:
                                       std::uint32_t seed) const override;
     QPainterPath fill_area(const QPainterPath &shape, const RoughOptions &options,
                            std::uint32_t seed) const override;
+    // Straight lines, RoughOptions::hachure_gap apart, whose ends move a little. They lie on
+    // a grid of the device, so that the hachures of two adjacent shapes line up.
+    QPainterPath hachure(const QPainterPath &shape, const RoughOptions &options,
+                         std::uint32_t seed) const override;
 
 private:
     std::uint32_t m_base_seed;

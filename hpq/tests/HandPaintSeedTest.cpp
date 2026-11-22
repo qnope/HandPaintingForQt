@@ -32,6 +32,10 @@ public:
     QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
         return shape;
     }
+
+    QPainterPath hachure(const QPainterPath &, const hpq::RoughOptions &, std::uint32_t) const override {
+        return {};
+    }
 };
 
 // Draws `rectangle` with a pen and a brush on a HandPaintDevice, in its own painting session,

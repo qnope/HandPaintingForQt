@@ -43,13 +43,21 @@ public:
 private:
     enum class ShapeKind { Open, Closed, Rectangle };
 
-    // Draws `shape` on the target: its rough fill area when it is not open and the brush is set,
+    // Draws `shape` on the target: its fill when it is not open and the brush is set,
     // then its rough outline strokes when the pen is set.
     // A rectangle without fill is a frame: its strokes stay out of it, because what it frames
     // (the viewport of a list) is painted after it, over anything inside the rectangle.
     void draw_shape(const QPainterPath &shape, ShapeKind kind);
+    // Fills `shape` (in device coordinates) on the target with the brush, as the fill style of
+    // the theme says.
+    void fill_shape(const QPainterPath &shape, const RoughOptions &options, std::uint32_t shape_seed);
+    // Whether a shape filled with `brush` gets hachures: the theme asks for them, and they
+    // would show on the paper without hiding a drawing that `brush` lets through.
+    bool is_hatched(const QBrush &brush) const;
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
-    void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush);
+    // The system clip is grown by `system_clip_margin`.
+    void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
+                        int system_clip_margin = 0);
     std::uint32_t seed(const QPainterPath &shape) const;
     // Saves the target state, then intersects the target clip with the system clip and the
     // device painter's clip.
