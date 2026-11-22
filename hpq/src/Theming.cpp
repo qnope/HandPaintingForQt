@@ -3,7 +3,9 @@
 #include <hpq/Theme.h>
 #include <hpq/Theming.h>
 
+#include <QAbstractItemView>
 #include <QApplication>
+#include <QComboBox>
 #include <QFont>
 #include <QPalette>
 #include <QPointer>
@@ -29,6 +31,17 @@ QStyle *hand_paint_style() {
 
 const QString SavedLookName("hpq_saved_look");
 
+// The lists that the combo boxes of `window` open. Each list is in a window of its own, made
+// by its combo box the first time the list is asked for: it is a descendant of `window` from
+// then on.
+std::vector<QAbstractItemView *> combo_box_lists(QWidget &window) {
+    std::vector<QAbstractItemView *> lists;
+    for (QComboBox *combo_box : window.findChildren<QComboBox *>()) {
+        lists.push_back(combo_box->view());
+    }
+    return lists;
+}
+
 // The palette, font and styles a window had before its first apply_theme, kept as a child
 // of the window. An empty optional or a null style means the value was not set on the widget.
 class SavedLook : public QObject {
@@ -40,6 +53,10 @@ public:
         }
         if (window.testAttribute(Qt::WA_SetFont)) {
             m_font = window.font();
+        }
+        for (QAbstractItemView *list : combo_box_lists(window)) {
+            const bool has_palette = list->testAttribute(Qt::WA_SetPalette);
+            m_list_palettes.push_back({list, has_palette ? std::optional<QPalette>(list->palette()) : std::nullopt});
         }
         save_style(window);
         for (QWidget *descendant : window.findChildren<QWidget *>()) {
@@ -55,12 +72,24 @@ public:
                 widget_style.widget->setStyle(widget_style.style);
             }
         }
+        for (const ListPalette &list_palette : m_list_palettes) {
+            if (list_palette.list) {
+                list_palette.list->setPalette(list_palette.palette.value_or(QPalette()));
+                list_palette.list->window()->setGraphicsEffect(nullptr);
+            }
+        }
     }
 
 private:
     struct WidgetStyle {
         QPointer<QWidget> widget;
         QPointer<QStyle> style;
+    };
+
+    // The list of a combo box, and the palette that was set on it, if any.
+    struct ListPalette {
+        QPointer<QAbstractItemView> list;
+        std::optional<QPalette> palette;
     };
 
     void save_style(QWidget &widget) {
@@ -71,6 +100,7 @@ private:
     std::optional<QPalette> m_palette;
     std::optional<QFont> m_font;
     std::vector<WidgetStyle> m_styles;
+    std::vector<ListPalette> m_list_palettes;
 };
 
 SavedLook *find_saved_look(QWidget &window) {
@@ -82,6 +112,8 @@ SavedLook *find_saved_look(QWidget &window) {
 
 void apply_theme(QWidget &window, const Theme &theme,
                  std::shared_ptr<const GeometryEngine> geometry_engine) {
+    // Before anything else: asking for the lists makes them descendants of the window.
+    const std::vector<QAbstractItemView *> lists = combo_box_lists(window);
     if (!find_saved_look(window)) {
         new SavedLook(window);
     }
@@ -91,6 +123,14 @@ void apply_theme(QWidget &window, const Theme &theme,
     window.setStyle(style);
     for (QWidget *descendant : window.findChildren<QWidget *>()) {
         descendant->setStyle(style);
+    }
+    for (QAbstractItemView *list : lists) {
+        // The list of a combo box is a window of its own: the effect of `window` does not draw
+        // it. And where the style shows it as a menu, its items take from the application
+        // palette every role that is not set on the list itself: inheriting is not enough.
+        list->setPalette(theme.palette());
+        QWidget *list_window = list->window();
+        list_window->setGraphicsEffect(new HandPaintEffect(theme, geometry_engine, list_window));
     }
     window.setGraphicsEffect(
         new HandPaintEffect(theme, std::move(geometry_engine), &window));
