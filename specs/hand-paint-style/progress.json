@@ -21,11 +21,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-style/T2",
-      "review": "APPROVED\n- ButtonPanelTest.RaisedPanelIsAFlatShapeOfTheButtonColor\n- ButtonPanelTest.SunkenPanelIsAFlatShapeOfTheMidlightColor\n- ButtonPanelTest.CheckedPanelIsAFlatShapeOfTheMidlightColor"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T2, run `git merge 83f4f7fc182bf69c72c937a78d68dc06c5738df5`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- ButtonPanelTest.RaisedPanelIsAFlatShapeOfTheButtonColor\n- ButtonPanelTest.SunkenPanelIsAFlatShapeOfTheMidlightColor\n- ButtonPanelTest.CheckedPanelIsAFlatShapeOfTheMidlightColor",
+      "real_testing": "PASSED\n- B2: after merge 144114d, rebuilt hpq in the worktree and reran t2check: drawPrimitive(PE_PanelButtonCommand) raised on R=(10,10,80,30) -> one drawRect (10,10 79x29) inside R, solid pen #8a867d (Dark), solid brush #fbf8ef (Button), images=0; button_raised.png: flat closed rectangle, Dark border, Button fill, no gradient. Exit 0.\n- B3: sunken and on -> same drawRect, Dark pen, solid Midlight brush #f2eddf, images=0; button_sunken.png / button_on.png show the same rectangle with a darker beige fill, clean edges.\nEvidence: scratchpad t2/ (main.cpp, CMakeLists.txt, output.txt, button_*.png)."
     },
     {
       "id": "T3",
@@ -47,9 +47,9 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
+      "status": "dev",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T4, run `git merge 83f4f7fc182bf69c72c937a78d68dc06c5738df5`, keep the work of both sides and make the tests pass",
       "worktree": ".worktrees/hand-paint-style/T4",
       "review": "APPROVED\n- GroupBoxFrameTest.FrameIsOneRectangleOutlineInDarkWithoutImage\n- GroupBoxFrameTest.TitledGroupBoxRendersOneDarkOutlineWithoutImage"
     },
@@ -129,9 +129,9 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
+      "status": "dev",
+      "rejections": 1,
+      "note": "FAILED\n- B12: at the slider's normal 20 px thickness the handle outline is not closed. Horizontal QSlider 180x20 (and vertical 20x180), value 30: the handle rect from subControlRect is (19,-1, 20x20), so the outline is drawn at y=-0.5 (x=-0.5 for vertical), outside the widget. In the grabs the horizontal handle has no top border and the vertical handle no left border: pixels (58,0)/(58,1) and (0,122)/(1,122) are background #fbf8ef while the opposite sides are Dark at (58,18)/(18,122); the handle also sits 1 px off-centre. With a 40 px thick slider the outline is complete. Expected: a closed Dark handle outline fully visible inside the widget at the slider's normal size (also at sizeHint 84x20 / 20x84). Everything else holds (0 images, groove Mid fill + Dark outline, handle Button fill + Dark pen).\nEvidence: scratchpad t11/ (slider_horizontal*.png, slider_vertical*.png, pixels.txt).",
       "worktree": ".worktrees/hand-paint-style/T11",
       "review": "APPROVED\n- SliderTest.HorizontalSliderDrawsGrooveAndHandleAsVectorShapes\n- SliderTest.VerticalSliderDrawsGrooveAndHandleAsVectorShapes"
     },
