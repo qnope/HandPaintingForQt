@@ -50,9 +50,15 @@ jobs:
         env:
           QT_LOGGING_RULES: "*=true"
         run: |
-          for exe in $(find build -name 'HandPaintingExample.exe' -o -name 'HandPaintingExampleTests.exe'); do
-            echo "=== $exe"
-            HPQ_AUTO_QUIT=1 timeout 30 "$exe" 2>&1 | tail -40 || true
-          done
+          T=build/Examples/tests/Debug/HandPaintingExampleTests.exe
+          A=build/Examples/Debug/HandPaintingExample.exe
+          echo "=== tests without Startup"
+          timeout 60 $T --gtest_filter=-Startup.* 2>&1 | tail -30 || true
+          echo "=== app, platform windows"
+          QT_QPA_PLATFORM=windows HPQ_AUTO_QUIT=1 timeout 30 $A 2>&1 | tail -20; echo "exit ${PIPESTATUS[0]}"
+          echo "=== app, offscreen, plugin debug"
+          QT_DEBUG_PLUGINS=1 HPQ_AUTO_QUIT=1 timeout 30 $A 2>&1 | tail -20; echo "exit ${PIPESTATUS[0]}"
+          echo "=== startup test, platform windows"
+          QT_QPA_PLATFORM=windows timeout 30 $T --gtest_filter=Startup.* 2>&1 | tail -20; echo "exit ${PIPESTATUS[0]}"
       - name: Test
         run: ctest --test-dir build -C Debug --output-on-failure --timeout 120 -V

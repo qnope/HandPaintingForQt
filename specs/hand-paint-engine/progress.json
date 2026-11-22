@@ -21,10 +21,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "dev",
+      "status": "real-testing",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T2"
+      "worktree": ".worktrees/hand-paint-engine/T2",
+      "review": "APPROVED\n- HandPaintDevice.EmptyPaintingWithSketchFillsSketchBackground\n- HandPaintDevice.EmptyPaintingWithChalkFillsChalkBackground\n- HandPaintDevice.PainterIsActiveFromBeginUntilEnd"
     },
     {
       "id": "T3",
