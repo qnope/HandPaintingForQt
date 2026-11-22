@@ -6,6 +6,7 @@
 
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
+#include <hpq/SlateTheme.h>
 #include <hpq/Theming.h>
 
 #include <QBrush>
@@ -25,6 +26,7 @@ namespace hpq::example {
 
 namespace {
 constexpr int SketchIndex = 0;
+constexpr int BlackSlateIndex = 2;
 
 QGraphicsScene *create_shapes_scene(QObject *parent)
 {
@@ -92,14 +94,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::update_theme()
 {
-    if (m_ui->comboBox->currentIndex() != SketchIndex) {
+    const int index = m_ui->comboBox->currentIndex();
+    if (index != SketchIndex && index != BlackSlateIndex) {
         hpq::remove_theme(*this);
         return;
     }
     const hpq::FillStyle fill_style =
         m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
-    hpq::apply_theme(*this, hpq::sketch_theme(fill_style),
-                     std::make_shared<const hpq::RoughGeometryEngine>());
+    const hpq::Theme theme =
+        index == SketchIndex ? hpq::sketch_theme(fill_style) : hpq::slate_theme(fill_style);
+    hpq::apply_theme(*this, theme, std::make_shared<const hpq::RoughGeometryEngine>());
 }
 
 MainWindow::~MainWindow() = default;

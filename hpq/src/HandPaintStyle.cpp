@@ -33,6 +33,21 @@ QRectF fitted_handle(const QRect &handle, const QStyleOptionSlider &option) {
     return fitted;
 }
 
+// How far the grid lines of a table are from the Window color, towards the Mid color.
+constexpr double GridLineBlend = 0.4;
+
+int blended(int from, int to, double amount) {
+    return qRound(from + (to - from) * amount);
+}
+
+// The color of the grid lines of a table: visible on the window, lighter than its outlines.
+QColor grid_line_color(const QPalette &palette) {
+    const QColor window = palette.color(QPalette::Window);
+    const QColor mid = palette.color(QPalette::Mid);
+    return QColor(blended(window.red(), mid.red(), GridLineBlend), blended(window.green(), mid.green(), GridLineBlend),
+                  blended(window.blue(), mid.blue(), GridLineBlend));
+}
+
 // Flat push button: Button fill when raised, Midlight fill when sunken or on, Dark outline.
 void draw_button_panel(const QStyleOption &option, QPainter &painter) {
     const bool is_pressed = option.state & (QStyle::State_Sunken | QStyle::State_On);
@@ -145,6 +160,14 @@ void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
         QProxyStyle::drawPrimitive(element, option, painter, widget);
         return;
     }
+}
+
+int HandPaintStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
+                              QStyleHintReturn *return_data) const {
+    if (hint == SH_Table_GridLineColor && option) {
+        return static_cast<int>(grid_line_color(option->palette).rgba());
+    }
+    return QProxyStyle::styleHint(hint, option, widget, return_data);
 }
 
 void HandPaintStyle::drawComplexControl(ComplexControl control, const QStyleOptionComplex *option,
