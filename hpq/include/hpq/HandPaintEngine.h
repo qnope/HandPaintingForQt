@@ -24,6 +24,13 @@ public:
     void updateState(const QPaintEngineState &state) override;
     void drawPath(const QPainterPath &path) override;
     void drawRects(const QRectF *rects, int count) override;
+    // The integer overloads of QPaintEngine convert to the floating point ones below.
+    using QPaintEngine::drawEllipse;
+    using QPaintEngine::drawLines;
+    using QPaintEngine::drawPolygon;
+    void drawLines(const QLineF *lines, int count) override;
+    void drawEllipse(const QRectF &rect) override;
+    void drawPolygon(const QPointF *points, int count, PolygonDrawMode mode) override;
     void drawPixmap(const QRectF &rect, const QPixmap &pixmap, const QRectF &source_rect) override;
     void drawImage(const QRectF &rect, const QImage &image, const QRectF &source_rect,
                    Qt::ImageConversionFlags flags = Qt::AutoColor) override;

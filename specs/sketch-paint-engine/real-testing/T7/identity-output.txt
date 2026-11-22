@@ -1,0 +1,3 @@
+pixmap region identical hand vs reference: yes
+reference text ink: 847 px, bbox (31,45 101x20)
+hand text ink: 746 px, bbox (30,44 109x25)

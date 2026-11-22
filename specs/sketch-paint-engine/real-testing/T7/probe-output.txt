@@ -1,0 +1,65 @@
+qt.qpa.fonts: Populating font family aliases took 38 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+hand drawn twice identical: yes
+hand differs from reference: yes
+reference:
+  oddeven star center (hole)         (100,215) = rgb(255,255,255)
+  winding star center (filled)       (280,215) = rgb(255,120,120)
+  polyline inside triangle area      (600,240) = rgb(255,255,255)
+  magenta px in polyline region: 0
+  rect center                        (270, 60) = rgb(255,200,120)
+  ellipse center                     (560, 65) = rgb(150,200,255)
+  hexagon center                     (450,210) = rgb(140,220,140)
+  path center                        (120,370) = rgb(220,180,255)
+  int triangle center                (540,380) = rgb(255,255,150)
+hand:
+  oddeven star center (hole)         (100,215) = rgb(255,255,255)
+  winding star center (filled)       (280,215) = rgb(255,120,120)
+  polyline inside triangle area      (600,240) = rgb(255,255,255)
+  magenta px in polyline region: 0
+  rect center                        (270, 60) = rgb(255,200,120)
+  ellipse center                     (560, 65) = rgb(150,200,255)
+  hexagon center                     (450,210) = rgb(140,220,140)
+  path center                        (120,370) = rgb(220,180,255)
+  int triangle center                (540,380) = rgb(255,255,150)
+spy run identical to plain hand run: yes
+spy log:
+  == drawLine(QLine 20,20-180,20)
+  outline   bbox=(20,0,20,0 160,0x0,0) elems=2 fillrule=OddEven
+  == drawLine(QLineF 20.5,40.5-180.5,80.5)
+  outline   bbox=(20,5,40,5 160,0x40,0) elems=2 fillrule=OddEven
+  == drawLines(2)
+  outline   bbox=(20,0,90,0 160,0x0,0) elems=2 fillrule=OddEven
+  outline   bbox=(100,0,60,0 0,0x50,0) elems=2 fillrule=OddEven
+  == drawRect(210,20 120x80)
+  fill_area bbox=(210,0,20,0 120,0x80,0) fillrule=OddEven
+  outline   bbox=(210,0,20,0 120,0x80,0) elems=5 fillrule=OddEven
+  == drawRoundedRect(350,20 120x80)
+  fill_area bbox=(350,0,20,0 120,0x80,0) fillrule=OddEven
+  outline   bbox=(350,0,20,0 120,0x80,0) elems=17 fillrule=OddEven
+  == drawEllipse(490,20 140x90)
+  fill_area bbox=(490,0,20,0 140,0x90,0) fillrule=OddEven
+  outline   bbox=(490,0,20,0 140,0x90,0) elems=13 fillrule=OddEven
+  == drawPolygon star OddEven (c=100,210 r=80)
+  fill_area bbox=(23,9,130,0 152,2x144,7) fillrule=OddEven
+  outline   bbox=(23,9,130,0 152,2x144,7) elems=6 fillrule=OddEven
+  == drawPolygon star Winding (c=280,210 r=80)
+  fill_area bbox=(203,9,130,0 152,2x144,7) fillrule=Winding
+  outline   bbox=(203,9,130,0 152,2x144,7) elems=6 fillrule=Winding
+  == drawConvexPolygon hexagon (380,149.4 140x121.2)
+  fill_area bbox=(380,0,149,4 140,0x121,2) fillrule=OddEven
+  outline   bbox=(380,0,149,4 140,0x121,2) elems=7 fillrule=OddEven
+  == drawPolyline (560,140 80x140) brush magenta set
+  outline   bbox=(560,0,140,0 80,0x140,0) elems=3 fillrule=OddEven
+  == drawPath closed with cubic
+  fill_area bbox=(30,0,309,8 180,0x90,2) fillrule=OddEven
+  outline   bbox=(30,0,309,8 180,0x90,2) elems=7 fillrule=OddEven
+  == drawPath open cubic NoBrush
+  outline   bbox=(250,0,330,0 190,0x70,0) elems=4 fillrule=OddEven
+  == drawPolygon int triangle (480,320 120x80)
+  fill_area bbox=(480,0,320,0 120,0x80,0) fillrule=OddEven
+  outline   bbox=(480,0,320,0 120,0x80,0) elems=4 fillrule=OddEven
+scene pixmap region identical hand vs reference: no
+  scene pixmap center                (450,200) = rgb(255,255,255)
+  translated pixmap center (450,200) (450,200) = rgb(255,255,255)
+  untranslated pixmap spot (50,30)   ( 50, 30) = rgb(255,255,0)
+done

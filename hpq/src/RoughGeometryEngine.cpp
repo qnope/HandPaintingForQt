@@ -139,6 +139,7 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     const double amplitude = wobble_amplitude(options);
 
     QPainterPath area;
+    area.setFillRule(shape.fillRule());
     for (const QPolygonF &polygon : flattened_subpaths(shape)) {
         if (polygon.isEmpty())
             continue;

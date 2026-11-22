@@ -39,6 +39,37 @@ void HandPaintEngine::drawRects(const QRectF *rects, int count) {
     }
 }
 
+void HandPaintEngine::drawLines(const QLineF *lines, int count) {
+    for (int index = 0; index < count; ++index) {
+        QPainterPath shape(lines[index].p1());
+        shape.lineTo(lines[index].p2());
+        draw_shape(shape, false);
+    }
+}
+
+void HandPaintEngine::drawEllipse(const QRectF &rect) {
+    QPainterPath shape;
+    shape.addEllipse(rect);
+    draw_shape(shape, true);
+}
+
+// A polyline is an open shape; the other modes are closed and keep their fill rule.
+void HandPaintEngine::drawPolygon(const QPointF *points, int count, PolygonDrawMode mode) {
+    if (count <= 0) {
+        return;
+    }
+    QPainterPath shape(points[0]);
+    for (int index = 1; index < count; ++index) {
+        shape.lineTo(points[index]);
+    }
+    const bool closed = mode != PolylineMode;
+    if (closed) {
+        shape.closeSubpath();
+    }
+    shape.setFillRule(mode == WindingMode ? Qt::WindingFill : Qt::OddEvenFill);
+    draw_shape(shape, closed);
+}
+
 // Images reach the target unchanged.
 void HandPaintEngine::drawPixmap(const QRectF &rect, const QPixmap &pixmap, const QRectF &source_rect) {
     m_target.save();
