@@ -1,0 +1,8 @@
+qt.qpa.fonts: Populating font family aliases took 40 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+sketch     distinct colors=205, off-theme pixels=0 (unique 0)
+china_ink  distinct colors=389, off-theme pixels=0 (unique 0)
+chalk      distinct colors=380, off-theme pixels=0 (unique 0)
+sketch vs china_ink: 126000 differing pixels of 126000
+sketch vs chalk: 126000 differing pixels of 126000
+china_ink vs chalk: 126000 differing pixels of 126000
+PROBE: OK

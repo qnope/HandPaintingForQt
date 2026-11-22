@@ -140,11 +140,11 @@
         "T6",
         "T7"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T11",
-      "review": "APPROVED\n- ThemeDrawing.SketchChinaInkAndChalkGivePairwiseDifferentImages\n- ThemeDrawing.SketchDrawingHasOnlyThemeBlends\n- ThemeDrawing.ChinaInkDrawingHasOnlyThemeBlends\n- ThemeDrawing.ChalkDrawingHasOnlyThemeBlends"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-engine/T11, run `git merge ba1c3be8201ab5577643c4263f887ce54910b99e`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- ThemeDrawing.SketchChinaInkAndChalkGivePairwiseDifferentImages\n- ThemeDrawing.SketchDrawingHasOnlyThemeBlends\n- ThemeDrawing.ChinaInkDrawingHasOnlyThemeBlends\n- ThemeDrawing.ChalkDrawingHasOnlyThemeBlends",
+      "real_testing": "PASSED\n- B19: T11 worktree rebuilt after the merge (ctest 3/3; HpqTests builds ThemeDrawingTest.cpp and WidgetRenderTest.cpp). Probe linked to this worktree's libhpq.a, same scene (filled rect with pen, ellipse, triangle, polygon, text) with Sketch, China Ink, Chalk -> exit 0; 0 off-theme pixels at \u00b12/channel for each theme (205 / 389 / 380 distinct colours); each pair differs on 126000/126000 pixels; \"PROBE: OK\". Sheet: three clearly different hand-drawn versions \u2014 Sketch white/thin dark wobbly outlines/light grey fill; China Ink cream/thick black/dark grey; Chalk dark slate/white chalk outlines/grey-green. Text in each theme's ink. No crash, no stray colour.\nEvidence: specs/hand-paint-engine/real-testing/T11/"
     },
     {
       "id": "T12",
@@ -166,9 +166,10 @@
       "depends_on": [
         "T12"
       ],
-      "status": "new",
+      "status": "dev",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T13"
     },
     {
       "id": "T14",
