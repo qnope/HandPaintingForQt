@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Installs what building and testing need on Ubuntu 24.04, from the distribution packages only:
 # compiler, CMake, Ninja, Qt 6.4 and GoogleTest. No vcpkg nor Qt installer is involved.
-# Used by the "Linux (gcc, Qt 6.4)" CI job and by the cloud sessions of Claude.
+# Used by the cloud sessions of Claude, where download.qt.io is not reachable.
 set -euo pipefail
 
 if [ "$(id -u)" -eq 0 ]; then

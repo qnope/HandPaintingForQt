@@ -32,17 +32,6 @@ ctest --preset debug
 
 Sans le preset : `cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=<qt>`, puis `cmake --build build --config Debug` et `ctest --test-dir build -C Debug --output-on-failure`.
 
-### VM cloud de Claude (Ubuntu 24.04)
-
-Pas de vcpkg ni de `CMakeUserPresets.json`, et `download.qt.io` n'est pas joignable : utiliser Qt 6.4 et GoogleTest d'apt. Le code doit donc rester compatible Qt 6.4 (garder les API plus récentes derrière `QT_VERSION_CHECK`).
-
-```
-scripts/InstallUbuntuDependencies.sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/debug
-XDG_RUNTIME_DIR=$(mktemp -d) QT_QPA_PLATFORM=offscreen ctest --test-dir build/debug --output-on-failure
-```
-
 ## Directories
 
 1. Examples
