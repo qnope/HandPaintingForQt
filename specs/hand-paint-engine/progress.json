@@ -60,9 +60,11 @@
       "depends_on": [
         "T4"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- RoughPolygon.SketchRectIsHandDrawnOutline\n- RoughPolygon.SketchRectCenterIsBackground\n- RoughPolygon.SketchTriangleIsHandDrawnOutline\n- RoughPolygon.SketchPolylineIsHandDrawnOutlineOfItsSegments\n- RoughPolygon.SketchPolylineHasNoClosingSegment",
+      "real_testing": "PASSED\n- B6: probe linked to libhpq, 200x200 hpq::HandPaintDevice, red pen width 7, NoBrush, Sketch/China Ink/Chalk; drawRect(QRectF), drawRect(QRect), drawRect(int...), drawRects (QRectF and QRect) -> 3 themes x 5 calls OK: max distance 1.58/2.12/2.55 for D=2.5/3.5/4.0, ideal outline fully covered, only ink-blend, differs from plain Qt, pixel (100,100) background. Corners (8x crops) closed with no gap, small overshoot.\n- B8: triangle via drawPolygon (QPolygonF, QPolygon ints, WindingFill) -> 9 runs OK, max distance <= 2.55, 3 sides covered, closed bottom side, vertices joined, inside background.\n- B9: drawPolyline (30,30),(100,170),(170,30) with QPointF and QPolygon ints -> 6 runs OK, within D (max 2.92 for D=4.0), covered; band y=20..40 has no ink beyond D from the segments, pixel (100,30) background; open V, apex joined.\nEvidence: specs/hand-paint-engine/real-testing/T5/"
     },
     {
       "id": "T6",
@@ -71,9 +73,10 @@
       "depends_on": [
         "T4"
       ],
-      "status": "new",
+      "status": "dev",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T6"
     },
     {
       "id": "T7",

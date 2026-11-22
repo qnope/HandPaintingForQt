@@ -1,0 +1,31 @@
+sketch    rectF          D=2,5 nonbg= 1106 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+sketch    rectInt        D=2,5 nonbg= 1106 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+sketch    rectXYWH       D=2,5 nonbg= 1106 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+sketch    rectsF         D=2,5 nonbg= 2117 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/1732 differsFromPlain=1 -> OK
+sketch    rectsInt       D=2,5 nonbg= 2117 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/1732 differsFromPlain=1 -> OK
+sketch    polygonF       D=2,5 nonbg= 1077 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+sketch    polygonInt     D=2,5 nonbg= 1077 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+sketch    polygonWinding D=2,5 nonbg= 1077 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+sketch    polylineF      D=2,5 nonbg=  713 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/628 differsFromPlain=1 closingChordInk=0 (100,30)=bg -> OK
+sketch    polylineInt    D=2,5 nonbg=  713 maxDist=1,58 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/628 differsFromPlain=1 closingChordInk=0 (100,30)=bg -> OK
+china_ink rectF          D=3,5 nonbg= 1794 maxDist=2,12 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+china_ink rectInt        D=3,5 nonbg= 1794 maxDist=2,12 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+china_ink rectXYWH       D=3,5 nonbg= 1794 maxDist=2,12 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+china_ink rectsF         D=3,5 nonbg= 3214 maxDist=2,12 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/1732 differsFromPlain=1 -> OK
+china_ink rectsInt       D=3,5 nonbg= 3214 maxDist=2,12 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/1732 differsFromPlain=1 -> OK
+china_ink polygonF       D=3,5 nonbg= 1699 maxDist=2,46 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+china_ink polygonInt     D=3,5 nonbg= 1699 maxDist=2,46 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+china_ink polygonWinding D=3,5 nonbg= 1699 maxDist=2,46 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+china_ink polylineF      D=3,5 nonbg= 1225 maxDist=2,55 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/628 differsFromPlain=1 closingChordInk=0 (100,30)=bg -> OK
+china_ink polylineInt    D=3,5 nonbg= 1225 maxDist=2,55 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/628 differsFromPlain=1 closingChordInk=0 (100,30)=bg -> OK
+chalk     rectF          D=4,0 nonbg= 1664 maxDist=2,50 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+chalk     rectInt        D=4,0 nonbg= 1664 maxDist=2,50 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+chalk     rectXYWH       D=4,0 nonbg= 1664 maxDist=2,50 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/964 differsFromPlain=1 center(100,100)=bg -> OK
+chalk     rectsF         D=4,0 nonbg= 3185 maxDist=2,55 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/1732 differsFromPlain=1 -> OK
+chalk     rectsInt       D=4,0 nonbg= 3185 maxDist=2,55 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/1732 differsFromPlain=1 -> OK
+chalk     polygonF       D=4,0 nonbg= 1791 maxDist=2,55 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+chalk     polygonInt     D=4,0 nonbg= 1791 maxDist=2,55 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+chalk     polygonWinding D=4,0 nonbg= 1791 maxDist=2,55 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/909 differsFromPlain=1 -> OK
+chalk     polylineF      D=4,0 nonbg= 1289 maxDist=2,92 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/628 differsFromPlain=1 closingChordInk=0 (100,30)=bg -> OK
+chalk     polylineInt    D=4,0 nonbg= 1289 maxDist=2,92 beyondD=0 beyondD+1=0 notInkBlend=0 uncovered=0/628 differsFromPlain=1 closingChordInk=0 (100,30)=bg -> OK
+failures=0
