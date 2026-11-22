@@ -171,9 +171,11 @@
       "depends_on": [
         "T12"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/sketch-paint-engine/T13",
+      "review": "APPROVED\n- ApplyThemeTest.ThemedWindowPaintsWithoutWarning\n- ApplyThemeTest.ThemedWindowChildGetsMouseClick"
     },
     {
       "id": "T14",
@@ -182,9 +184,11 @@
       "depends_on": [
         "T12"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- RemoveThemeTest.RestoresEffectPaletteFontAndStyles\n- RemoveThemeTest.ApplyTwiceKeepsOneEffectAndRestoresFirstValues",
+      "real_testing": "PASSED\n- B25: ran an offscreen probe app linked to the built hpq. It has a QMainWindow with 18 widgets: some default, one button with its own red palette, a label set to Courier 18 bold, and a check box with its own \"Windows\" style. It grabs the window, calls apply_theme(SketchTheme, RoughGeometryEngine), grabs, calls remove_theme and grabs again. It also runs 5 apply/remove cycles in a row, remove_theme on a window never themed, remove_theme a second time, and re-apply then remove. -> After every remove there is no graphics effect and no HandPaintEffect child left. Palette, font and style are equal to the saved ones on all 18 widgets, and the WA_SetStyle/Palette/Font flags are unchanged. The plain grabs before and after are identical (0 differing pixels out of 126000) in every scenario. 02_themed.png shows the sketch look: Architects Daughter font, paper background, wobbly outlines. 03_plain_after_remove.png looks the same as 01_plain_before.png: system font, red button, Courier bold label, Windows-style check box. Exit code 0. No warnings other than qt.qpa.fonts and propagateSizeHints.\n- B26: called apply_theme twice on a fresh window, then remove_theme. -> graphicsEffect() is hpq::HandPaintEffect and the window has exactly 1 HandPaintEffect child. 05_themed_twice.png looks the same as the single apply. After remove_theme, palette, font and styles equal the values from before the first call on all 18 widgets. 06_plain_after_double_remove.png is identical to the plain grab (0 differing pixels).\nEvidence: specs/sketch-paint-engine/real-testing/T14/"
     },
     {
       "id": "T15",

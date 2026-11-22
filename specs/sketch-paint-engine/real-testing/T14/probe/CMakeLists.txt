@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.21)
+project(T14Probe CXX)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(GTest CONFIG REQUIRED)
+enable_testing()
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../../hpq hpq_build)
+add_executable(probe main.cpp)
+target_link_libraries(probe PRIVATE hpq::hpq)

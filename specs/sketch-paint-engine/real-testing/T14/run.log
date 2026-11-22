@@ -1,0 +1,36 @@
+qt.qpa.fonts: Populating font family aliases took 188 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+Scenario 1: apply then remove
+  after apply: effect=hpq::HandPaintEffect
+  [apply/remove] OK (18 widgets checked)
+  [plain before vs after remove] differing pixels: 0 / 126000
+Scenario 2: apply twice then remove
+  after 2x apply: effect=hpq::HandPaintEffect, HandPaintEffect children=1
+  [2x apply/remove] OK (18 widgets checked)
+  [plain before vs after 2x apply/remove] differing pixels: 0 / 126000
+Scenario 3: apply/remove 5 times
+  [cycle 1] OK (18 widgets checked)
+  [cycle 2] OK (18 widgets checked)
+  [cycle 3] OK (18 widgets checked)
+  [cycle 4] OK (18 widgets checked)
+  [cycle 5] OK (18 widgets checked)
+  [plain before vs after 5 cycles] differing pixels: 0 / 126000
+Scenario 4: remove_theme on never-themed window (also called twice after remove)
+  [never themed] OK (18 widgets checked)
+  [never themed] differing pixels: 0 / 126000
+  [second remove on w1] OK (18 widgets checked)
+Scenario 5: apply after remove re-themes
+  re-apply effect=set, window font family=Architects Daughter
+  [re-apply/remove] OK (18 widgets checked)
+TOTAL failures: 0
+exit=0
