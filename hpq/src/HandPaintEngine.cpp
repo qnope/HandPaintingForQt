@@ -27,6 +27,15 @@ void HandPaintEngine::updateState(const QPaintEngineState &state) {
     if (flags & DirtyBrush) {
         m_brush = state.brush();
     }
+    if (flags & DirtyTransform) {
+        m_transform = state.transform();
+    }
+    if (flags & (DirtyClipPath | DirtyClipRegion | DirtyClipEnabled)) {
+        // QPainter::clipPath() is in the current logical coordinates: map it back to the device.
+        const QPainter &painter = *state.painter();
+        m_clipping = painter.hasClipping();
+        m_clip = m_clipping ? painter.combinedTransform().map(painter.clipPath()) : QPainterPath();
+    }
 }
 
 void HandPaintEngine::drawPath(const QPainterPath &path) { draw_shape(path, true); }
@@ -72,27 +81,28 @@ void HandPaintEngine::drawPolygon(const QPointF *points, int count, PolygonDrawM
 
 // Images reach the target unchanged.
 void HandPaintEngine::drawPixmap(const QRectF &rect, const QPixmap &pixmap, const QRectF &source_rect) {
-    m_target.save();
+    save_target_in_logical_coordinates();
     m_target.drawPixmap(rect, pixmap, source_rect);
     m_target.restore();
 }
 
 void HandPaintEngine::drawImage(const QRectF &rect, const QImage &image, const QRectF &source_rect,
                                 Qt::ImageConversionFlags flags) {
-    m_target.save();
+    save_target_in_logical_coordinates();
     m_target.drawImage(rect, image, source_rect, flags);
     m_target.restore();
 }
 
 void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap, const QPointF &offset) {
-    m_target.save();
+    save_target_in_logical_coordinates();
     m_target.drawTiledPixmap(rect, pixmap, offset);
     m_target.restore();
 }
 
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }
 
-void HandPaintEngine::draw_shape(const QPainterPath &shape, bool closed) {
+void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, bool closed) {
+    const QPainterPath shape = m_transform.map(logical_shape);
     const RoughOptions options = m_theme.rough_options();
     const std::uint32_t shape_seed = seed(shape);
     if (closed && m_brush.style() != Qt::NoBrush) {
@@ -106,11 +116,25 @@ void HandPaintEngine::draw_shape(const QPainterPath &shape, bool closed) {
 }
 
 void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush) {
-    m_target.save();
+    save_target_in_device_coordinates();
     m_target.setPen(pen);
     m_target.setBrush(brush);
     m_target.drawPath(path);
     m_target.restore();
+}
+
+void HandPaintEngine::save_target_in_device_coordinates() {
+    m_target.save();
+    if (m_clipping) {
+        // Intersect keeps the clip the target painter already has.
+        m_target.setClipPath(m_clip, Qt::IntersectClip);
+    }
+}
+
+void HandPaintEngine::save_target_in_logical_coordinates() {
+    save_target_in_device_coordinates();
+    // Combine keeps the transform the target painter already has.
+    m_target.setTransform(m_transform, true);
 }
 
 // The same seed for every shape, for now.
@@ -133,7 +157,7 @@ int pixel_size(const QFont &font, const QPaintDevice &device) {
 void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &text_item) {
     QFont font = m_theme.font();
     font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
-    m_target.save();
+    save_target_in_logical_coordinates();
     m_target.setPen(m_pen);
     m_target.setFont(font);
     m_target.drawText(position, text_item.text());

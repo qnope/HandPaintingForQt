@@ -1,0 +1,15 @@
+b17_translate_scale_fill     ink bounds = (98,99 41x43)
+  (120,120) dark=1  (20,20) white=1  ink outside (96,96,48,48)=0
+b17_rotate_scale_path_saverestore ink bounds = (8,8 375x375)
+b17_nested_save_restore      ink bounds = (47,48 195x195)
+b18_cliprect_fill            ink bounds = (0,0 50x50)
+  (25,25) dark=1  ink outside (0,0,50,50)=0
+b18_cliprect_translated_pen  ink bounds = (100,100 100x60)
+  ink outside (100,100,100,60)=0
+b18_clippath_circle          ink bounds = (70,70 160x160)
+  ink outside circle r=82 = 0
+target_offset_transform_clip ink bounds = (58,38 165x162)
+  ink outside (54,34,170,170)=0 ; ink in y>200 =0 ; ink x>124 & y>136 = 0
+target_clip_and_device_clip  ink bounds = (150,150 100x100)
+  ink bounds expected (150,150 100x100); ink outside=0
+exit 0
