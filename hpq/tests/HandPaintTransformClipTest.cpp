@@ -61,7 +61,7 @@ protected:
         return image;
     }
 
-    hpq::SketchTheme m_theme;
+    hpq::Theme m_theme = hpq::sketch_theme();
     hpq::RoughGeometryEngine m_geometry_engine;
 };
 

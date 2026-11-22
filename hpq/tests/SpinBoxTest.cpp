@@ -57,7 +57,7 @@ bool is_dark_outline(const DrawCall &call, const QPalette &palette) {
 
 void expect_flat_frame_and_arrows(QAbstractSpinBox &spin_box) {
     spin_box.resize(120, 30);
-    const QPalette palette = hpq::SketchTheme().palette();
+    const QPalette palette = hpq::sketch_theme().palette();
 
     const std::vector<DrawCall> calls = hpq::test::render_with_style(spin_box);
 

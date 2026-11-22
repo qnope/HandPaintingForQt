@@ -117,7 +117,7 @@ TEST(MainWindow, StartsWithTheSketchThemeApplied)
     EXPECT_EQ(combo->currentIndex(), SketchIndex);
     EXPECT_EQ(combo->currentText(), "Sketch");
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::SketchTheme().palette());
+    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
@@ -130,7 +130,7 @@ TEST_P(MainWindowOtherTheme, SelectingItRemovesTheSketchTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(GetParam());
     EXPECT_EQ(w.graphicsEffect(), nullptr);
-    EXPECT_NE(w.palette(), hpq::SketchTheme().palette());
+    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
 }
 
 TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
@@ -140,7 +140,7 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
     combo->setCurrentIndex(GetParam());
     combo->setCurrentIndex(SketchIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::SketchTheme().palette());
+    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
 }
 
 INSTANTIATE_TEST_SUITE_P(ChinaInkAndBlackSlate, MainWindowOtherTheme,

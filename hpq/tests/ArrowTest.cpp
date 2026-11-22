@@ -25,7 +25,7 @@ std::vector<DrawCall> draw_arrow(QStyle::PrimitiveElement arrow) {
     hpq::HandPaintStyle style;
     QStyleOption option;
     option.rect = ArrowRect;
-    option.palette = hpq::SketchTheme().palette();
+    option.palette = hpq::sketch_theme().palette();
     option.state = QStyle::State_Enabled;
 
     hpq::test::RecordingPaintDevice device;
@@ -58,7 +58,7 @@ QPolygonF arrow_triangle(QStyle::PrimitiveElement arrow) {
     const DrawCall &call = calls.front();
     EXPECT_TRUE(call.is_fill());
     EXPECT_EQ(call.brush.style(), Qt::SolidPattern);
-    EXPECT_EQ(call.brush.color(), hpq::SketchTheme().palette().color(QPalette::ButtonText));
+    EXPECT_EQ(call.brush.color(), hpq::sketch_theme().palette().color(QPalette::ButtonText));
     return call.transform.map(closed_polygon_corners(call));
 }
 

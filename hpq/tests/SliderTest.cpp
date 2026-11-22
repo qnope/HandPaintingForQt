@@ -52,7 +52,7 @@ bool is_groove(const DrawCall &call, Qt::Orientation orientation) {
 void expect_vector_groove_and_handle(Qt::Orientation orientation) {
     QSlider slider;
     set_up(slider, orientation);
-    const QPalette palette = hpq::SketchTheme().palette();
+    const QPalette palette = hpq::sketch_theme().palette();
 
     const std::vector<DrawCall> calls = hpq::test::render_with_style(slider);
 
@@ -65,7 +65,7 @@ void expect_vector_groove_and_handle(Qt::Orientation orientation) {
 
 // The handle outline, pen included, lies inside the slider: no side of it is cut off.
 void expect_handle_outline_inside(QSlider &slider) {
-    const QPalette palette = hpq::SketchTheme().palette();
+    const QPalette palette = hpq::sketch_theme().palette();
     const std::vector<DrawCall> calls = hpq::test::render_with_style(slider);
 
     const auto handle = std::find_if(calls.begin(), calls.end(),

@@ -78,7 +78,7 @@ std::map<Direction, int> render_scroll_bar(Qt::Orientation orientation, bool &dr
     }
     const std::vector<DrawCall> calls = hpq::test::render_with_style(scroll_bar);
     drew_image = hpq::test::has_image(calls);
-    return arrow_counts(calls, hpq::SketchTheme().palette());
+    return arrow_counts(calls, hpq::sketch_theme().palette());
 }
 
 }  // namespace

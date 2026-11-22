@@ -22,7 +22,7 @@ std::vector<DrawCall> draw_button_panel(QStyle::State state) {
     hpq::HandPaintStyle style;
     QStyleOptionButton option;
     option.rect = PanelRect;
-    option.palette = hpq::SketchTheme().palette();
+    option.palette = hpq::sketch_theme().palette();
     option.state = QStyle::State_Enabled | state;
 
     hpq::test::RecordingPaintDevice device;
@@ -44,7 +44,7 @@ bool is_inside_panel(const DrawCall &call) {
 // True when one call draws a closed shape inside the panel, filled with a solid brush of fill_role
 // and outlined with a pen of the Dark role.
 bool has_panel_shape(const std::vector<DrawCall> &calls, QPalette::ColorRole fill_role) {
-    const QPalette palette = hpq::SketchTheme().palette();
+    const QPalette palette = hpq::sketch_theme().palette();
     return std::any_of(calls.begin(), calls.end(), [&](const DrawCall &call) {
         return call.kind == DrawCall::Kind::Path && is_closed(call.path) && is_inside_panel(call) &&
                call.brush.style() == Qt::SolidPattern && call.brush.color() == palette.color(fill_role) &&

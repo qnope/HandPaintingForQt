@@ -27,7 +27,7 @@ void set_style(const QList<QWidget *> &widgets, QStyle *style) {
 }  // namespace
 
 std::vector<DrawCall> render_with_style(QWidget &widget) {
-    return render_with_style(widget, SketchTheme().palette());
+    return render_with_style(widget, sketch_theme().palette());
 }
 
 std::vector<DrawCall> render_with_style(QWidget &widget, const QPalette &palette) {

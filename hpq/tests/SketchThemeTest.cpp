@@ -39,7 +39,7 @@ double text_contrast(const QPalette &palette, QPalette::ColorGroup group) {
 }  // namespace
 
 TEST(SketchTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::SketchTheme{}.palette();
+    const QPalette palette = hpq::sketch_theme().palette();
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -54,7 +54,7 @@ TEST(SketchTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(SketchTheme, PaletteIsLightPaperWithDarkGraphite) {
-    const QPalette palette = hpq::SketchTheme{}.palette();
+    const QPalette palette = hpq::sketch_theme().palette();
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base}) {
         EXPECT_GT(palette.color(QPalette::Active, role).lightness(), 200) << "role " << role;
@@ -65,7 +65,7 @@ TEST(SketchTheme, PaletteIsLightPaperWithDarkGraphite) {
 }
 
 TEST(SketchTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::SketchTheme{}.palette();
+    const QPalette palette = hpq::sketch_theme().palette();
 
     const double active_contrast = text_contrast(palette, QPalette::Active);
     EXPECT_GE(active_contrast, 4.5);
@@ -73,26 +73,26 @@ TEST(SketchTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 }
 
 TEST(SketchTheme, UsesSolidFillAndTwoStrokes) {
-    const hpq::SketchTheme theme;
+    const hpq::Theme theme = hpq::sketch_theme();
 
     EXPECT_EQ(theme.fill_style(), hpq::FillStyle::Solid);
     EXPECT_EQ(theme.rough_options().stroke_count, 2);
 }
 
 TEST(SketchTheme, FontIsArchitectsDaughter) {
-    const hpq::SketchTheme theme;
+    const hpq::Theme theme = hpq::sketch_theme();
 
     EXPECT_EQ(theme.font().family(), FontFamily);
 }
 
 TEST(SketchTheme, RegistersArchitectsDaughterInFontDatabase) {
-    const hpq::SketchTheme theme;
+    const hpq::Theme theme = hpq::sketch_theme();
 
     EXPECT_TRUE(QFontDatabase::families().contains(FontFamily));
 }
 
 TEST(SketchTheme, EmbedsFontAndItsLicenseAsResources) {
-    const hpq::SketchTheme theme;
+    const hpq::Theme theme = hpq::sketch_theme();
 
     EXPECT_TRUE(QFile::exists(":/hpq/fonts/ArchitectsDaughter-Regular.ttf"));
     EXPECT_TRUE(QFile::exists(":/hpq/fonts/OFL.txt"));

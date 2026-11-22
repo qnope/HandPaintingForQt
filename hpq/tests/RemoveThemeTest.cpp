@@ -16,8 +16,8 @@
 
 namespace {
 
-std::shared_ptr<const hpq::Theme> sketch_theme() {
-    return std::make_shared<const hpq::SketchTheme>();
+std::shared_ptr<const hpq::Theme> shared_sketch_theme() {
+    return std::make_shared<const hpq::Theme>(hpq::sketch_theme());
 }
 
 std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
@@ -71,7 +71,7 @@ TEST(RemoveThemeTest, RestoresEffectPaletteFontAndStyles) {
     WindowWithButton window_with_button;
     const LookSnapshot before = take_snapshot(window_with_button);
 
-    hpq::apply_theme(window_with_button.window(), sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window_with_button.window(), shared_sketch_theme(), rough_geometry_engine());
     hpq::remove_theme(window_with_button.window());
 
     EXPECT_EQ(window_with_button.window().graphicsEffect(), nullptr);
@@ -83,8 +83,8 @@ TEST(RemoveThemeTest, ApplyTwiceKeepsOneEffectAndRestoresFirstValues) {
     QWidget &window = window_with_button.window();
     const LookSnapshot before = take_snapshot(window_with_button);
 
-    hpq::apply_theme(window, sketch_theme(), rough_geometry_engine());
-    hpq::apply_theme(window, sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window, shared_sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window, shared_sketch_theme(), rough_geometry_engine());
 
     EXPECT_NE(qobject_cast<hpq::HandPaintEffect *>(window.graphicsEffect()), nullptr);
     EXPECT_EQ(window.findChildren<hpq::HandPaintEffect *>().size(), 1);

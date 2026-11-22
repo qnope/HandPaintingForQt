@@ -33,7 +33,7 @@ public:
 // after setting `transform` on the painter, and returns the calls the target received.
 std::vector<DrawCall> draw_rectangle(const QRectF &rectangle, const hpq::GeometryEngine &geometry_engine,
                                      const QTransform &transform = QTransform()) {
-    const hpq::SketchTheme theme;
+    const hpq::Theme theme = hpq::sketch_theme();
     RecordingPaintDevice target;
     QPainter target_painter(&target);
     hpq::HandPaintDevice device(target_painter, theme, geometry_engine);

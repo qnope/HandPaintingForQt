@@ -60,7 +60,7 @@ protected:
         EXPECT_EQ(m_spy.outline_shapes()[0].boundingRect(), bounds);
     }
 
-    hpq::SketchTheme m_theme;
+    hpq::Theme m_theme = hpq::sketch_theme();
     SpyGeometryEngine m_spy;
     RecordingPaintDevice m_target;
 };
@@ -159,7 +159,7 @@ QColor rough_star_center_color(Qt::FillRule fill_rule) {
     QImage image(200, 200, QImage::Format_ARGB32);
     image.fill(Qt::white);
     QPainter target_painter(&image);
-    const hpq::SketchTheme theme;
+    const hpq::Theme theme = hpq::sketch_theme();
     const hpq::RoughGeometryEngine geometry_engine;
     hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
     QPainter painter(&device);
