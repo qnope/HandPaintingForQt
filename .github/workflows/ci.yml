@@ -51,14 +51,10 @@ jobs:
           QT_LOGGING_RULES: "*=true"
         run: |
           T=build/Examples/tests/Debug/HandPaintingExampleTests.exe
-          A=build/Examples/Debug/HandPaintingExample.exe
-          echo "=== tests without Startup"
-          timeout 60 $T --gtest_filter=-Startup.* 2>&1 | tail -30 || true
-          echo "=== app, platform windows"
-          QT_QPA_PLATFORM=windows HPQ_AUTO_QUIT=1 timeout 30 $A 2>&1 | tail -20; echo "exit ${PIPESTATUS[0]}"
-          echo "=== app, offscreen, plugin debug"
-          QT_DEBUG_PLUGINS=1 HPQ_AUTO_QUIT=1 timeout 30 $A 2>&1 | tail -20; echo "exit ${PIPESTATUS[0]}"
-          echo "=== startup test, platform windows"
-          QT_QPA_PLATFORM=windows timeout 30 $T --gtest_filter=Startup.* 2>&1 | tail -20; echo "exit ${PIPESTATUS[0]}"
+          echo "=== one MainWindow test"
+          timeout 60 $T --gtest_filter=MainWindow.WidgetsOfTheUiExist > out1.txt 2>&1; echo "exit $?"; head -c 3000 out1.txt
+          echo "=== QT_QPA_PLATFORM=windows MainWindow tests"
+          QT_QPA_PLATFORM=windows timeout 60 $T --gtest_filter=MainWindow.WidgetsOfTheUiExist > out2.txt 2>&1; echo "exit $?"; head -c 3000 out2.txt
+          true
       - name: Test
         run: ctest --test-dir build -C Debug --output-on-failure --timeout 120 -V

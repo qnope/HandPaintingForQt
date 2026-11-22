@@ -34,7 +34,7 @@
       "depends_on": [
         "T2"
       ],
-      "status": "dev",
+      "status": "review",
       "rejections": 0,
       "note": "",
       "worktree": ".worktrees/hand-paint-engine/T3"
