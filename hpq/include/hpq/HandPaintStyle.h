@@ -13,6 +13,9 @@ class HandPaintStyle : public QProxyStyle {
 
 public:
     HandPaintStyle();
+
+    void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,
+                       const QWidget *widget = nullptr) const override;
 };
 
 }  // namespace hpq
