@@ -147,7 +147,9 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
         boundary.closeSubpath();
         area.addPath(boundary);
     }
-    return area;
+    // The area wobbles outward only: it always covers the whole shape, so that adjacent fills
+    // (for example the rectangles of a widget background region) leave no unpainted seam.
+    return area.united(shape);
 }
 
 }  // namespace hpq

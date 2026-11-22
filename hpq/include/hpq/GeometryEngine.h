@@ -22,7 +22,8 @@ public:
     virtual std::vector<QPainterPath> outline(const QPainterPath &shape, const RoughOptions &options,
                                               std::uint32_t seed) const = 0;
 
-    // A closed area, close to `shape`, that is filled instead of it.
+    // A closed area, close to `shape`, that is filled instead of it. It should cover the whole
+    // shape, or adjacent fills leave unpainted seams between them.
     virtual QPainterPath fill_area(const QPainterPath &shape, const RoughOptions &options,
                                    std::uint32_t seed) const = 0;
 };
