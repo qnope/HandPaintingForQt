@@ -21,9 +21,9 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
+      "status": "dev",
+      "rejections": 1,
+      "note": "FAILED\n- other: rendered RoughGeometryEngine::outline strokes of the ellipse, rounded rect, closed cubic path and open cubic to PNG, both with max_offset 5 (seeds 1, 42, 12345; for example png/ellipse_s1.png, png/roundedrect_s1.png, png/closedcubic_s1.png, png/opencubic_s1.png) and with the default RoughOptions at 2x zoom (png/defaults_curves_x2.png) -> every curved part is drawn as a jagged zigzag. Each curve point is shifted on its own, so the line kinks sharply every few pixels. The rounded-rect corners show small hooks and loops where the stroke folds back on itself, and the open cubic has a small loop near its peak. The ellipse and the circle look scribbled, not like a wobbly hand-drawn curve. The straight sides of the rectangle, triangle and star look correct: smooth bowed lines. -> the spec's goal is \"a hand-drawn look, close to Rough.js\", where a curve is a smooth wobble around the shape with no spikes or self-loops. The numeric checks of B5 and B7 all hold (probe-output.txt): 2 strokes each, closed strokes start and end at the same point (distance 0), each bounding box is inside the shape's box enlarged by 5, and open strokes start and end within 5 of (0,0) and (100,0) with 93 to 104 between their ends.\nEvidence: .worktrees/sketch-paint-engine/T2/specs/sketch-paint-engine/real-testing/T2/",
       "worktree": ".worktrees/sketch-paint-engine/T2",
       "review": "APPROVED\n- RoughGeometryEngine/ClosedShapeOutline.StrokesLookClosedAndStayNearTheShape (Rectangle, Ellipse, Triangle, RoundedRect, ClosedCubic)\n- RoughGeometryEngine.OpenCubicOutlineStaysOpen"
     },
@@ -60,9 +60,11 @@
       "depends_on": [
         "T4"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- SketchTheme.FontIsArchitectsDaughter\n- SketchTheme.RegistersArchitectsDaughterInFontDatabase\n- SketchTheme.EmbedsFontAndItsLicenseAsResources",
+      "real_testing": "PASSED\n- B10: Built a probe program (QApplication, offscreen) that links hpq::hpq through add_subdirectory, then created hpq::SketchTheme. Checked the font family, QFontDatabase::families() and the resource files, and rendered text in a QLabel grab and with QPainter to PNGs that I opened -> theme.font().family() and QFontInfo(font).family() both return \"Architects Daughter\". QFontDatabase::families() does not have the family before the theme is created (0) and has it after (1). :/hpq/fonts/ArchitectsDaughter-Regular.ttf exists (43352 bytes) and :/hpq/fonts/OFL.txt exists (4362 bytes, starts with \"Copyright (c) 2010, Kimberly Geswein\" and contains \"SIL OPEN FONT LICENSE\"). In label_grab.png and painter_text.png, the text set in the theme font is clearly in the Architects Daughter handwriting (thin, uneven, hand-printed letters), plainly different from the Helvetica comparison line under it. This is not a fallback font. Exit code 0. The test command passes 3/3. The only other console output is the offscreen platform's usual \"This plugin does not support propagateSizeHints()\" message.\nEvidence: specs/sketch-paint-engine/real-testing/T5/"
     },
     {
       "id": "T6",

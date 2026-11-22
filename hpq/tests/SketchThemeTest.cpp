@@ -3,12 +3,16 @@
 #include <gtest/gtest.h>
 
 #include <QColor>
+#include <QFile>
+#include <QFontDatabase>
 #include <QPalette>
 
 #include <algorithm>
 #include <cmath>
 
 namespace {
+
+constexpr auto FontFamily = "Architects Daughter";
 
 constexpr QPalette::ColorGroup Groups[] = {QPalette::Active, QPalette::Inactive, QPalette::Disabled};
 
@@ -73,4 +77,23 @@ TEST(SketchTheme, UsesSolidFillAndTwoStrokes) {
 
     EXPECT_EQ(theme.fill_style(), hpq::FillStyle::Solid);
     EXPECT_EQ(theme.rough_options().stroke_count, 2);
+}
+
+TEST(SketchTheme, FontIsArchitectsDaughter) {
+    const hpq::SketchTheme theme;
+
+    EXPECT_EQ(theme.font().family(), FontFamily);
+}
+
+TEST(SketchTheme, RegistersArchitectsDaughterInFontDatabase) {
+    const hpq::SketchTheme theme;
+
+    EXPECT_TRUE(QFontDatabase::families().contains(FontFamily));
+}
+
+TEST(SketchTheme, EmbedsFontAndItsLicenseAsResources) {
+    const hpq::SketchTheme theme;
+
+    EXPECT_TRUE(QFile::exists(":/hpq/fonts/ArchitectsDaughter-Regular.ttf"));
+    EXPECT_TRUE(QFile::exists(":/hpq/fonts/OFL.txt"));
 }

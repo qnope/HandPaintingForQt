@@ -1,10 +1,30 @@
 #include <hpq/SketchTheme.h>
 
 #include <QColor>
+#include <QFontDatabase>
+#include <QString>
+
+// The resource of a static library must be initialized by hand, outside any namespace.
+static void init_hpq_fonts_resource() {
+    Q_INIT_RESOURCE(hpq_fonts);
+}
 
 namespace hpq {
 
 namespace {
+
+constexpr auto FontResource = ":/hpq/fonts/ArchitectsDaughter-Regular.ttf";
+
+// Registers the embedded font once and returns its family name.
+QString font_family() {
+    static const QString family = [] {
+        init_hpq_fonts_resource();
+        const int font_id = QFontDatabase::addApplicationFont(FontResource);
+        const QStringList families = QFontDatabase::applicationFontFamilies(font_id);
+        return families.isEmpty() ? QString() : families.first();
+    }();
+    return family;
+}
 
 // One color for each role of a color group.
 struct GroupColors {
@@ -73,6 +93,10 @@ QColor color_for(QPalette::ColorRole role, const GroupColors &colors) {
 
 }  // namespace
 
+SketchTheme::SketchTheme() {
+    font_family();
+}
+
 QPalette SketchTheme::palette() const {
     QPalette palette;
     for (const QPalette::ColorGroup group : PaletteGroups) {
@@ -86,8 +110,7 @@ QPalette SketchTheme::palette() const {
 }
 
 QFont SketchTheme::font() const {
-    // The embedded "Architects Daughter" font comes later; until then, a plain font.
-    return QFont();
+    return QFont(font_family());
 }
 
 RoughOptions SketchTheme::rough_options() const {
