@@ -20,6 +20,9 @@ public:
     void drawPath(const QPainterPath& path) override;
     void drawPolygon(const QPointF* points, int point_count, PolygonDrawMode mode) override;
     void drawPixmap(const QRectF& target_rect, const QPixmap& pixmap, const QRectF& source_rect) override;
+    void drawImage(const QRectF& target_rect, const QImage& image, const QRectF& source_rect,
+                   Qt::ImageConversionFlags flags) override;
+    void drawTextItem(const QPointF& position, const QTextItem& text_item) override;
 
     Type type() const override;
 

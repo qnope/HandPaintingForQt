@@ -1,0 +1,10 @@
+B14 sketch    text: diff vs plain(ink)=0, diff vs plain(red)=536, pure-red px=0, ink px=206, bg px=39464 -> OK
+B15 sketch    drawimage : region diff vs source=0, non-background px outside=0 -> OK
+B15 sketch    drawpixmap: region diff vs source=0, non-background px outside=0 -> OK
+B14 china_ink text: diff vs plain(ink)=0, diff vs plain(red)=536, pure-red px=0, ink px=206, bg px=39464 -> OK
+B15 china_ink drawimage : region diff vs source=0, non-background px outside=0 -> OK
+B15 china_ink drawpixmap: region diff vs source=0, non-background px outside=0 -> OK
+B14 chalk     text: diff vs plain(ink)=0, diff vs plain(red)=536, pure-red px=0, ink px=206, bg px=39464 -> OK
+B15 chalk     drawimage : region diff vs source=0, non-background px outside=0 -> OK
+B15 chalk     drawpixmap: region diff vs source=0, non-background px outside=0 -> OK
+failures=0

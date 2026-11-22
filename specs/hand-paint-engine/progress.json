@@ -34,9 +34,10 @@
       "depends_on": [
         "T2"
       ],
-      "status": "new",
+      "status": "dev",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T3"
     },
     {
       "id": "T4",
@@ -89,9 +90,11 @@
       "depends_on": [
         "T2"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- PassThrough.SketchTextIsPlainTextWithSketchInk\n- PassThrough.ChalkTextIsPlainTextWithChalkInk\n- PassThrough.ImageIsDrawnUnchanged\n- PassThrough.PixmapIsDrawnUnchanged",
+      "real_testing": "PASSED\n- B14: probe linking libhpq.a (public HandPaintDevice/Theme headers only) draws \"Hello\" at (20,100), red pen, Helvetica 24px on a 200x200 HandPaintDevice for Sketch, China Ink and Chalk, and compares pixel by pixel with a plain QPainter drawing on the theme background with the theme ink -> 0 different pixels for all three themes; no pure red pixel (536 differences vs a plain red drawing). PNGs: \"Hello\" crisp, undistorted, dark grey on white / black on cream / off-white on dark slate.\n- B15: drawImage and drawPixmap of a 40x40 opaque red source at (80,80), for each theme -> all 6 cases 0 different pixels in the region, everything outside is theme background. PNGs show a sharp solid red square. Probe exit 0, no warnings, no crash.\nEvidence: specs/hand-paint-engine/real-testing/T8/"
     },
     {
       "id": "T9",
