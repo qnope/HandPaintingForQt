@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hpq/FwdDecls.h>
+#include <hpq/GeometryEngine.h>
 
 #include <QPaintEngine>
 #include <QPainter>
@@ -27,8 +28,14 @@ public:
     Type type() const override;
 
 private:
+    // Draws ideal hand-drawn on the target; filled_with_brush tells whether the brush fills it.
+    void draw_hand_drawn(const QPainterPath& ideal, bool filled_with_brush);
+
     const HandPaintDevice& m_device;
     QPainter m_painter;
+    RandomGenerator m_random;
+    bool m_has_pen = true;
+    bool m_has_brush = false;
 };
 
 } // namespace hpq

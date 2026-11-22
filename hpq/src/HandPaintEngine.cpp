@@ -2,6 +2,8 @@
 
 #include <hpq/HandPaintDevice.h>
 
+#include <QPen>
+#include <QPolygonF>
 #include <QRect>
 
 namespace hpq {
@@ -23,11 +25,36 @@ bool HandPaintEngine::begin(QPaintDevice* /*device*/)
 
 bool HandPaintEngine::end() { return m_painter.end(); }
 
-void HandPaintEngine::updateState(const QPaintEngineState& /*state*/) {}
+void HandPaintEngine::updateState(const QPaintEngineState& state)
+{
+    if (state.state() & DirtyPen)
+        m_has_pen = state.pen().style() != Qt::NoPen;
+    if (state.state() & DirtyBrush)
+        m_has_brush = state.brush().style() != Qt::NoBrush;
+}
 
-void HandPaintEngine::drawPath(const QPainterPath& /*path*/) {}
+void HandPaintEngine::drawPath(const QPainterPath& path) { draw_hand_drawn(path, true); }
 
-void HandPaintEngine::drawPolygon(const QPointF* /*points*/, int /*point_count*/, PolygonDrawMode /*mode*/) {}
+void HandPaintEngine::drawPolygon(const QPointF* points, int point_count, PolygonDrawMode mode)
+{
+    QPainterPath ideal;
+    ideal.addPolygon(QPolygonF(QVector<QPointF>(points, points + point_count)));
+    const bool closed = mode != PolylineMode;
+    if (closed)
+        ideal.closeSubpath();
+    ideal.setFillRule(mode == WindingMode ? Qt::WindingFill : Qt::OddEvenFill);
+    draw_hand_drawn(ideal, closed);
+}
+
+void HandPaintEngine::draw_hand_drawn(const QPainterPath& ideal, bool filled_with_brush)
+{
+    const Theme& theme = m_device.theme();
+    const HandDrawnShape shape = m_device.geometry_engine().hand_draw(ideal, theme, m_random);
+    if (filled_with_brush && m_has_brush)
+        m_painter.fillPath(shape.fill_area, theme.fill());
+    if (m_has_pen)
+        m_painter.strokePath(shape.strokes, QPen(theme.ink(), theme.stroke_width()));
+}
 
 void HandPaintEngine::drawPixmap(const QRectF& target_rect, const QPixmap& pixmap, const QRectF& source_rect)
 {

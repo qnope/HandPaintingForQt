@@ -1,0 +1,8 @@
+[sketch] engine calls=1 | polygon vs plain: 0 diff px (max 0) | path vs plain: 0 diff px (max 0) | shifted-engine vs plain: 1208 diff px | red=0 blue=0 magenta=0
+[china_ink] engine calls=1 | polygon vs plain: 0 diff px (max 0) | path vs plain: 0 diff px (max 0) | shifted-engine vs plain: 2392 diff px | red=0 blue=0 magenta=0
+[chalk] engine calls=1 | polygon vs plain: 0 diff px (max 0) | path vs plain: 0 diff px (max 0) | shifted-engine vs plain: 2296 diff px | red=0 blue=0 magenta=0
+[sketch no brush] vs plain outline-only: 0 diff px (max 0)
+[sketch text+polygon] whole image vs plain text+polygon: 0 diff px (max 0) | polygon area (y>=30) vs plain polygon: 0 diff px (max 0) | red=0 blue=0 magenta=0 | fill pixel (100,130)=#d0d0d0 theme fill=#d0d0d0
+[china_ink text+polygon] whole image vs plain text+polygon: 0 diff px (max 0) | polygon area (y>=30) vs plain polygon: 0 diff px (max 0) | red=0 blue=0 magenta=0 | fill pixel (100,130)=#808080 theme fill=#808080
+[chalk text+polygon] whole image vs plain text+polygon: 0 diff px (max 0) | polygon area (y>=30) vs plain polygon: 0 diff px (max 0) | red=0 blue=0 magenta=0 | fill pixel (100,130)=#a0a8a0 theme fill=#a0a8a0
+PROBE: all identity drawings equal the plain QPainter drawing

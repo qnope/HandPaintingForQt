@@ -1,10 +1,13 @@
 #pragma once
 
 #include <hpq/FwdDecls.h>
+#include <hpq/GeometryEngine.h>
 #include <hpq/HandPaintEngine.h>
 #include <hpq/Theme.h>
 
 #include <QPaintDevice>
+
+#include <memory>
 
 namespace hpq {
 
@@ -13,10 +16,14 @@ namespace hpq {
 class HandPaintDevice : public QPaintDevice
 {
 public:
+    // Uses the default geometry engine.
     HandPaintDevice(QPaintDevice& target, Theme theme);
+    // geometry_engine must not be null.
+    HandPaintDevice(QPaintDevice& target, Theme theme, std::unique_ptr<GeometryEngine> geometry_engine);
 
     QPaintDevice& target() const { return m_target; }
     const Theme& theme() const { return m_theme; }
+    const GeometryEngine& geometry_engine() const { return *m_geometry_engine; }
 
     QPaintEngine* paintEngine() const override;
 
@@ -26,6 +33,7 @@ protected:
 private:
     QPaintDevice& m_target;
     Theme m_theme;
+    std::unique_ptr<GeometryEngine> m_geometry_engine;
     mutable HandPaintEngine m_engine;
 };
 

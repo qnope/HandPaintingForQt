@@ -34,10 +34,11 @@
       "depends_on": [
         "T2"
       ],
-      "status": "review",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T3"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-engine/T3, run `git merge 76ab5a7527a599ffa0b6789b4b622242c1b2cd71`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- GeometryEngine.IdentityEngineWithSketchDrawsPolygonLikePlainPainterWithSketchColors\n- GeometryEngine.IdentityEngineWithChinaInkDrawsPolygonLikePlainPainterWithChinaInkColors",
+      "real_testing": "PASSED\n- B20: probe (specs/hand-paint-engine/real-testing/T3/probe/probe.cpp, public API only, linked to the library built from the merged worktree; 3/3 ctest pass) passes a custom identity hpq::GeometryEngine to hpq::HandPaintDevice(image, theme, std::make_unique<IdentityEngine>()) on a magenta image, draws the triangle (100,30),(170,170),(30,170) with red pen width 7 and blue solid brush via drawPolygon and drawPath for Sketch, China Ink and Chalk -> 0 differing pixels vs a plain antialiased QPainter with theme ink/stroke width/fill. Engine called once per shape; no red/blue/magenta left; a strokes-shifting engine changes the output (1208/2392/2296 px), so the engine drives the drawing; no-brush case 0 px differ. PNGs: device and plain triangles look the same for each theme.\n- other: drawText then drawPolygon on the same device (post T8 merge), red pen + blue brush, 3 themes -> 0 differing pixels vs plain QPainter with theme colors; fill pixel (100,130) is exactly the theme fill. Only console output: Qt's harmless \"Sans Serif\" font-alias note.\nEvidence: specs/hand-paint-engine/real-testing/T3/"
     },
     {
       "id": "T4",
