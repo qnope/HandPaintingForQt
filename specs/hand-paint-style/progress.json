@@ -181,9 +181,11 @@
         "T7",
         "T13"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- Startup.ThemedMainWindowGrabbedPaintsWithoutWarning (/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/StartupTest.cpp)\n- Real test, for tdd-real-tester: look at the grab for rough outlines on the combobox, push button and group box frame (no automated test, as the task file says)",
+      "real_testing": "PASSED\n- B17: built (debug preset), program linking the example libraries builds the example MainWindow (combobox \"Sketch\", style hpq::HandPaintStyle) and grabs it offscreen, after show() at 900x650 and without show() at 800x600; also ran HandPaintingExample with HPQ_AUTO_QUIT=1 (exit 0). No crash; no Qt warning from painting (only the offscreen plugin's \"propagateSizeHints()\" note on show(), already listed as ignored in PlatformMessages.cpp). In the grabs, OK/Cancel push buttons, both comboboxes and the group box frame have wobbly doubled pencil outlines; table/tree headers, row headers, scroll bar arrow buttons and frames, line edit and check box are rough too; arrows are solid triangles. No part still looks like a sharp Fusion pixmap; only the tree branch triangles and the size grip dots are crisp (Fusion vector drawing, out of scope).\nEvidence: scratchpad t14/ (grab.cpp, grab_noshow.cpp, crop.cpp, main.png, noshow.png, zoom_*.png, run.log, run_noshow.log, app.log)."
     }
   ]
 }
