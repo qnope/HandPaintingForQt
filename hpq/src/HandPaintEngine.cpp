@@ -35,8 +35,25 @@ void HandPaintEngine::drawRects(const QRectF *rects, int count) {
     }
 }
 
-// Images reach the target unchanged; not drawn yet.
-void HandPaintEngine::drawPixmap(const QRectF &, const QPixmap &, const QRectF &) {}
+// Images reach the target unchanged.
+void HandPaintEngine::drawPixmap(const QRectF &rect, const QPixmap &pixmap, const QRectF &source_rect) {
+    m_target.save();
+    m_target.drawPixmap(rect, pixmap, source_rect);
+    m_target.restore();
+}
+
+void HandPaintEngine::drawImage(const QRectF &rect, const QImage &image, const QRectF &source_rect,
+                                Qt::ImageConversionFlags flags) {
+    m_target.save();
+    m_target.drawImage(rect, image, source_rect, flags);
+    m_target.restore();
+}
+
+void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap, const QPointF &offset) {
+    m_target.save();
+    m_target.drawTiledPixmap(rect, pixmap, offset);
+    m_target.restore();
+}
 
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }
 
