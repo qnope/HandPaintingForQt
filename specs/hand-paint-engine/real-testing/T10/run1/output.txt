@@ -1,0 +1,15 @@
+DefaultSeed=5489
+fresh device seed()=5489
+after set_seed(42) seed()=42
+B17 seed 42, device A vs device B                       equal=yes differing_pixels=0
+B18 seed 1 vs seed 2                                    equal=no differing_pixels=2688
+B18 no seed device A vs device B                        equal=yes differing_pixels=0
+B18 no seed vs explicit DefaultSeed                     equal=yes differing_pixels=0
+no seed vs seed 42                                      equal=no differing_pixels=2805
+same device (seed 7) painted twice                      equal=yes differing_pixels=0
+same device after set_seed(8) vs seed 7                 equal=no differing_pixels=2708
+B17 china_ink seed 42 A vs B                            equal=yes differing_pixels=0
+B18 china_ink seed 1 vs 2                               equal=no differing_pixels=3013
+B17 chalk seed 42 A vs B                                equal=yes differing_pixels=0
+B18 chalk seed 1 vs 2                                   equal=no differing_pixels=2498
+exit=0

@@ -1,0 +1,4 @@
+first begin active=1
+second begin active=1
+fresh==first 1, first==second 1, fresh==second 1
+exit=0

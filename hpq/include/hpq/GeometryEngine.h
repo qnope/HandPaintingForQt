@@ -10,6 +10,8 @@ namespace hpq {
 
 // The random generator a geometry engine draws its randomness from; the device owns and seeds it.
 using RandomGenerator = std::mt19937;
+// The seed of a RandomGenerator.
+using Seed = RandomGenerator::result_type;
 
 // What a geometry engine makes of an ideal shape.
 struct HandDrawnShape

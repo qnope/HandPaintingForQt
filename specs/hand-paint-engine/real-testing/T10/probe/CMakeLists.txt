@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.21)
+project(T10Probe CXX)
+find_package(Qt6 REQUIRED COMPONENTS Gui)
+add_library(hpq STATIC IMPORTED)
+set_target_properties(hpq PROPERTIES
+    IMPORTED_LOCATION ${HPQ_ROOT}/build/debug/hpq/libhpq.a
+    INTERFACE_INCLUDE_DIRECTORIES ${HPQ_ROOT}/hpq/include
+    INTERFACE_LINK_LIBRARIES Qt6::Gui)
+add_executable(probe Probe.cpp)
+target_compile_features(probe PRIVATE cxx_std_17)
+target_link_libraries(probe PRIVATE hpq Qt6::Gui)
+add_executable(repaint Repaint.cpp)
+target_compile_features(repaint PRIVATE cxx_std_17)
+target_link_libraries(repaint PRIVATE hpq Qt6::Gui)
+add_executable(montage Montage.cpp)
+target_link_libraries(montage PRIVATE Qt6::Gui)
+add_executable(repaint2 Repaint2.cpp)
+target_compile_features(repaint2 PRIVATE cxx_std_17)
+target_link_libraries(repaint2 PRIVATE hpq Qt6::Gui)
+add_executable(repaint3 Repaint3.cpp)
+target_compile_features(repaint3 PRIVATE cxx_std_17)
+target_link_libraries(repaint3 PRIVATE hpq Qt6::Gui)

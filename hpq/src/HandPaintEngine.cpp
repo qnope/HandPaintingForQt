@@ -33,12 +33,23 @@ bool HandPaintEngine::begin(QPaintDevice* /*device*/)
     QPaintDevice& target = m_device.target();
     if (!m_painter.begin(&target))
         return false;
+    m_random.seed(m_device.seed());
+    reset_painter_state();
     m_painter.setRenderHint(QPainter::Antialiasing);
     m_painter.fillRect(QRect(0, 0, target.width(), target.height()), m_device.theme().background());
     return true;
 }
 
 bool HandPaintEngine::end() { return m_painter.end(); }
+
+// A new QPainter only sends the state it changes, so the previous painter's state must not remain.
+void HandPaintEngine::reset_painter_state()
+{
+    m_has_pen = true;
+    m_has_brush = false;
+    m_brush_alpha = 255;
+    m_transform = QTransform();
+}
 
 void HandPaintEngine::updateState(const QPaintEngineState& state)
 {
