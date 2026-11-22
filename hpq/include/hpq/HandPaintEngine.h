@@ -41,9 +41,13 @@ public:
     void drawTextItem(const QPointF &position, const QTextItem &text_item) override;
 
 private:
-    // Draws `shape` on the target: its rough fill area when it is closed and the brush is set,
+    enum class ShapeKind { Open, Closed, Rectangle };
+
+    // Draws `shape` on the target: its rough fill area when it is not open and the brush is set,
     // then its rough outline strokes when the pen is set.
-    void draw_shape(const QPainterPath &shape, bool closed);
+    // A rectangle without fill is a frame: its strokes stay out of it, because what it frames
+    // (the viewport of a list) is painted after it, over anything inside the rectangle.
+    void draw_shape(const QPainterPath &shape, ShapeKind kind);
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
     void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush);
     std::uint32_t seed(const QPainterPath &shape) const;

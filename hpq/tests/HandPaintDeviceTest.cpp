@@ -79,6 +79,24 @@ TEST_F(HandPaintDeviceTest, RectangleWithNoBrushReachesTargetAsTwoStrokesOnly) {
     EXPECT_TRUE(engine.calls()[1].is_stroke());
 }
 
+// A rectangle without fill is a frame: what it frames is painted after it, over the strokes
+// that would wobble into the rectangle.
+TEST_F(HandPaintDeviceTest, StrokesOfARectangleWithNoBrushStayOutOfTheRectangle) {
+    constexpr double Tolerance = 1e-6;
+    const QRectF inside = Rectangle.adjusted(Tolerance, Tolerance, -Tolerance, -Tolerance);
+    const auto &engine = draw_rectangle(QPen(PenColor, PenWidth), Qt::NoBrush);
+
+    ASSERT_EQ(engine.calls().size(), 2u);
+    for (const DrawCall &call : engine.calls()) {
+        EXPECT_NE(call.path, exact_rectangle());
+        ASSERT_GT(call.path.elementCount(), 4);
+        for (int index = 0; index < call.path.elementCount(); ++index) {
+            const QPointF point = call.path.elementAt(index);
+            EXPECT_FALSE(inside.contains(point)) << "point " << point.x() << ", " << point.y();
+        }
+    }
+}
+
 // On a high DPI target, the target painter already scales logical coordinates to device
 // pixels: the hand painter must not scale them a second time.
 TEST(HandPaintDeviceHighDpiTest, ShapeLandsAtTheSameLogicalPlaceOnAHighDpiTarget) {
