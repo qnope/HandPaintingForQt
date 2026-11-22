@@ -47,11 +47,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "dev",
+      "status": "done",
       "rejections": 1,
       "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T4, run `git merge 83f4f7fc182bf69c72c937a78d68dc06c5738df5`, keep the work of both sides and make the tests pass",
-      "worktree": ".worktrees/hand-paint-style/T4",
-      "review": "APPROVED\n- GroupBoxFrameTest.FrameIsOneRectangleOutlineInDarkWithoutImage\n- GroupBoxFrameTest.TitledGroupBoxRendersOneDarkOutlineWithoutImage"
+      "review": "APPROVED\n- GroupBoxFrameTest.FrameIsOneRectangleOutlineInDarkWithoutImage\n- GroupBoxFrameTest.TitledGroupBoxRendersOneDarkOutlineWithoutImage",
+      "real_testing": "PASSED\n- B5: after merge d27c7b5, rebuilt hpq in the T4 worktree and reran the program: drawPrimitive(PE_FrameGroupBox) on R=(10,20 120x80) on a counting engine -> exactly 1 rect (10,20 119x79) inside R, pen #8a867d (Dark), NoBrush, 0 images; primitive.png shows one thin grey-brown empty outline. Same as before the merge.\n- B8: QGroupBox \"Group\" with QLabel \"content\", SketchTheme palette + HandPaintStyle, render + grab -> 0 images; background fill, one outline rect (0,17 219x102) Dark pen no brush, texts \"Group\" and \"content\"; groupbox.png clean. Same as before the merge.\nEvidence: scratchpad t4/after-merge/."
     },
     {
       "id": "T5",
