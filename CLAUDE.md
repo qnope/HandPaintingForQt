@@ -56,3 +56,7 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 * function_names: `snake_case`
 * constant names: `PascalCase` ; no k in front of it
 * attribute names: `m_snake_case` ; prefix `m_` 
+
+## Pull requests
+
+Quand une pull request est prête (travail terminé, CI verte sur toutes les plateformes), Claude peut la fusionner lui-même, sans attendre l'accord d'Antoine.
