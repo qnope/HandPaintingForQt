@@ -19,6 +19,10 @@ endif()
 # Qt for WebAssembly: the web page hosting the application and the font it uses go next to
 # HandPaintingExample.js/.wasm and qtloader.js, so that this directory can be served as is.
 if(EMSCRIPTEN)
+  # Asyncify lets the application reenter the event loop (QDialog::exec(), QMenu::exec(), ...),
+  # which the default build of Qt for WebAssembly cannot do. -Os limits the size it adds.
+  target_link_options(HandPaintingExample PRIVATE -sASYNCIFY -Os)
+
   add_custom_command(TARGET HandPaintingExample POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${CMAKE_CURRENT_SOURCE_DIR}/web/index.html $<TARGET_FILE_DIR:HandPaintingExample>/index.html
