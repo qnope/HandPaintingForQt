@@ -87,11 +87,11 @@
         "T2",
         "T3"
       ],
-      "status": "dev",
+      "status": "done",
       "rejections": 1,
       "note": "hpq/include/hpq/HandPaintStyle.h, hpq/src/HandPaintStyle.cpp, hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T7, run `git merge 625bc326f5c21920aacac5ac2fc523bad49f0719`, keep the work of both sides and make the tests pass",
-      "worktree": ".worktrees/hand-paint-style/T7",
-      "review": "APPROVED\n- ComboBoxTest.NonEditableComboBoxIsDarkOutlineAndDownArrowWithoutImage\n- ComboBoxTest.EditableComboBoxIsDarkOutlineAndDownArrowWithoutImage"
+      "review": "APPROVED\n- ComboBoxTest.NonEditableComboBoxIsDarkOutlineAndDownArrowWithoutImage\n- ComboBoxTest.EditableComboBoxIsDarkOutlineAndDownArrowWithoutImage",
+      "real_testing": "PASSED\n- B7: after merge 834397a, rebuilt hpq in the T7 worktree and reran t7check offscreen: 160x30 non-editable and editable QComboBox (Apple, Banana), SketchTheme palette, HandPaintStyle, counting device -> both: images=0, one stroke with Dark pen, exactly one down ButtonText triangle at the right, text \"Apple\", fails=0, exit 0, same as before the merge. 4x screenshots: cream box, thin grey-brown frame, text left, down triangle right; apply_theme window grab: two hand-drawn comboboxes with down arrows. All six PNGs byte-identical to before the merge.\nEvidence: scratchpad t7/after-merge/."
     },
     {
       "id": "T8",
