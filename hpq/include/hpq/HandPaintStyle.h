@@ -16,6 +16,9 @@ class HandPaintStyle : public QProxyStyle {
 public:
     HandPaintStyle();
 
+    void drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
+                     const QWidget *widget = nullptr) const override;
+
     void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,
                        const QWidget *widget = nullptr) const override;
 

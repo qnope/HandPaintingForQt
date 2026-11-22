@@ -94,11 +94,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-style/T8",
-      "review": "APPROVED\n- HeaderSectionTest.TableHeadersAreFlatSectionsWithoutImage (/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T8/hpq/tests/HeaderSectionTest.cpp)"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/include/hpq/HandPaintStyle.h, hpq/src/HandPaintStyle.cpp, hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-style/T8, run `git merge 30411386362b387f7e8d375734e0ce8be0fd182e`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- HeaderSectionTest.TableHeadersAreFlatSectionsWithoutImage (/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T8/hpq/tests/HeaderSectionTest.cpp)",
+      "real_testing": "PASSED\n- B9: after merge de7ca4f, clean rebuild of hpq in the T8 worktree; reran the program offscreen: QTableView 3x3 QStandardItemModel 200x200, SketchTheme palette, HandPaintStyle on view and children, render to recording device + grab -> output byte-identical to before the merge: images=0, each of the 3 horizontal and 3 vertical sections a rect at its section rect, Button #fbf8ef fill, Dark #8a867d outline, failures=0, exit 0. Grab and render: flat cream sections with dark grey outlines, readable labels.\nEvidence: scratchpad t8/after-merge/."
     },
     {
       "id": "T9",
