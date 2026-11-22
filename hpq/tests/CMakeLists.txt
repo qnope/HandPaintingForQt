@@ -16,3 +16,4 @@ target_sources(HpqTests PRIVATE StyleRendering.h StyleRendering.cpp HandPaintSty
 target_sources(HpqTests PRIVATE ButtonPanelTest.cpp)
 target_sources(HpqTests PRIVATE OtherWidgetsTest.cpp)
 target_sources(HpqTests PRIVATE ArrowTest.cpp)
+target_sources(HpqTests PRIVATE SliderTest.cpp)
