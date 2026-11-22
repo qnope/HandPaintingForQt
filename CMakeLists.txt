@@ -11,7 +11,8 @@ if(APPLE)
   endif()
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+# Qt 6.4 is the version packaged by Ubuntu 24.04; the CI also builds with Qt 6.8.
+find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets)
 
 find_package(GTest CONFIG REQUIRED)
 

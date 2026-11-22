@@ -95,3 +95,36 @@ jobs:
           # Qt messages go to the log, also for a test stopped by the timeout.
           QT_FORCE_STDERR_LOGGING: 1
         run: ctest --test-dir build -C Debug --output-on-failure --timeout 120
+
+  # The oldest supported Qt: the one packaged by Ubuntu 24.04, with GoogleTest from apt as well.
+  linux-qt-6-4:
+    name: Linux (gcc, Qt 6.4)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Qt 6.4 and GoogleTest from apt
+        run: scripts/InstallUbuntuDependencies.sh
+
+      - name: Check that Qt is 6.4
+        run: |
+          qmake6 -query QT_VERSION
+          qmake6 -query QT_VERSION | grep -q '^6\.4\.'
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_FORCE_STDERR_LOGGING: 1
+        run: ctest --test-dir build --output-on-failure --timeout 120
