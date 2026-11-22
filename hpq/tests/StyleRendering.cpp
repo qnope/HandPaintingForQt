@@ -27,8 +27,12 @@ void set_style(const QList<QWidget *> &widgets, QStyle *style) {
 }  // namespace
 
 std::vector<DrawCall> render_with_style(QWidget &widget) {
+    return render_with_style(widget, SketchTheme().palette());
+}
+
+std::vector<DrawCall> render_with_style(QWidget &widget, const QPalette &palette) {
     HandPaintStyle style;
-    widget.setPalette(SketchTheme().palette());
+    widget.setPalette(palette);
     const QList<QWidget *> widgets = widget_and_descendants(widget);
     set_style(widgets, &style);
 
