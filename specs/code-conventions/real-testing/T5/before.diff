@@ -1,0 +1,320 @@
+diff --git a/Examples/CMakeLists.txt b/Examples/CMakeLists.txt
+index 4059999..5f27d92 100644
+--- a/Examples/CMakeLists.txt
++++ b/Examples/CMakeLists.txt
+@@ -7,12 +7,12 @@ target_link_libraries(HandPaintingExampleLib PUBLIC Qt6::Widgets hpq::hpq)
+ target_include_directories(HandPaintingExampleLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+ 
+ # Application
+-add_executable(HandPaintingExample main.cpp)
++add_executable(HandPaintingExample Main.cpp)
+ target_link_libraries(HandPaintingExample PRIVATE HandPaintingExampleLib)
+ set_target_properties(HandPaintingExample PROPERTIES AUTOMOC ON)
+ 
+ # Tests
+-add_executable(HandPaintingExampleTests tests/TestMain.cpp tests/SmokeTest.cpp tests/StartupTest.cpp tests/MainWindowTest.cpp tests/TableModelFactoryTest.cpp tests/TreeModelFactoryTest.cpp tests/HpqTest.cpp tests/ClaudeMdTest.cpp tests/FwdDeclsTest.cpp tests/NamingTest.cpp)
++add_executable(HandPaintingExampleTests tests/TestMain.cpp tests/SmokeTest.cpp tests/StartupTest.cpp tests/MainWindowTest.cpp tests/TableModelFactoryTest.cpp tests/TreeModelFactoryTest.cpp tests/HpqTest.cpp tests/ClaudeMdTest.cpp tests/FwdDeclsTest.cpp tests/NamingTest.cpp tests/ConventionsTest.cpp)
+ target_link_libraries(HandPaintingExampleTests PRIVATE HandPaintingExampleLib GTest::gtest)
+ set_target_properties(HandPaintingExampleTests PROPERTIES AUTOMOC ON)
+ target_compile_definitions(HandPaintingExampleTests PRIVATE HPQ_PROJECT_DIR="${PROJECT_SOURCE_DIR}")
+diff --git a/Examples/MainWindow.cpp b/Examples/MainWindow.cpp
+index 930c3e8..7fb8740 100644
+--- a/Examples/MainWindow.cpp
++++ b/Examples/MainWindow.cpp
+@@ -60,20 +60,20 @@ QGraphicsScene *create_shapes_scene(QObject *parent)
+ 
+ MainWindow::MainWindow(QWidget *parent)
+     : QMainWindow(parent)
+-    , ui(std::make_unique<Ui::MainWindow>())
++    , m_ui(std::make_unique<Ui::MainWindow>())
+ {
+-    ui->setupUi(this);
+-    ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk"});
++    m_ui->setupUi(this);
++    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk"});
+ 
+-    auto tableModel = create_table_model();
+-    tableModel->setParent(this);
+-    ui->tableView->setModel(tableModel.release());
++    auto table_model = create_table_model();
++    table_model->setParent(this);
++    m_ui->tableView->setModel(table_model.release());
+ 
+-    auto treeModel = create_tree_model();
+-    treeModel->setParent(this);
+-    ui->treeView->setModel(treeModel.release());
++    auto tree_model = create_tree_model();
++    tree_model->setParent(this);
++    m_ui->treeView->setModel(tree_model.release());
+ 
+-    ui->graphicsView->setScene(create_shapes_scene(this));
++    m_ui->graphicsView->setScene(create_shapes_scene(this));
+ }
+ 
+ MainWindow::~MainWindow() = default;
+diff --git a/Examples/MainWindow.h b/Examples/MainWindow.h
+index 91b0781..1a7e7cc 100644
+--- a/Examples/MainWindow.h
++++ b/Examples/MainWindow.h
+@@ -15,7 +15,7 @@ public:
+     ~MainWindow() override;
+ 
+ private:
+-    std::unique_ptr<Ui::MainWindow> ui;
++    std::unique_ptr<Ui::MainWindow> m_ui;
+ };
+ 
+ } // namespace hpq::example
+diff --git a/Examples/TableModelFactory.cpp b/Examples/TableModelFactory.cpp
+index be150f5..360b037 100644
+--- a/Examples/TableModelFactory.cpp
++++ b/Examples/TableModelFactory.cpp
+@@ -11,15 +11,15 @@
+ namespace hpq::example {
+ 
+ namespace {
+-constexpr int kRowCount = 300;
++constexpr int RowCount = 300;
+ 
+-const QStringList kHeaders = {"ID",     "First name", "Last name", "Department", "City",
++const QStringList Headers = {"ID",     "First name", "Last name", "Department", "City",
+                               "Age",    "Salary",     "Hire date", "Active",     "Email"};
+-const QStringList kFirstNames = {"Alice", "Bob",   "Clara", "David", "Emma",
++const QStringList FirstNames = {"Alice", "Bob",   "Clara", "David", "Emma",
+                                  "Felix", "Grace", "Hugo",  "Iris",  "Jules"};
+-const QStringList kLastNames = {"Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit"};
+-const QStringList kDepartments = {"Engineering", "Sales", "Marketing", "Finance", "Support", "HR"};
+-const QStringList kCities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
++const QStringList LastNames = {"Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit"};
++const QStringList Departments = {"Engineering", "Sales", "Marketing", "Finance", "Support", "HR"};
++const QStringList Cities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
+ 
+ QStandardItem *number_item(const QVariant &value)
+ {
+@@ -31,22 +31,22 @@ QStandardItem *number_item(const QVariant &value)
+ 
+ std::unique_ptr<QStandardItemModel> create_table_model()
+ {
+-    auto model = std::make_unique<QStandardItemModel>(0, kHeaders.size());
+-    model->setHorizontalHeaderLabels(kHeaders);
++    auto model = std::make_unique<QStandardItemModel>(0, Headers.size());
++    model->setHorizontalHeaderLabels(Headers);
+ 
+-    for (int i = 0; i < kRowCount; ++i) {
+-        const QString first = kFirstNames[i % kFirstNames.size()];
+-        const QString last = kLastNames[(i / 3) % kLastNames.size()];
++    for (int i = 0; i < RowCount; ++i) {
++        const QString first = FirstNames[i % FirstNames.size()];
++        const QString last = LastNames[(i / 3) % LastNames.size()];
+ 
+-        const bool isActive = i % 4 != 0;
+-        auto *active = new QStandardItem(isActive ? "Yes" : "No");
++        const bool is_active = i % 4 != 0;
++        auto *active = new QStandardItem(is_active ? "Yes" : "No");
+         active->setCheckable(true);
+-        active->setCheckState(isActive ? Qt::Checked : Qt::Unchecked);
++        active->setCheckState(is_active ? Qt::Checked : Qt::Unchecked);
+ 
+         QList<QStandardItem *> row;
+         row << number_item(i + 1) << new QStandardItem(first) << new QStandardItem(last)
+-            << new QStandardItem(kDepartments[i % kDepartments.size()])
+-            << new QStandardItem(kCities[(i / 2) % kCities.size()]) << number_item(22 + (i * 7) % 43)
++            << new QStandardItem(Departments[i % Departments.size()])
++            << new QStandardItem(Cities[(i / 2) % Cities.size()]) << number_item(22 + (i * 7) % 43)
+             << number_item(30000 + (i * 1237) % 70000)
+             << number_item(QDate(2010, 1, 1).addDays((i * 37) % 5000)) << active
+             << new QStandardItem(QString("%1.%2.%3@example.com").arg(first.toLower(), last.toLower()).arg(i + 1));
+diff --git a/Examples/TreeModelFactory.cpp b/Examples/TreeModelFactory.cpp
+index 2f60e32..6c7af33 100644
+--- a/Examples/TreeModelFactory.cpp
++++ b/Examples/TreeModelFactory.cpp
+@@ -10,24 +10,24 @@
+ namespace hpq::example {
+ 
+ namespace {
+-constexpr int kDepartmentCount = 20;
+-constexpr int kEmployeesPerDepartment = 15;
++constexpr int DepartmentCount = 20;
++constexpr int EmployeesPerDepartment = 15;
+ 
+-const QStringList kHeaders = {"Name",   "Kind",   "Role", "Department", "City",
++const QStringList Headers = {"Name",   "Kind",   "Role", "Department", "City",
+                               "Budget", "Status", "Level", "Email",     "Phone"};
+-const QStringList kBaseDepartments = {"Engineering", "Sales",   "Marketing", "Finance", "Support",
++const QStringList BaseDepartments = {"Engineering", "Sales",   "Marketing", "Finance", "Support",
+                                       "HR",          "Legal",   "Design",    "Research", "Logistics"};
+-const QStringList kFirstNames = {"Alice", "Bob",   "Clara", "David", "Emma",
++const QStringList FirstNames = {"Alice", "Bob",   "Clara", "David", "Emma",
+                                  "Felix", "Grace", "Hugo",  "Iris",  "Jules"};
+-const QStringList kLastNames = {"Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit"};
+-const QStringList kRoles = {"Manager", "Developer", "Analyst", "Specialist", "Assistant"};
+-const QStringList kCities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
+-const QStringList kStatuses = {"Active", "On leave", "Remote"};
++const QStringList LastNames = {"Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit"};
++const QStringList Roles = {"Manager", "Developer", "Analyst", "Specialist", "Assistant"};
++const QStringList Cities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
++const QStringList Statuses = {"Active", "On leave", "Remote"};
+ 
+ QString department_name(int index)
+ {
+-    const QString base = kBaseDepartments[index % kBaseDepartments.size()];
+-    return index < kBaseDepartments.size() ? base : base + " " + QString::number(index / kBaseDepartments.size() + 1);
++    const QString base = BaseDepartments[index % BaseDepartments.size()];
++    return index < BaseDepartments.size() ? base : base + " " + QString::number(index / BaseDepartments.size() + 1);
+ }
+ 
+ QList<QStandardItem *> make_row(const QStringList &cells)
+@@ -41,28 +41,28 @@ QList<QStandardItem *> make_row(const QStringList &cells)
+ 
+ std::unique_ptr<QStandardItemModel> create_tree_model()
+ {
+-    auto model = std::make_unique<QStandardItemModel>(0, kHeaders.size());
+-    model->setHorizontalHeaderLabels(kHeaders);
++    auto model = std::make_unique<QStandardItemModel>(0, Headers.size());
++    model->setHorizontalHeaderLabels(Headers);
+ 
+-    for (int d = 0; d < kDepartmentCount; ++d) {
++    for (int d = 0; d < DepartmentCount; ++d) {
+         const QString department = department_name(d);
+-        const QString city = kCities[d % kCities.size()];
+-        auto parentRow = make_row({department, "Department", "Division", department, city,
++        const QString city = Cities[d % Cities.size()];
++        auto parent_row = make_row({department, "Department", "Division", department, city,
+                                   QString::number((d + 1) * 100000), "Active", "0",
+                                   department.toLower().remove(' ') + "@example.com",
+                                   QString("+33 1 00 00 %1").arg(d, 2, 10, QLatin1Char('0'))});
+-        for (int e = 0; e < kEmployeesPerDepartment; ++e) {
+-            const int n = d * kEmployeesPerDepartment + e;
+-            const QString first = kFirstNames[n % kFirstNames.size()];
+-            const QString last = kLastNames[n % kLastNames.size()];
+-            parentRow.first()->appendRow(
+-                make_row({first + " " + last, "Employee", kRoles[n % kRoles.size()], department,
+-                         kCities[n % kCities.size()], QString::number(30000 + (n * 997) % 50000),
+-                         kStatuses[n % kStatuses.size()], QString::number(1 + n % 5),
++        for (int e = 0; e < EmployeesPerDepartment; ++e) {
++            const int n = d * EmployeesPerDepartment + e;
++            const QString first = FirstNames[n % FirstNames.size()];
++            const QString last = LastNames[n % LastNames.size()];
++            parent_row.first()->appendRow(
++                make_row({first + " " + last, "Employee", Roles[n % Roles.size()], department,
++                         Cities[n % Cities.size()], QString::number(30000 + (n * 997) % 50000),
++                         Statuses[n % Statuses.size()], QString::number(1 + n % 5),
+                          first.toLower() + "." + last.toLower() + "@example.com",
+                          QString("+33 6 00 %1 %2").arg(d, 2, 10, QLatin1Char('0')).arg(e, 2, 10, QLatin1Char('0'))}));
+         }
+-        model->appendRow(parentRow);
++        model->appendRow(parent_row);
+     }
+     return model;
+ }
+diff --git a/Examples/tests/StartupTest.cpp b/Examples/tests/StartupTest.cpp
+index 32f1ef0..002f331 100644
+--- a/Examples/tests/StartupTest.cpp
++++ b/Examples/tests/StartupTest.cpp
+@@ -5,7 +5,7 @@
+ #include <gtest/gtest.h>
+ 
+ namespace {
+-int warningCount = 0;
++int warning_count = 0;
+ 
+ void counting_handler(QtMsgType type, const QMessageLogContext &, const QString &message)
+ {
+@@ -14,25 +14,25 @@ void counting_handler(QtMsgType type, const QMessageLogContext &, const QString
+     if (message.contains("propagateSizeHints"))
+         return;
+     if (type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg)
+-        ++warningCount;
++        ++warning_count;
+ }
+ } // namespace
+ 
+ TEST(Startup, MainWindowShowsAndRunsEventLoopWithoutWarning)
+ {
+-    warningCount = 0;
++    warning_count = 0;
+     const QtMessageHandler previous = qInstallMessageHandler(counting_handler);
+     {
+         hpq::example::MainWindow window;
+         window.show();
+-        bool visibleInEventLoop = false;
++        bool visible_in_event_loop = false;
+         QTimer::singleShot(0, qApp, [&] {
+-            visibleInEventLoop = window.isVisible();
++            visible_in_event_loop = window.isVisible();
+             QApplication::quit();
+         });
+         qApp->exec();
+-        EXPECT_TRUE(visibleInEventLoop);
++        EXPECT_TRUE(visible_in_event_loop);
+     }
+     qInstallMessageHandler(previous);
+-    EXPECT_EQ(0, warningCount);
++    EXPECT_EQ(0, warning_count);
+ }
+diff --git a/Examples/tests/TableModelFactoryTest.cpp b/Examples/tests/TableModelFactoryTest.cpp
+index d498565..bfe823c 100644
+--- a/Examples/tests/TableModelFactoryTest.cpp
++++ b/Examples/tests/TableModelFactoryTest.cpp
+@@ -9,10 +9,10 @@
+ #include "TableModelFactory.h"
+ 
+ namespace {
+-const QStringList kHeaders = {"ID",     "First name", "Last name", "Department", "City",
++const QStringList Headers = {"ID",     "First name", "Last name", "Department", "City",
+                               "Age",    "Salary",     "Hire date", "Active",     "Email"};
+ 
+-int column_of(const QString &header) { return kHeaders.indexOf(header); }
++int column_of(const QString &header) { return Headers.indexOf(header); }
+ 
+ auto make_model() { return hpq::example::create_table_model(); }
+ } // namespace
+@@ -25,8 +25,8 @@ TEST(TableModelFactory, HasExpectedShapeAndHeaders)
+     auto model = make_model();
+     ASSERT_EQ(model->rowCount(), 300);
+     ASSERT_EQ(model->columnCount(), 10);
+-    for (int c = 0; c < kHeaders.size(); ++c)
+-        EXPECT_EQ(model->headerData(c, Qt::Horizontal).toString(), kHeaders[c]);
++    for (int c = 0; c < Headers.size(); ++c)
++        EXPECT_EQ(model->headerData(c, Qt::Horizontal).toString(), Headers[c]);
+ }
+ 
+ TEST(TableModelFactory, IdColumnIsRowOrder)
+diff --git a/Examples/tests/TreeModelFactoryTest.cpp b/Examples/tests/TreeModelFactoryTest.cpp
+index 428b23c..707337c 100644
+--- a/Examples/tests/TreeModelFactoryTest.cpp
++++ b/Examples/tests/TreeModelFactoryTest.cpp
+@@ -7,7 +7,7 @@
+ #include "TreeModelFactory.h"
+ 
+ namespace {
+-constexpr int kDepartmentColumn = 3;
++constexpr int DepartmentColumn = 3;
+ 
+ auto make_model() { return hpq::example::create_tree_model(); }
+ } // namespace
+@@ -69,6 +69,6 @@ TEST(TreeModelFactory, ChildDepartmentEqualsParentName)
+     for (int r = 0; r < model->rowCount(); ++r) {
+         const auto *parent = model->item(r, 0);
+         for (int i = 0; i < parent->rowCount(); ++i)
+-            EXPECT_EQ(parent->child(i, kDepartmentColumn)->text(), parent->text());
++            EXPECT_EQ(parent->child(i, DepartmentColumn)->text(), parent->text());
+     }
+ }
+diff --git a/specs/code-conventions/progress.json b/specs/code-conventions/progress.json
+index fae6347..26be822 100644
+--- a/specs/code-conventions/progress.json
++++ b/specs/code-conventions/progress.json
+@@ -58,9 +58,10 @@
+       "depends_on": [
+         "T4"
+       ],
+-      "status": "new",
++      "status": "real-testing",
+       "rejections": 0,
+-      "note": ""
++      "note": "",
++      "review": "APPROVED\n- No kPascal constant and no camelCase local in hpq/ and Examples/: Conventions.NoKPrefixedConstantInSources and Conventions.NoCamelCaseVariableInSources (scanner unit tests ScannerFindsKPrefixedConstants, ScannerFindsCamelCaseVariablesAndParameters, ScannerIgnoresSnakeCaseCallsAndReturns). Also Conventions.EveryAttributeHasMPrefix and Conventions.EveryTypeNameIsPascalCase for B3/B4.\n- MainWindow still builds its window (MainWindowTest passes) with m_ui in place of ui; Conventions.EveryAttributeHasMPrefix (ScannerFindsAttributesWithoutPrefix proves it flags `ui`).\n- Conventions.EveryFileNameIsPascalCase checks .h/.cpp/.ui file names (unit test FileStemPascalCheck).\nVerification: test command passes 2/2; independent grep finds no kPascal name; remaining camelCase hits are Qt/GoogleTest/uic-imposed; only attribute is m_ui; only type MainWindow; all files PascalCase (Main.cpp after rename); constants PascalCase; no test removed or weakened. Missing break-and-restore for type/file checks judged acceptable (scanner unit tests prove they flag bad names; file check failed on main.cpp before rename). Minor: ConventionsTest.cpp and NamingTest.cpp excluded from scans since they quote bad names on purpose; their own code follows the conventions."
+     },
+     {
+       "id": "T6",

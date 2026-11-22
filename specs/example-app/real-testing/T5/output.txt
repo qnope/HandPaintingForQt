@@ -1,0 +1,6 @@
+qt.qpa.fonts: Populating font family aliases took 45 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support propagateSizeHints()
+table model QSIM rows 300 cols 10
+tree model QSIM rows 20 cols 10
+distinct 1
+child rows of 0: 15 expanded 1

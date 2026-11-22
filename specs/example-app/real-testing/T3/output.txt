@@ -1,0 +1,14 @@
+rows 20 cols 10
+headers: [Name] [Kind] [Role] [Department] [City] [Budget] [Status] [Level] [Email] [Phone]
+P0 C0: | Alice Martin | Employee | Manager | Engineering | Paris | 30000 | Active | 1 | alice.martin@example.com | +33 6 00 00 00
+P0 C1: | Bob Bernard | Employee | Developer | Engineering | Lyon | 30997 | On leave | 2 | bob.bernard@example.com | +33 6 00 00 01
+P0 C2: | Clara Dubois | Employee | Analyst | Engineering | Lille | 31994 | Remote | 3 | clara.dubois@example.com | +33 6 00 00 02
+Parent 0: | Engineering | Department | Division | Engineering | Paris | 100000 | Active | 0 | engineering@example.com | +33 1 00 00 00
+P1 C0: | Felix Bernard | Employee | Manager | Sales | Nantes | 44955 | Active | 1 | felix.bernard@example.com | +33 6 00 01 00
+P1 C1: | Grace Dubois | Employee | Developer | Sales | Toulouse | 45952 | On leave | 2 | grace.dubois@example.com | +33 6 00 01 01
+P1 C2: | Hugo Thomas | Employee | Analyst | Sales | Bordeaux | 46949 | Remote | 3 | hugo.thomas@example.com | +33 6 00 01 02
+Parent 1: | Sales | Department | Division | Sales | Lyon | 200000 | Active | 0 | sales@example.com | +33 1 00 00 01
+Parent 2: | Marketing | Department | Division | Marketing | Lille | 300000 | Active | 0 | marketing@example.com | +33 1 00 00 02
+P19 C14: | Jules Richard | Employee | Assistant | Logistics 2 | Bordeaux | 78103 | Remote | 5 | jules.richard@example.com | +33 6 00 19 14
+Parent 19: | Logistics 2 | Department | Division | Logistics 2 | Lyon | 2000000 | Active | 0 | logistics2@example.com | +33 1 00 00 19
+distinct parents 20 kidsbad 0 empty 0 grandchildren 0

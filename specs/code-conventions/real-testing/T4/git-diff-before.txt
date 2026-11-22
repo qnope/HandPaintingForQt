@@ -1,0 +1,467 @@
+diff --git a/Examples/AppFont.cpp b/Examples/AppFont.cpp
+index 2a72bae..c20a639 100644
+--- a/Examples/AppFont.cpp
++++ b/Examples/AppFont.cpp
+@@ -4,7 +4,7 @@
+ #include <QFont>
+ 
+ namespace hpq::example {
+-void applyDefaultFont()
++void apply_default_font()
+ {
+     QApplication::setFont(QFont("Helvetica"));
+ }
+diff --git a/Examples/AppFont.h b/Examples/AppFont.h
+index 7e7ec34..b27c693 100644
+--- a/Examples/AppFont.h
++++ b/Examples/AppFont.h
+@@ -3,5 +3,5 @@
+ namespace hpq::example {
+ // Sets an application font that exists on every platform, so Qt does not search for the
+ // missing generic "Sans Serif" family. Call after creating the QApplication.
+-void applyDefaultFont();
++void apply_default_font();
+ } // namespace hpq::example
+diff --git a/Examples/CMakeLists.txt b/Examples/CMakeLists.txt
+index 9fc00a5..4059999 100644
+--- a/Examples/CMakeLists.txt
++++ b/Examples/CMakeLists.txt
+@@ -12,7 +12,7 @@ target_link_libraries(HandPaintingExample PRIVATE HandPaintingExampleLib)
+ set_target_properties(HandPaintingExample PROPERTIES AUTOMOC ON)
+ 
+ # Tests
+-add_executable(HandPaintingExampleTests tests/TestMain.cpp tests/SmokeTest.cpp tests/StartupTest.cpp tests/MainWindowTest.cpp tests/TableModelFactoryTest.cpp tests/TreeModelFactoryTest.cpp tests/HpqTest.cpp tests/ClaudeMdTest.cpp tests/FwdDeclsTest.cpp)
++add_executable(HandPaintingExampleTests tests/TestMain.cpp tests/SmokeTest.cpp tests/StartupTest.cpp tests/MainWindowTest.cpp tests/TableModelFactoryTest.cpp tests/TreeModelFactoryTest.cpp tests/HpqTest.cpp tests/ClaudeMdTest.cpp tests/FwdDeclsTest.cpp tests/NamingTest.cpp)
+ target_link_libraries(HandPaintingExampleTests PRIVATE HandPaintingExampleLib GTest::gtest)
+ set_target_properties(HandPaintingExampleTests PROPERTIES AUTOMOC ON)
+ target_compile_definitions(HandPaintingExampleTests PRIVATE HPQ_PROJECT_DIR="${PROJECT_SOURCE_DIR}")
+diff --git a/Examples/MainWindow.cpp b/Examples/MainWindow.cpp
+index 71d7ac9..930c3e8 100644
+--- a/Examples/MainWindow.cpp
++++ b/Examples/MainWindow.cpp
+@@ -18,7 +18,7 @@
+ namespace hpq::example {
+ 
+ namespace {
+-QGraphicsScene *createShapesScene(QObject *parent)
++QGraphicsScene *create_shapes_scene(QObject *parent)
+ {
+     auto *scene = new QGraphicsScene(parent);
+     const QPen blue(QColor("#2a6fdb"), 2);
+@@ -65,15 +65,15 @@ MainWindow::MainWindow(QWidget *parent)
+     ui->setupUi(this);
+     ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk"});
+ 
+-    auto tableModel = createTableModel();
++    auto tableModel = create_table_model();
+     tableModel->setParent(this);
+     ui->tableView->setModel(tableModel.release());
+ 
+-    auto treeModel = createTreeModel();
++    auto treeModel = create_tree_model();
+     treeModel->setParent(this);
+     ui->treeView->setModel(treeModel.release());
+ 
+-    ui->graphicsView->setScene(createShapesScene(this));
++    ui->graphicsView->setScene(create_shapes_scene(this));
+ }
+ 
+ MainWindow::~MainWindow() = default;
+diff --git a/Examples/TableModelFactory.cpp b/Examples/TableModelFactory.cpp
+index 489948e..be150f5 100644
+--- a/Examples/TableModelFactory.cpp
++++ b/Examples/TableModelFactory.cpp
+@@ -21,7 +21,7 @@ const QStringList kLastNames = {"Martin", "Bernard", "Dubois", "Thomas", "Robert
+ const QStringList kDepartments = {"Engineering", "Sales", "Marketing", "Finance", "Support", "HR"};
+ const QStringList kCities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
+ 
+-QStandardItem *numberItem(const QVariant &value)
++QStandardItem *number_item(const QVariant &value)
+ {
+     auto *item = new QStandardItem;
+     item->setData(value, Qt::DisplayRole);
+@@ -29,7 +29,7 @@ QStandardItem *numberItem(const QVariant &value)
+ }
+ } // namespace
+ 
+-std::unique_ptr<QStandardItemModel> createTableModel()
++std::unique_ptr<QStandardItemModel> create_table_model()
+ {
+     auto model = std::make_unique<QStandardItemModel>(0, kHeaders.size());
+     model->setHorizontalHeaderLabels(kHeaders);
+@@ -44,11 +44,11 @@ std::unique_ptr<QStandardItemModel> createTableModel()
+         active->setCheckState(isActive ? Qt::Checked : Qt::Unchecked);
+ 
+         QList<QStandardItem *> row;
+-        row << numberItem(i + 1) << new QStandardItem(first) << new QStandardItem(last)
++        row << number_item(i + 1) << new QStandardItem(first) << new QStandardItem(last)
+             << new QStandardItem(kDepartments[i % kDepartments.size()])
+-            << new QStandardItem(kCities[(i / 2) % kCities.size()]) << numberItem(22 + (i * 7) % 43)
+-            << numberItem(30000 + (i * 1237) % 70000)
+-            << numberItem(QDate(2010, 1, 1).addDays((i * 37) % 5000)) << active
++            << new QStandardItem(kCities[(i / 2) % kCities.size()]) << number_item(22 + (i * 7) % 43)
++            << number_item(30000 + (i * 1237) % 70000)
++            << number_item(QDate(2010, 1, 1).addDays((i * 37) % 5000)) << active
+             << new QStandardItem(QString("%1.%2.%3@example.com").arg(first.toLower(), last.toLower()).arg(i + 1));
+         model->appendRow(row);
+     }
+diff --git a/Examples/TableModelFactory.h b/Examples/TableModelFactory.h
+index f656e70..9bd6180 100644
+--- a/Examples/TableModelFactory.h
++++ b/Examples/TableModelFactory.h
+@@ -7,6 +7,6 @@
+ namespace hpq::example {
+ 
+ // Returns a new deterministic model of 300 employees on 10 columns.
+-std::unique_ptr<QStandardItemModel> createTableModel();
++std::unique_ptr<QStandardItemModel> create_table_model();
+ 
+ } // namespace hpq::example
+diff --git a/Examples/TreeModelFactory.cpp b/Examples/TreeModelFactory.cpp
+index 19683c6..2f60e32 100644
+--- a/Examples/TreeModelFactory.cpp
++++ b/Examples/TreeModelFactory.cpp
+@@ -24,13 +24,13 @@ const QStringList kRoles = {"Manager", "Developer", "Analyst", "Specialist", "As
+ const QStringList kCities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
+ const QStringList kStatuses = {"Active", "On leave", "Remote"};
+ 
+-QString departmentName(int index)
++QString department_name(int index)
+ {
+     const QString base = kBaseDepartments[index % kBaseDepartments.size()];
+     return index < kBaseDepartments.size() ? base : base + " " + QString::number(index / kBaseDepartments.size() + 1);
+ }
+ 
+-QList<QStandardItem *> makeRow(const QStringList &cells)
++QList<QStandardItem *> make_row(const QStringList &cells)
+ {
+     QList<QStandardItem *> row;
+     for (const QString &text : cells)
+@@ -39,15 +39,15 @@ QList<QStandardItem *> makeRow(const QStringList &cells)
+ }
+ } // namespace
+ 
+-std::unique_ptr<QStandardItemModel> createTreeModel()
++std::unique_ptr<QStandardItemModel> create_tree_model()
+ {
+     auto model = std::make_unique<QStandardItemModel>(0, kHeaders.size());
+     model->setHorizontalHeaderLabels(kHeaders);
+ 
+     for (int d = 0; d < kDepartmentCount; ++d) {
+-        const QString department = departmentName(d);
++        const QString department = department_name(d);
+         const QString city = kCities[d % kCities.size()];
+-        auto parentRow = makeRow({department, "Department", "Division", department, city,
++        auto parentRow = make_row({department, "Department", "Division", department, city,
+                                   QString::number((d + 1) * 100000), "Active", "0",
+                                   department.toLower().remove(' ') + "@example.com",
+                                   QString("+33 1 00 00 %1").arg(d, 2, 10, QLatin1Char('0'))});
+@@ -56,7 +56,7 @@ std::unique_ptr<QStandardItemModel> createTreeModel()
+             const QString first = kFirstNames[n % kFirstNames.size()];
+             const QString last = kLastNames[n % kLastNames.size()];
+             parentRow.first()->appendRow(
+-                makeRow({first + " " + last, "Employee", kRoles[n % kRoles.size()], department,
++                make_row({first + " " + last, "Employee", kRoles[n % kRoles.size()], department,
+                          kCities[n % kCities.size()], QString::number(30000 + (n * 997) % 50000),
+                          kStatuses[n % kStatuses.size()], QString::number(1 + n % 5),
+                          first.toLower() + "." + last.toLower() + "@example.com",
+diff --git a/Examples/TreeModelFactory.h b/Examples/TreeModelFactory.h
+index c2cb5b9..60828a0 100644
+--- a/Examples/TreeModelFactory.h
++++ b/Examples/TreeModelFactory.h
+@@ -7,6 +7,6 @@
+ namespace hpq::example {
+ 
+ // Returns a new deterministic tree model: 20 departments, each with 15 employees, on 10 columns.
+-std::unique_ptr<QStandardItemModel> createTreeModel();
++std::unique_ptr<QStandardItemModel> create_tree_model();
+ 
+ } // namespace hpq::example
+diff --git a/Examples/main.cpp b/Examples/main.cpp
+index 8664508..25e3c74 100644
+--- a/Examples/main.cpp
++++ b/Examples/main.cpp
+@@ -7,7 +7,7 @@
+ int main(int argc, char *argv[])
+ {
+     QApplication app(argc, argv);
+-    hpq::example::applyDefaultFont();
++    hpq::example::apply_default_font();
+ 
+     hpq::example::MainWindow window;
+     window.show();
+diff --git a/Examples/tests/HpqTest.cpp b/Examples/tests/HpqTest.cpp
+index 15e48d6..27ef0ce 100644
+--- a/Examples/tests/HpqTest.cpp
++++ b/Examples/tests/HpqTest.cpp
+@@ -4,4 +4,4 @@
+ 
+ #include <string>
+ 
+-TEST(Hpq, LibraryNameComesFromNamespaceHpq) { EXPECT_EQ(std::string("hpq"), hpq::libraryName()); }
++TEST(Hpq, LibraryNameComesFromNamespaceHpq) { EXPECT_EQ(std::string("hpq"), hpq::library_name()); }
+diff --git a/Examples/tests/MainWindowTest.cpp b/Examples/tests/MainWindowTest.cpp
+index bfcc550..35d445d 100644
+--- a/Examples/tests/MainWindowTest.cpp
++++ b/Examples/tests/MainWindowTest.cpp
+@@ -117,7 +117,7 @@ TEST(MainWindow, ViewsUseDistinctModels)
+ }
+ 
+ namespace {
+-template <typename T> bool sceneHas(QGraphicsScene *scene)
++template <typename T> bool scene_has(QGraphicsScene *scene)
+ {
+     for (auto *item : scene->items()) {
+         if (qgraphicsitem_cast<T *>(item))
+@@ -138,9 +138,9 @@ TEST(MainWindow, SceneContainsEachShapeKind)
+     hpq::example::MainWindow w;
+     auto *scene = find<QGraphicsView>(w, "graphicsView")->scene();
+     ASSERT_NE(scene, nullptr);
+-    EXPECT_TRUE(sceneHas<QGraphicsRectItem>(scene));
+-    EXPECT_TRUE(sceneHas<QGraphicsEllipseItem>(scene));
+-    EXPECT_TRUE(sceneHas<QGraphicsLineItem>(scene));
+-    EXPECT_TRUE(sceneHas<QGraphicsPolygonItem>(scene));
+-    EXPECT_TRUE(sceneHas<QGraphicsSimpleTextItem>(scene) || sceneHas<QGraphicsTextItem>(scene));
++    EXPECT_TRUE(scene_has<QGraphicsRectItem>(scene));
++    EXPECT_TRUE(scene_has<QGraphicsEllipseItem>(scene));
++    EXPECT_TRUE(scene_has<QGraphicsLineItem>(scene));
++    EXPECT_TRUE(scene_has<QGraphicsPolygonItem>(scene));
++    EXPECT_TRUE(scene_has<QGraphicsSimpleTextItem>(scene) || scene_has<QGraphicsTextItem>(scene));
+ }
+diff --git a/Examples/tests/StartupTest.cpp b/Examples/tests/StartupTest.cpp
+index 0086180..32f1ef0 100644
+--- a/Examples/tests/StartupTest.cpp
++++ b/Examples/tests/StartupTest.cpp
+@@ -7,7 +7,7 @@
+ namespace {
+ int warningCount = 0;
+ 
+-void countingHandler(QtMsgType type, const QMessageLogContext &, const QString &message)
++void counting_handler(QtMsgType type, const QMessageLogContext &, const QString &message)
+ {
+     // The offscreen platform plugin does not implement propagateSizeHints() and warns for any
+     // top-level widget with a layout (reproduced with a bare QWidget); not caused by the application.
+@@ -21,7 +21,7 @@ void countingHandler(QtMsgType type, const QMessageLogContext &, const QString &
+ TEST(Startup, MainWindowShowsAndRunsEventLoopWithoutWarning)
+ {
+     warningCount = 0;
+-    const QtMessageHandler previous = qInstallMessageHandler(countingHandler);
++    const QtMessageHandler previous = qInstallMessageHandler(counting_handler);
+     {
+         hpq::example::MainWindow window;
+         window.show();
+diff --git a/Examples/tests/TableModelFactoryTest.cpp b/Examples/tests/TableModelFactoryTest.cpp
+index f720faf..d498565 100644
+--- a/Examples/tests/TableModelFactoryTest.cpp
++++ b/Examples/tests/TableModelFactoryTest.cpp
+@@ -12,17 +12,17 @@ namespace {
+ const QStringList kHeaders = {"ID",     "First name", "Last name", "Department", "City",
+                               "Age",    "Salary",     "Hire date", "Active",     "Email"};
+ 
+-int columnOf(const QString &header) { return kHeaders.indexOf(header); }
++int column_of(const QString &header) { return kHeaders.indexOf(header); }
+ 
+-auto makeModel() { return hpq::example::createTableModel(); }
++auto make_model() { return hpq::example::create_table_model(); }
+ } // namespace
+ 
+-static_assert(std::is_same_v<decltype(hpq::example::createTableModel()), std::unique_ptr<QStandardItemModel>>,
+-              "createTableModel must return a unique_ptr");
++static_assert(std::is_same_v<decltype(hpq::example::create_table_model()), std::unique_ptr<QStandardItemModel>>,
++              "create_table_model must return a unique_ptr");
+ 
+ TEST(TableModelFactory, HasExpectedShapeAndHeaders)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     ASSERT_EQ(model->rowCount(), 300);
+     ASSERT_EQ(model->columnCount(), 10);
+     for (int c = 0; c < kHeaders.size(); ++c)
+@@ -31,17 +31,17 @@ TEST(TableModelFactory, HasExpectedShapeAndHeaders)
+ 
+ TEST(TableModelFactory, IdColumnIsRowOrder)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r)
+-        EXPECT_EQ(model->item(r, columnOf("ID"))->data(Qt::DisplayRole).toInt(), r + 1);
++        EXPECT_EQ(model->item(r, column_of("ID"))->data(Qt::DisplayRole).toInt(), r + 1);
+ }
+ 
+ TEST(TableModelFactory, AgeAndSalaryAreNumbers)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r) {
+-        const auto age = model->item(r, columnOf("Age"))->data(Qt::DisplayRole).typeId();
+-        const auto salary = model->item(r, columnOf("Salary"))->data(Qt::DisplayRole).typeId();
++        const auto age = model->item(r, column_of("Age"))->data(Qt::DisplayRole).typeId();
++        const auto salary = model->item(r, column_of("Salary"))->data(Qt::DisplayRole).typeId();
+         EXPECT_TRUE(age == QMetaType::Int || age == QMetaType::Double);
+         EXPECT_TRUE(salary == QMetaType::Int || salary == QMetaType::Double);
+     }
+@@ -49,9 +49,9 @@ TEST(TableModelFactory, AgeAndSalaryAreNumbers)
+ 
+ TEST(TableModelFactory, HireDateIsValidDate)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r) {
+-        const QVariant v = model->item(r, columnOf("Hire date"))->data(Qt::DisplayRole);
++        const QVariant v = model->item(r, column_of("Hire date"))->data(Qt::DisplayRole);
+         EXPECT_EQ(v.typeId(), QMetaType::QDate);
+         EXPECT_TRUE(v.toDate().isValid());
+     }
+@@ -59,14 +59,14 @@ TEST(TableModelFactory, HireDateIsValidDate)
+ 
+ TEST(TableModelFactory, ActiveItemsAreCheckable)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r)
+-        EXPECT_TRUE(model->item(r, columnOf("Active"))->isCheckable());
++        EXPECT_TRUE(model->item(r, column_of("Active"))->isCheckable());
+ }
+ 
+ TEST(TableModelFactory, NoCellIsEmpty)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r)
+         for (int c = 0; c < model->columnCount(); ++c) {
+             EXPECT_FALSE(model->item(r, c)->data(Qt::DisplayRole).toString().isEmpty())
+@@ -76,15 +76,15 @@ TEST(TableModelFactory, NoCellIsEmpty)
+ 
+ TEST(TableModelFactory, ActiveCellHasCheckState)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r)
+-        EXPECT_TRUE(model->item(r, columnOf("Active"))->data(Qt::CheckStateRole).isValid());
++        EXPECT_TRUE(model->item(r, column_of("Active"))->data(Qt::CheckStateRole).isValid());
+ }
+ 
+ TEST(TableModelFactory, IsDeterministic)
+ {
+-    auto a = makeModel();
+-    auto b = makeModel();
++    auto a = make_model();
++    auto b = make_model();
+     for (int r = 0; r < a->rowCount(); ++r)
+         for (int c = 0; c < a->columnCount(); ++c) {
+             EXPECT_EQ(a->item(r, c)->data(Qt::DisplayRole), b->item(r, c)->data(Qt::DisplayRole));
+diff --git a/Examples/tests/TestMain.cpp b/Examples/tests/TestMain.cpp
+index cb28724..0005328 100644
+--- a/Examples/tests/TestMain.cpp
++++ b/Examples/tests/TestMain.cpp
+@@ -6,7 +6,7 @@
+ int main(int argc, char *argv[])
+ {
+     QApplication app(argc, argv);
+-    hpq::example::applyDefaultFont();
++    hpq::example::apply_default_font();
+     ::testing::InitGoogleTest(&argc, argv);
+     return RUN_ALL_TESTS();
+ }
+diff --git a/Examples/tests/TreeModelFactoryTest.cpp b/Examples/tests/TreeModelFactoryTest.cpp
+index 4dc0d60..428b23c 100644
+--- a/Examples/tests/TreeModelFactoryTest.cpp
++++ b/Examples/tests/TreeModelFactoryTest.cpp
+@@ -9,15 +9,15 @@
+ namespace {
+ constexpr int kDepartmentColumn = 3;
+ 
+-auto makeModel() { return hpq::example::createTreeModel(); }
++auto make_model() { return hpq::example::create_tree_model(); }
+ } // namespace
+ 
+-static_assert(std::is_same_v<decltype(hpq::example::createTreeModel()), std::unique_ptr<QStandardItemModel>>,
+-              "createTreeModel must return a unique_ptr");
++static_assert(std::is_same_v<decltype(hpq::example::create_tree_model()), std::unique_ptr<QStandardItemModel>>,
++              "create_tree_model must return a unique_ptr");
+ 
+ TEST(TreeModelFactory, HasExpectedShapeAndHeaders)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     ASSERT_EQ(model->rowCount(), 20);
+     ASSERT_EQ(model->columnCount(), 10);
+     for (int c = 0; c < 10; ++c)
+@@ -26,7 +26,7 @@ TEST(TreeModelFactory, HasExpectedShapeAndHeaders)
+ 
+ TEST(TreeModelFactory, EachParentHasFifteenChildrenWithTenColumns)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r) {
+         const auto *parent = model->item(r, 0);
+         ASSERT_EQ(parent->rowCount(), 15);
+@@ -36,7 +36,7 @@ TEST(TreeModelFactory, EachParentHasFifteenChildrenWithTenColumns)
+ 
+ TEST(TreeModelFactory, ChildrenHaveNoChildren)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r) {
+         const auto *parent = model->item(r, 0);
+         for (int i = 0; i < parent->rowCount(); ++i)
+@@ -47,7 +47,7 @@ TEST(TreeModelFactory, ChildrenHaveNoChildren)
+ 
+ TEST(TreeModelFactory, NoCellIsEmpty)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r) {
+         for (int c = 0; c < 10; ++c) {
+             ASSERT_NE(model->item(r, c), nullptr);
+@@ -65,7 +65,7 @@ TEST(TreeModelFactory, NoCellIsEmpty)
+ 
+ TEST(TreeModelFactory, ChildDepartmentEqualsParentName)
+ {
+-    auto model = makeModel();
++    auto model = make_model();
+     for (int r = 0; r < model->rowCount(); ++r) {
+         const auto *parent = model->item(r, 0);
+         for (int i = 0; i < parent->rowCount(); ++i)
+diff --git a/hpq/include/hpq/Hpq.h b/hpq/include/hpq/Hpq.h
+index 666bd39..13e23e6 100644
+--- a/hpq/include/hpq/Hpq.h
++++ b/hpq/include/hpq/Hpq.h
+@@ -3,6 +3,6 @@
+ namespace hpq {
+ 
+ // Placeholder: the name of the library.
+-const char* libraryName();
++const char* library_name();
+ 
+ }  // namespace hpq
+diff --git a/hpq/src/Hpq.cpp b/hpq/src/Hpq.cpp
+index a3df809..9f9ad11 100644
+--- a/hpq/src/Hpq.cpp
++++ b/hpq/src/Hpq.cpp
+@@ -2,6 +2,6 @@
+ 
+ namespace hpq {
+ 
+-const char* libraryName() { return "hpq"; }
++const char* library_name() { return "hpq"; }
+ 
+ }  // namespace hpq
+diff --git a/specs/code-conventions/progress.json b/specs/code-conventions/progress.json
+index 146da6d..ac40557 100644
+--- a/specs/code-conventions/progress.json
++++ b/specs/code-conventions/progress.json
+@@ -45,9 +45,10 @@
+       "depends_on": [
+         "T3"
+       ],
+-      "status": "new",
+-      "rejections": 0,
+-      "note": ""
++      "status": "real-testing",
++      "rejections": 1,
++      "note": "REJECTED\n- Examples/tests: no test implements the task line \"A grep check finds no camelCase function definition left in hpq/ and Examples/ outside the Qt/GoogleTest names\". Add a test (for example NamingTest.cpp registered in Examples/CMakeLists.txt) that scans hpq/ and Examples/ sources, including tests, and fails on a camelCase function or method definition outside the Qt/GoogleTest allowlist. Check that it fails when a camelCase definition is present.\nEverything else checked OK: test command passes 2/2, all reported renames in place, no camelCase function definition left by manual grep, renamed tests not weakened. (StartupTest.cpp local `visibleInEventLoop` is T5 scope.)",
++      "review": "APPROVED\n- hpq::library_name() returns \"hpq\": Examples/tests/HpqTest.cpp (passes).\n- Tests call apply_default_font, create_table_model, create_tree_model and compile: TableModelFactoryTest, TreeModelFactoryTest, StartupTest, MainWindowTest. Test executable builds; both ctest tests pass.\n- No camelCase function definition left in hpq/ and Examples/: Naming.NoCamelCaseFunctionLeftInSources, backed by Naming.ScannerFindsCamelCaseDefinition and Naming.ScannerIgnoresSnakeCaseCallsOverridesAndLocals in Examples/tests/NamingTest.cpp."
+     },
+     {
+       "id": "T5",

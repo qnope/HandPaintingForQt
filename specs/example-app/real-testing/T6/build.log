@@ -1,0 +1,79 @@
+-- The CXX compiler identification is AppleClang 21.0.0.21000401
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- The C compiler identification is AppleClang 21.0.0.21000401
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Found Python3: /opt/homebrew/Frameworks/Python.framework/Versions/3.15/bin/python3.15 (found version "3.15.2") found components: Interpreter
+-- Configuring done (2.4s)
+-- Generating done (0.1s)
+-- Build files have been written to: /private/tmp/claude-501/rt6
+[  0%] Built target gtest_autogen_timestamp_deps
+[  2%] Automatic MOC and UIC for target gtest
+[  2%] Built target gtest_autogen
+[  4%] Building CXX object _deps/googletest-build/googletest/CMakeFiles/gtest.dir/gtest_autogen/mocs_compilation.cpp.o
+[  7%] Building CXX object _deps/googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
+[  9%] Linking CXX static library ../../../lib/libgtest.a
+[ 12%] Built target gtest
+[ 12%] Built target gmock_autogen_timestamp_deps
+[ 14%] Automatic MOC and UIC for target gmock
+[ 14%] Built target gmock_autogen
+[ 17%] Building CXX object _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/gmock_autogen/mocs_compilation.cpp.o
+[ 19%] Building CXX object _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o
+[ 21%] Linking CXX static library ../../../lib/libgmock.a
+[ 24%] Built target gmock
+[ 24%] Built target gmock_main_autogen_timestamp_deps
+[ 26%] Automatic MOC and UIC for target gmock_main
+[ 26%] Built target gmock_main_autogen
+[ 29%] Building CXX object _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/gmock_main_autogen/mocs_compilation.cpp.o
+[ 31%] Building CXX object _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o
+[ 34%] Linking CXX static library ../../../lib/libgmock_main.a
+[ 36%] Built target gmock_main
+[ 36%] Built target gtest_main_autogen_timestamp_deps
+[ 39%] Automatic MOC and UIC for target gtest_main
+[ 39%] Built target gtest_main_autogen
+[ 41%] Building CXX object _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/gtest_main_autogen/mocs_compilation.cpp.o
+[ 43%] Building CXX object _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
+[ 46%] Linking CXX static library ../../../lib/libgtest_main.a
+[ 48%] Built target gtest_main
+[ 48%] Built target HandPaintingExampleLib_autogen_timestamp_deps
+[ 51%] Automatic MOC and UIC for target HandPaintingExampleLib
+[ 51%] Built target HandPaintingExampleLib_autogen
+[ 53%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/HandPaintingExampleLib_autogen/mocs_compilation.cpp.o
+[ 56%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TableModelFactory.cpp.o
+[ 58%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TreeModelFactory.cpp.o
+[ 60%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/MainWindow.cpp.o
+[ 63%] Linking CXX static library libHandPaintingExampleLib.a
+[ 65%] Built target HandPaintingExampleLib
+[ 65%] Built target HandPaintingExample_autogen_timestamp_deps
+[ 68%] Automatic MOC and UIC for target HandPaintingExample
+[ 68%] Built target HandPaintingExample_autogen
+[ 70%] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/HandPaintingExample_autogen/mocs_compilation.cpp.o
+[ 73%] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/main.cpp.o
+[ 75%] Linking CXX executable HandPaintingExample
+[ 78%] Built target HandPaintingExample
+[ 78%] Built target HandPaintingExampleTests_autogen_timestamp_deps
+[ 80%] Automatic MOC and UIC for target HandPaintingExampleTests
+[ 80%] Built target HandPaintingExampleTests_autogen
+[ 82%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/HandPaintingExampleTests_autogen/mocs_compilation.cpp.o
+[ 85%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TestMain.cpp.o
+[ 87%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/SmokeTest.cpp.o
+[ 90%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/MainWindowTest.cpp.o
+[ 92%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TableModelFactoryTest.cpp.o
+[ 95%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TreeModelFactoryTest.cpp.o
+[ 97%] Linking CXX executable HandPaintingExampleTests
+[100%] Built target HandPaintingExampleTests

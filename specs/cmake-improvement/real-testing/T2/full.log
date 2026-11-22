@@ -1,0 +1,50 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages are already installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 40.7 us
+-- Running vcpkg install - done
+-- Configuring done (0.7s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/cmake-improvement/T2/build
+[  0%] Built target hpq_autogen_timestamp_deps
+[  3%] Built target hpq_autogen
+[ 17%] Built target hpq
+[ 17%] Built target HandPaintingExampleLib_autogen_timestamp_deps
+[ 20%] Built target HandPaintingExampleLib_autogen
+[ 44%] Built target HandPaintingExampleLib
+[ 44%] Built target HandPaintingExample_autogen_timestamp_deps
+[ 48%] Built target HandPaintingExample_autogen
+[ 62%] Built target HandPaintingExample
+[ 62%] Built target HandPaintingExampleTests_autogen_timestamp_deps
+[ 65%] Built target HandPaintingExampleTests_autogen
+[100%] Built target HandPaintingExampleTests
+Test project /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/cmake-improvement/T2/build
+    Start 1: HandPaintingExampleTests
+1/6 Test #1: HandPaintingExampleTests ...........   Passed    0.30 sec
+    Start 2: HandPaintingExampleExists
+2/6 Test #2: HandPaintingExampleExists ..........   Passed    0.01 sec
+    Start 3: ConfigureNoWarning
+3/6 Test #3: ConfigureNoWarning .................   Passed    1.61 sec
+    Start 4: HpqLinked
+4/6 Test #4: HpqLinked ..........................   Passed    0.01 sec
+    Start 5: ProjectFiles
+5/6 Test #5: ProjectFiles .......................   Passed    0.03 sec
+    Start 6: HandPaintingExampleRunsOffscreen
+6/6 Test #6: HandPaintingExampleRunsOffscreen ...   Passed    0.07 sec
+
+100% tests passed out of 6
+
+Total Test time (real) =   2.01 sec

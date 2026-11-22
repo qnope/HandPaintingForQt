@@ -1,0 +1,39 @@
+diff --git a/Examples/MainWindow.h b/Examples/MainWindow.h
+index 354dde2..91b0781 100644
+--- a/Examples/MainWindow.h
++++ b/Examples/MainWindow.h
+@@ -3,9 +3,7 @@
+ #include <QMainWindow>
+ #include <memory>
+ 
+-namespace Ui {
+-class MainWindow;
+-}
++#include "FwdDecls.h"
+ 
+ namespace hpq::example {
+ 
+diff --git a/Examples/TableModelFactory.h b/Examples/TableModelFactory.h
+index 247adab..7869f67 100644
+--- a/Examples/TableModelFactory.h
++++ b/Examples/TableModelFactory.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-class QStandardItemModel;
++#include "FwdDecls.h"
+ 
+ namespace hpq::example {
+ 
+diff --git a/Examples/TreeModelFactory.h b/Examples/TreeModelFactory.h
+index b4abec3..a8ea4f9 100644
+--- a/Examples/TreeModelFactory.h
++++ b/Examples/TreeModelFactory.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-class QStandardItemModel;
++#include "FwdDecls.h"
+ 
+ namespace hpq::example {
+ 

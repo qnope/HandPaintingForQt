@@ -1,0 +1,4 @@
+qt.qpa.fonts: Populating font family aliases took 38 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support propagateSizeHints()
+scene QGraphicsScene(0x7526d5d680)
+rect 1 ellipse 1 line 1 polygon 2 text 1

@@ -1,0 +1,8 @@
+./CMakeLists.txt
+./Examples/CMakeLists.txt
+./Examples/tests/ConfigureNoWarning.cmake
+./Examples/tests/ProjectFiles.cmake
+./specs/example-app/real-testing/T2/CMakeLists.txt
+./specs/example-app/real-testing/T3/CMakeLists.txt
+./specs/example-app/real-testing/T6/CMakeLists.txt
+./specs/example-app/real-testing/T7/bare/CMakeLists.txt

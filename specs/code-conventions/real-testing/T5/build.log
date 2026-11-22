@@ -1,0 +1,60 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages are already installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 39 us
+-- Running vcpkg install - done
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/build/debug
+[1/2] Cleaning additional files...
+[2/2] Cleaning all built files...
+Cleaning... 24 files.
+[1/27] Building CXX object hpq/CMakeFiles/hpq.dir/src/Hpq.cpp.o
+[2/27] Linking CXX static library hpq/libhpq.a
+[3/27] Automatic MOC and UIC for target HandPaintingExampleLib
+[4/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/AppFont.cpp.o
+[5/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/HandPaintingExampleLib_autogen/mocs_compilation.cpp.o
+[6/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TreeModelFactory.cpp.o
+[7/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TableModelFactory.cpp.o
+[8/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/MainWindow.cpp.o
+[9/27] Linking CXX static library Examples/libHandPaintingExampleLib.a
+[10/27] Automatic MOC for target HandPaintingExample
+[11/27] Automatic MOC for target HandPaintingExampleTests
+[12/27] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/HandPaintingExample_autogen/mocs_compilation.cpp.o
+[13/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/HandPaintingExampleTests_autogen/mocs_compilation.cpp.o
+[14/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/SmokeTest.cpp.o
+[15/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/HpqTest.cpp.o
+[16/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/ClaudeMdTest.cpp.o
+[17/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/FwdDeclsTest.cpp.o
+[18/27] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/Main.cpp.o
+[19/27] Linking CXX executable Examples/HandPaintingExample
+[20/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TestMain.cpp.o
+[21/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TreeModelFactoryTest.cpp.o
+[22/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/NamingTest.cpp.o
+[23/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TableModelFactoryTest.cpp.o
+[24/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/ConventionsTest.cpp.o
+[25/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/StartupTest.cpp.o
+[26/27] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/MainWindowTest.cpp.o
+[27/27] Linking CXX executable Examples/HandPaintingExampleTests
+Test project /Users/amorrier/Programmation/HandPaintingForQt/build/debug
+    Start 1: HandPaintingExampleTests
+1/2 Test #1: HandPaintingExampleTests ...........   Passed    0.72 sec
+    Start 2: HandPaintingExampleRunsOffscreen
+2/2 Test #2: HandPaintingExampleRunsOffscreen ...   Passed    0.27 sec
+
+100% tests passed out of 2
+
+Total Test time (real) =   0.99 sec

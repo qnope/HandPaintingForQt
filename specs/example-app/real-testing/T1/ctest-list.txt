@@ -1,0 +1,5 @@
+Test project /Users/amorrier/Programmation/HandPaintingForQt/build
+  Test #1: HandPaintingExampleTests
+  Test #2: HandPaintingExampleExists
+
+Total Tests: 2

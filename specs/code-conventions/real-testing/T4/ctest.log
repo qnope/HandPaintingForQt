@@ -1,0 +1,9 @@
+Test project /Users/amorrier/Programmation/HandPaintingForQt/build/debug
+    Start 1: HandPaintingExampleTests
+1/2 Test #1: HandPaintingExampleTests ...........   Passed    0.62 sec
+    Start 2: HandPaintingExampleRunsOffscreen
+2/2 Test #2: HandPaintingExampleRunsOffscreen ...   Passed    0.26 sec
+
+100% tests passed out of 2
+
+Total Test time (real) =   0.89 sec

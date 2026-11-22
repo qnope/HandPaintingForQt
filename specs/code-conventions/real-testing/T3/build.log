@@ -1,0 +1,40 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages are already installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 38.7 us
+-- Running vcpkg install - done
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/build/debug
+[1/12] Automatic MOC and UIC for target HandPaintingExampleLib
+[2/11] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/AppFont.cpp.o
+[3/11] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TreeModelFactory.cpp.o
+[4/11] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TableModelFactory.cpp.o
+[5/11] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/MainWindow.cpp.o
+[6/11] Linking CXX static library Examples/libHandPaintingExampleLib.a
+[7/11] Automatic MOC for target HandPaintingExample
+[8/10] Linking CXX executable Examples/HandPaintingExampleTests
+[9/10] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/main.cpp.o
+[10/10] Linking CXX executable Examples/HandPaintingExample
+Test project /Users/amorrier/Programmation/HandPaintingForQt/build/debug
+    Start 1: HandPaintingExampleTests
+1/2 Test #1: HandPaintingExampleTests ...........   Passed    0.52 sec
+    Start 2: HandPaintingExampleRunsOffscreen
+2/2 Test #2: HandPaintingExampleRunsOffscreen ...   Passed    0.25 sec
+
+100% tests passed out of 2
+
+Total Test time (real) =   0.77 sec

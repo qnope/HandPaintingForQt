@@ -1,0 +1,18 @@
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+camelCase variable badParam in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.cpp"
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+camelCase variable badLocal in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.cpp"
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+camelCase variable badParam in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.h"
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+camelCase variable myValue in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.h"
+[  FAILED  ] Conventions.NoCamelCaseVariableInSources (50 ms)
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+attribute without m_ value in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.h"
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+attribute without m_ myValue in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.h"
+[  FAILED  ] Conventions.EveryAttributeHasMPrefix (1 ms)
+[  FAILED  ] 2 tests, listed below:
+[  FAILED  ] Conventions.NoCamelCaseVariableInSources
+[  FAILED  ] Conventions.EveryAttributeHasMPrefix
+ 2 FAILED TESTS

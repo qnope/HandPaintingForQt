@@ -1,0 +1,85 @@
+{
+  "feature": "cmake-improvement",
+  "status": "closed",
+  "test_command": "cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=/Users/amorrier/Programmation/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=/Users/amorrier/Qt/6.8.3/macos && cmake --build build && ctest --test-dir build --output-on-failure",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "vcpkg manifest and GTest from vcpkg",
+      "file": "tasks/T1.md",
+      "depends_on": [],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- vcpkg.json exists at the root and its dependencies contain gtest: the `ProjectFiles` ctest test, in `Examples/tests/ProjectFiles.cmake`.\n- Configure with the vcpkg toolchain exits 0 and its output has no \"CMake Warning\": the `ConfigureNoWarning` ctest test, with `TOOLCHAIN_FILE` passed through to the fresh configure.\n- No CMakeLists.txt or .cmake file of the project contains `FetchContent`; the root one contains `find_package(GTest`: the `ProjectFiles` ctest test.",
+      "real_testing": "PASSED\n- B1: read /Users/amorrier/Programmation/HandPaintingForQt/vcpkg.json -> it exists at the root and lists \"gtest\" in dependencies.\n- B2: configured a fresh build dir with the vcpkg toolchain file and -DCMAKE_PREFIX_PATH for Qt 6.8.3 -> exit 0, \"Configuring done\", zero \"CMake Warning\" lines in the output.\n- B3: grepped every CMakeLists.txt and .cmake file outside build dirs and specs for FetchContent, and checked the root CMakeLists.txt -> the only hit is the checker script Examples/tests/ProjectFiles.cmake, which names the string in order to scan for it and skips itself. The root file calls `find_package(GTest CONFIG REQUIRED)`. The build and all 5 ctest tests passed, including HandPaintingExampleTests, ProjectFiles and ConfigureNoWarning.\nEvidence: specs/cmake-improvement/real-testing/T1/"
+    },
+    {
+      "id": "T2",
+      "title": "hpq library target",
+      "file": "tasks/T2.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- After configure, target hpq::hpq exists: the build of `HandPaintingExampleTests` (it links `hpq::hpq` through `HandPaintingExampleLib`), and `ctest` passes (6 of 6). No test runs `cmake --build --target hpq` itself, so this check is implicit.\n- A test source in the example tests includes the hpq header from hpq/include and uses a symbol of namespace hpq: `Hpq.LibraryNameComesFromNamespaceHpq` in `Examples/tests/HpqTest.cpp`\n- HandPaintingExampleLib link libraries contain hpq::hpq: the `HpqLinked` ctest, which runs `Examples/tests/HpqTarget.cmake`",
+      "real_testing": "PASSED\n- B7: I ran the test command (configure, build, ctest). I also built `--target hpq` explicitly. I wrote a probe project that adds `hpq/` and links `hpq::hpq` to an executable calling `hpq::libraryName()`. -> Configure, build and ctest exited 0, and all 6 tests passed, including HpqLinked. The `hpq` target built on its own. The probe built and printed `hpq`, so the alias, the public include `hpq/include`, the source in `hpq/src` and namespace `hpq` all work. `Examples/CMakeLists.txt` has `target_link_libraries(HandPaintingExampleLib PUBLIC Qt6::Widgets hpq::hpq)`.\nEvidence: specs/cmake-improvement/real-testing/T2/"
+    },
+    {
+      "id": "T3",
+      "title": "Per-target C++17 and AUTOMOC/AUTOUIC",
+      "file": "tasks/T3.md",
+      "depends_on": [
+        "T2"
+      ],
+      "status": "done",
+      "rejections": 1,
+      "note": "REJECTED\n- Examples/CMakeLists.txt: the tests TargetProperties_HandPaintingExample and TargetProperties_HandPaintingExampleTests still pass when their own `target_compile_features(... PRIVATE cxx_std_17)` lines are removed (checked, then restored). `$<TARGET_PROPERTY:tgt,COMPILE_FEATURES>` is transitive, so it picks up the PUBLIC cxx_std_17 from HandPaintingExampleLib; the test does not prove the executable and test targets set it themselves. Fix: read a non-transitive property for the per-target check (e.g. parse the target's own flags, or check that the `target_compile_features` line is present for each target), or make the lib's feature PRIVATE/INTERFACE so only a target's own setting can satisfy its test. In every case confirm the test fails when the line is removed.\nEverything else is fine (fresh build and ctest 10/10; no globals in project CMake files; scan excludes specs/.worktrees/build dirs with an empty-scan guard; AUTOMOC on lib/app/tests, AUTOUIC on lib).",
+      "review": "APPROVED\n- ProjectFiles (Examples/tests/ProjectFiles.cmake): scans all CMakeLists.txt and *.cmake files and fails on CMAKE_CXX_STANDARD, CMAKE_AUTOMOC or CMAKE_AUTOUIC; fails if the root CMakeLists.txt was not scanned, so it cannot pass on an empty scan.\n- TargetProperties_HandPaintingExampleLib, _HandPaintingExample, _HandPaintingExampleTests and _hpq check each target's own cxx_std_17, and AUTOMOC ON for the three Qt targets; the lib also needs AUTOUIC ON. Removing each target's own target_compile_features line in turn made exactly that target's test fail (files restored). Removing AUTOMOC or AUTOUIC from the lib made its test fail. AUTOMOC removal on the executable and the tests target was not tried.\n- Fresh configure, build and ctest: 10/10 passed.",
+      "real_testing": "PASSED\n- B4: grep of CMakeLists.txt and *.cmake for CMAKE_CXX_STANDARD, CMAKE_AUTOMOC and CMAKE_AUTOUIC: none in the root CMakeLists.txt, hpq/CMakeLists.txt or Examples/CMakeLists.txt; the only hits are the checker's own text in Examples/tests/ProjectFiles.cmake, which the scan skips on purpose.\n- Per-target settings: hpq has `target_compile_features(hpq PUBLIC cxx_std_17)`; HandPaintingExampleLib, HandPaintingExample and HandPaintingExampleTests each have cxx_std_17. The lib has AUTOMOC ON AUTOUIC ON; the exe and tests have AUTOMOC ON.\n- Fresh build: configure, build and ctest exit 0, 10/10 tests passed.\n- Compile commands: all 16 entries use -std=gnu++17. mocs_compilation.cpp was generated and compiled for the Lib, the exe and the Tests; ui_MainWindow.h was generated.\n- App run: QT_QPA_PLATFORM=offscreen HPQ_AUTO_QUIT=1 HandPaintingExample exited 0.\nEvidence: specs/cmake-improvement/real-testing/T3/"
+    },
+    {
+      "id": "T4",
+      "title": "No global cache FORCE",
+      "file": "tasks/T4.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "done",
+      "rejections": 2,
+      "note": "Examples/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/cmake-improvement/T4, run `git merge 39edd625e7ccdc691c013b99569ca087c3654a1b`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- ProjectFiles (Examples/tests/ProjectFiles.cmake): scans every CMakeLists.txt and *.cmake outside build*, vcpkg_installed, specs and .worktrees, and fails on `CACHE[^\\n]*FORCE`. It also fails if the scan is empty because the root CMakeLists.txt was not scanned.\n- Fresh configure and build on macOS without AGL: root CMakeLists.txt sets `WrapOpenGL_AGL` to `-framework OpenGL` as a normal variable, not a cache entry, when AGL.framework is missing from the SDK. Fresh-build test command configured and built cleanly, ctest passed 6/6.\nMerge check on merge commit 1777f95: no conflict markers remain; Examples/CMakeLists.txt keeps both sides (T2: hpq::hpq link, tests/HpqTest.cpp, HpqLinked test; T4: ProjectFiles test, no CACHE ... FORCE).",
+      "real_testing": "PASSED\n- B5: ran the fresh configure, build and ctest command. grep of every project CMake file (CMakeLists.txt, Examples/CMakeLists.txt, hpq/CMakeLists.txt, Examples/tests/*.cmake) for `CACHE ... FORCE` finds no set(); the only hits are the checker's own regex in Examples/tests/ProjectFiles.cmake and old evidence under specs/example-app. The macOS SDK has no AGL.framework (confirmed with ls) and configure and build still succeed (exit 0) with the `-framework OpenGL` substitution. The HandPaintingExample link line has no AGL, links `-framework OpenGL` and ends with `../hpq/libhpq.a`. ctest: 6/6 passed (HandPaintingExampleTests, HandPaintingExampleExists, ConfigureNoWarning, HpqLinked, ProjectFiles, HandPaintingExampleRunsOffscreen).\nEvidence: specs/cmake-improvement/real-testing/T4/"
+    },
+    {
+      "id": "T5",
+      "title": "Warnings per target",
+      "file": "tasks/T5.md",
+      "depends_on": [
+        "T2"
+      ],
+      "status": "done",
+      "rejections": 1,
+      "note": "Examples/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/cmake-improvement/T5, run `git merge 3340e12794b03ae7932a72d6e65d609658ff1c2d`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- Each of the four targets has -Wall and -Wextra in its COMPILE_OPTIONS: CompileOptions_hpq, _HandPaintingExampleLib, _HandPaintingExample and _HandPaintingExampleTests. Removing HandPaintingExampleLib or HandPaintingExampleTests from the options loop makes the matching test fail (restored with git checkout, worktree clean).\n- A full rebuild has no \"warning:\" line from project files: BuildNoWarning.\nMerge check (merge commit 76db633), Examples/CMakeLists.txt: no conflict markers; T3 side kept (per-target cxx_std_17, AUTOMOC/AUTOUIC, TargetProperties_* tests); T5 side kept (warnings foreach, CompileOptions_*, BuildNoWarning). Fresh build with the given test command: all 15 tests pass.",
+      "real_testing": "PASSED\n- B6: ran the test command from the worktree with a fresh build dir (plus -DCMAKE_EXPORT_COMPILE_COMMANDS=ON and VERBOSE=1). Configure and build exited 0. ctest ran 15 tests and all passed, including the 4 TargetProperties_* tests.\n- B6 flags: compile_commands.json lists 16 project translation units, including the autogen mocs files; every one has -Wall -Wextra. They cover hpq (hpq/src/Hpq.cpp), HandPaintingExampleLib, HandPaintingExample and HandPaintingExampleTests. The verbose build log also shows 16 compile lines with -Wall -Wextra. Options are set with target_compile_options in hpq/CMakeLists.txt and Examples/CMakeLists.txt (/W4 on MSVC).\n- B6 warnings: the full rebuild log has 0 lines containing \"warning:\" and none mentioning \"warning\" in any form.\nEvidence: specs/cmake-improvement/real-testing/T5/"
+    },
+    {
+      "id": "T6",
+      "title": "All tests pass",
+      "file": "tasks/T6.md",
+      "depends_on": [
+        "T3",
+        "T4",
+        "T5"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- CtestListsCoreTests (Examples/tests/CtestLists.cmake): runs `ctest -N` and requires HandPaintingExampleTests, HandPaintingExampleExists, ConfigureNoWarning and HandPaintingExampleRunsOffscreen to be listed. Renaming one add_test made it fail; restored, it passed. The fresh-build run passed all 16 tests, including those four.\n- ConfigureNoWarning (Examples/tests/ConfigureNoWarning.cmake, add_test in Examples/CMakeLists.txt): `-DTOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}` is forwarded to the fresh configure, and the test passes.",
+      "real_testing": "PASSED\n- B1: vcpkg.json declares \"gtest\" under dependencies.\n- B2: full test command from a fresh build dir, and a second fresh configure: configure succeeded, \"CMake Warning\" count 0.\n- B3: no FetchContent in project CMake files; CMakeLists.txt uses find_package(GTest CONFIG REQUIRED).\n- B4: no CMAKE_CXX_STANDARD, CMAKE_AUTOMOC or CMAKE_AUTOUIC; each target uses target_compile_features(... cxx_std_17) and AUTOMOC (AUTOUIC on the Lib).\n- B5: no FORCE match; the build succeeds on macOS with the AGL workaround.\n- B6: all four targets have -Wall -Wextra (/W4 on MSVC); build log has 0 \"warning:\" lines.\n- B7: hpq::hpq alias exists, public include dir hpq/include, source hpq/src/Hpq.cpp, namespace hpq; HandPaintingExampleLib links hpq::hpq.\n- B8: rm -rf build, configure, build, ctest -> exit 0, 100% tests passed out of 16; the four named tests are listed and pass. Manual run of HandPaintingExample offscreen: exit 0.\nEvidence: specs/cmake-improvement/real-testing/T6/"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(probe CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui)
+add_executable(probe probe.cpp ${ROOT}/Examples/TableModelFactory.cpp)
+target_include_directories(probe PRIVATE ${ROOT}/Examples)
+target_link_libraries(probe Qt6::Core Qt6::Gui)

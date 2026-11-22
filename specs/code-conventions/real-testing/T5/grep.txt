@@ -1,0 +1,142 @@
+== kPascal
+== camelCase
+Examples/AppFont.cpp:9:    QApplication::setFont(QFont("Helvetica"));
+Examples/Main.cpp:16:    if (qEnvironmentVariableIsSet("HPQ_AUTO_QUIT"))
+Examples/Main.cpp:17:        QTimer::singleShot(0, &app, &QApplication::quit);
+Examples/MainWindow.cpp:30:    scene->addRect(20, 20, 140, 90, blue, QBrush(QColor("#aed6f1")));
+Examples/MainWindow.cpp:31:    scene->addEllipse(200, 20, 140, 90, red, QBrush(QColor("#f5b7b1")));
+Examples/MainWindow.cpp:32:    scene->addLine(380, 30, 520, 100, green);
+Examples/MainWindow.cpp:35:    rounded.addRoundedRect(20, 150, 140, 90, 18, 18);
+Examples/MainWindow.cpp:36:    scene->addPath(rounded, purple, QBrush(QColor("#d7bde2")));
+Examples/MainWindow.cpp:40:    scene->addPolygon(triangle, orange, QBrush(QColor("#fad7a0")));
+Examples/MainWindow.cpp:48:    scene->addPolygon(star, green, QBrush(QColor("#abebc6")));
+Examples/MainWindow.cpp:51:    curve.moveTo(20, 280);
+Examples/MainWindow.cpp:52:    curve.cubicTo(120, 230, 220, 330, 340, 280);
+Examples/MainWindow.cpp:53:    scene->addPath(curve, blue);
+Examples/MainWindow.cpp:55:    auto *text = scene->addSimpleText("Hand painting for Qt", QFont("Helvetica", 16));
+Examples/MainWindow.cpp:56:    text->setPos(370, 270);
+Examples/MainWindow.cpp:65:    m_ui->setupUi(this);
+Examples/MainWindow.cpp:66:    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk"});
+Examples/MainWindow.cpp:69:    table_model->setParent(this);
+Examples/MainWindow.cpp:70:    m_ui->tableView->setModel(table_model.release());
+Examples/MainWindow.cpp:73:    tree_model->setParent(this);
+Examples/MainWindow.cpp:74:    m_ui->treeView->setModel(tree_model.release());
+Examples/MainWindow.cpp:76:    m_ui->graphicsView->setScene(create_shapes_scene(this));
+Examples/TableModelFactory.cpp:27:    item->setData(value, Qt::DisplayRole);
+Examples/TableModelFactory.cpp:35:    model->setHorizontalHeaderLabels(Headers);
+Examples/TableModelFactory.cpp:43:        active->setCheckable(true);
+Examples/TableModelFactory.cpp:44:        active->setCheckState(is_active ? Qt::Checked : Qt::Unchecked);
+Examples/TableModelFactory.cpp:51:            << number_item(QDate(2010, 1, 1).addDays((i * 37) % 5000)) << active
+Examples/TableModelFactory.cpp:52:            << new QStandardItem(QString("%1.%2.%3@example.com").arg(first.toLower(), last.toLower()).arg(i + 1));
+Examples/TableModelFactory.cpp:53:        model->appendRow(row);
+Examples/TreeModelFactory.cpp:45:    model->setHorizontalHeaderLabels(Headers);
+Examples/TreeModelFactory.cpp:52:                                  department.toLower().remove(' ') + "@example.com",
+Examples/TreeModelFactory.cpp:58:            parent_row.first()->appendRow(
+Examples/TreeModelFactory.cpp:62:                         first.toLower() + "." + last.toLower() + "@example.com",
+Examples/TreeModelFactory.cpp:65:        model->appendRow(parent_row);
+Examples/tests/TableModelFactoryTest.cpp:15:int column_of(const QString &header) { return Headers.indexOf(header); }
+Examples/tests/TableModelFactoryTest.cpp:26:    ASSERT_EQ(model->rowCount(), 300);
+Examples/tests/TableModelFactoryTest.cpp:27:    ASSERT_EQ(model->columnCount(), 10);
+Examples/tests/TableModelFactoryTest.cpp:29:        EXPECT_EQ(model->headerData(c, Qt::Horizontal).toString(), Headers[c]);
+Examples/tests/TableModelFactoryTest.cpp:35:    for (int r = 0; r < model->rowCount(); ++r)
+Examples/tests/TableModelFactoryTest.cpp:36:        EXPECT_EQ(model->item(r, column_of("ID"))->data(Qt::DisplayRole).toInt(), r + 1);
+Examples/tests/TableModelFactoryTest.cpp:42:    for (int r = 0; r < model->rowCount(); ++r) {
+Examples/tests/TableModelFactoryTest.cpp:43:        const auto age = model->item(r, column_of("Age"))->data(Qt::DisplayRole).typeId();
+Examples/tests/TableModelFactoryTest.cpp:44:        const auto salary = model->item(r, column_of("Salary"))->data(Qt::DisplayRole).typeId();
+Examples/tests/TableModelFactoryTest.cpp:53:    for (int r = 0; r < model->rowCount(); ++r) {
+Examples/tests/TableModelFactoryTest.cpp:55:        EXPECT_EQ(v.typeId(), QMetaType::QDate);
+Examples/tests/TableModelFactoryTest.cpp:56:        EXPECT_TRUE(v.toDate().isValid());
+Examples/tests/TableModelFactoryTest.cpp:63:    for (int r = 0; r < model->rowCount(); ++r)
+Examples/tests/TableModelFactoryTest.cpp:64:        EXPECT_TRUE(model->item(r, column_of("Active"))->isCheckable());
+Examples/tests/TableModelFactoryTest.cpp:70:    for (int r = 0; r < model->rowCount(); ++r)
+Examples/tests/TableModelFactoryTest.cpp:71:        for (int c = 0; c < model->columnCount(); ++c) {
+Examples/tests/TableModelFactoryTest.cpp:72:            EXPECT_FALSE(model->item(r, c)->data(Qt::DisplayRole).toString().isEmpty())
+Examples/tests/TableModelFactoryTest.cpp:81:    for (int r = 0; r < a->rowCount(); ++r)
+Examples/tests/TableModelFactoryTest.cpp:82:        for (int c = 0; c < a->columnCount(); ++c) {
+Examples/tests/StartupTest.cpp:12:    // The offscreen platform plugin does not implement propagateSizeHints() and warns for any
+Examples/tests/StartupTest.cpp:14:    if (message.contains("propagateSizeHints"))
+Examples/tests/StartupTest.cpp:24:    const QtMessageHandler previous = qInstallMessageHandler(counting_handler);
+Examples/tests/StartupTest.cpp:29:        QTimer::singleShot(0, qApp, [&] {
+Examples/tests/StartupTest.cpp:30:            visible_in_event_loop = window.isVisible();
+Examples/tests/StartupTest.cpp:33:        qApp->exec();
+Examples/tests/StartupTest.cpp:36:    qInstallMessageHandler(previous);
+Examples/tests/MainWindowTest.cpp:21:    return w.findChild<T *>(name);
+Examples/tests/MainWindowTest.cpp:38:    EXPECT_NE(find<QCheckBox>(w, "checkBox"), nullptr);
+Examples/tests/MainWindowTest.cpp:39:    EXPECT_NE(find<QLineEdit>(w, "lineEdit"), nullptr);
+Examples/tests/MainWindowTest.cpp:40:    EXPECT_NE(find<QGroupBox>(w, "groupBox"), nullptr);
+Examples/tests/MainWindowTest.cpp:41:    EXPECT_NE(find<QComboBox>(w, "comboBox"), nullptr);
+Examples/tests/MainWindowTest.cpp:42:    EXPECT_NE(find<QTableView>(w, "tableView"), nullptr);
+Examples/tests/MainWindowTest.cpp:43:    EXPECT_NE(find<QTreeView>(w, "treeView"), nullptr);
+Examples/tests/MainWindowTest.cpp:44:    EXPECT_NE(find<QGraphicsView>(w, "graphicsView"), nullptr);
+Examples/tests/MainWindowTest.cpp:47:    auto *file = find<QMenu>(w, "menuFile");
+Examples/tests/MainWindowTest.cpp:48:    auto *edit = find<QMenu>(w, "menuEdit");
+Examples/tests/MainWindowTest.cpp:53:    EXPECT_TRUE(file->actions().isEmpty());
+Examples/tests/MainWindowTest.cpp:54:    EXPECT_TRUE(edit->actions().isEmpty());
+Examples/tests/MainWindowTest.cpp:60:    auto *combo = find<QComboBox>(w, "comboBox");
+Examples/tests/MainWindowTest.cpp:63:    EXPECT_EQ(combo->itemText(0), "Sketch");
+Examples/tests/MainWindowTest.cpp:64:    EXPECT_EQ(combo->itemText(1), "China Ink");
+Examples/tests/MainWindowTest.cpp:65:    EXPECT_EQ(combo->itemText(2), "Black slate and chalk");
+Examples/tests/MainWindowTest.cpp:71:    auto *model = qobject_cast<QStandardItemModel *>(find<QTableView>(w, "tableView")->model());
+Examples/tests/MainWindowTest.cpp:73:    EXPECT_EQ(model->rowCount(), 300);
+Examples/tests/MainWindowTest.cpp:74:    EXPECT_EQ(model->columnCount(), 10);
+Examples/tests/MainWindowTest.cpp:80:    auto *model = qobject_cast<QStandardItemModel *>(find<QTreeView>(w, "treeView")->model());
+Examples/tests/MainWindowTest.cpp:82:    EXPECT_EQ(model->rowCount(), 20);
+Examples/tests/MainWindowTest.cpp:99:    auto *scene = find<QGraphicsView>(w, "graphicsView")->scene();
+Examples/tests/TreeModelFactoryTest.cpp:21:    ASSERT_EQ(model->rowCount(), 20);
+Examples/tests/TreeModelFactoryTest.cpp:22:    ASSERT_EQ(model->columnCount(), 10);
+Examples/tests/TreeModelFactoryTest.cpp:24:        EXPECT_FALSE(model->headerData(c, Qt::Horizontal).toString().isEmpty());
+Examples/tests/TreeModelFactoryTest.cpp:30:    for (int r = 0; r < model->rowCount(); ++r) {
+Examples/tests/TreeModelFactoryTest.cpp:32:        ASSERT_EQ(parent->rowCount(), 15);
+Examples/tests/TreeModelFactoryTest.cpp:33:        EXPECT_EQ(parent->columnCount(), 10);
+Examples/tests/TreeModelFactoryTest.cpp:40:    for (int r = 0; r < model->rowCount(); ++r) {
+Examples/tests/TreeModelFactoryTest.cpp:42:        for (int i = 0; i < parent->rowCount(); ++i)
+Examples/tests/TreeModelFactoryTest.cpp:44:                EXPECT_FALSE(parent->child(i, c)->hasChildren());
+Examples/tests/TreeModelFactoryTest.cpp:51:    for (int r = 0; r < model->rowCount(); ++r) {
+Examples/tests/TreeModelFactoryTest.cpp:54:            EXPECT_TRUE(model->item(r, c)->data(Qt::DisplayRole).isValid());
+Examples/tests/TreeModelFactoryTest.cpp:55:            EXPECT_FALSE(model->item(r, c)->data(Qt::DisplayRole).toString().isEmpty());
+Examples/tests/TreeModelFactoryTest.cpp:58:        for (int i = 0; i < parent->rowCount(); ++i)
+Examples/tests/TreeModelFactoryTest.cpp:61:                EXPECT_FALSE(parent->child(i, c)->data(Qt::DisplayRole).toString().isEmpty());
+Examples/tests/TreeModelFactoryTest.cpp:69:    for (int r = 0; r < model->rowCount(); ++r) {
+Examples/tests/TreeModelFactoryTest.cpp:71:        for (int i = 0; i < parent->rowCount(); ++i)
+== types
+Examples/FwdDecls.h:4:class QStandardItemModel;
+Examples/FwdDecls.h:7:class MainWindow;
+Examples/MainWindow.h:10:class MainWindow : public QMainWindow
+Examples/tests/MainWindowTest.cpp:25:struct ReceiverCounter : QObject
+== constants
+Examples/MainWindow.cpp:44:        const qreal angle = M_PI * i / 5 - M_PI / 2;
+Examples/MainWindow.cpp:45:        const qreal r = (i % 2 == 0) ? 50 : 22;
+Examples/TableModelFactory.cpp:14:constexpr int RowCount = 300;
+Examples/TableModelFactory.cpp:16:const QStringList Headers = {"ID",     "First name", "Last name", "Department", "City",
+Examples/TableModelFactory.cpp:18:const QStringList FirstNames = {"Alice", "Bob",   "Clara", "David", "Emma",
+Examples/TableModelFactory.cpp:20:const QStringList LastNames = {"Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit"};
+Examples/TableModelFactory.cpp:21:const QStringList Departments = {"Engineering", "Sales", "Marketing", "Finance", "Support", "HR"};
+Examples/TableModelFactory.cpp:22:const QStringList Cities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
+Examples/TableModelFactory.cpp:38:        const QString first = FirstNames[i % FirstNames.size()];
+Examples/TableModelFactory.cpp:39:        const QString last = LastNames[(i / 3) % LastNames.size()];
+Examples/TableModelFactory.cpp:41:        const bool is_active = i % 4 != 0;
+Examples/TreeModelFactory.cpp:13:constexpr int DepartmentCount = 20;
+Examples/TreeModelFactory.cpp:14:constexpr int EmployeesPerDepartment = 15;
+Examples/TreeModelFactory.cpp:16:const QStringList Headers = {"Name",   "Kind",   "Role", "Department", "City",
+Examples/TreeModelFactory.cpp:18:const QStringList BaseDepartments = {"Engineering", "Sales",   "Marketing", "Finance", "Support",
+Examples/TreeModelFactory.cpp:20:const QStringList FirstNames = {"Alice", "Bob",   "Clara", "David", "Emma",
+Examples/TreeModelFactory.cpp:22:const QStringList LastNames = {"Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit"};
+Examples/TreeModelFactory.cpp:23:const QStringList Roles = {"Manager", "Developer", "Analyst", "Specialist", "Assistant"};
+Examples/TreeModelFactory.cpp:24:const QStringList Cities = {"Paris", "Lyon", "Lille", "Nantes", "Toulouse", "Bordeaux"};
+Examples/TreeModelFactory.cpp:25:const QStringList Statuses = {"Active", "On leave", "Remote"};
+Examples/TreeModelFactory.cpp:29:    const QString base = BaseDepartments[index % BaseDepartments.size()];
+Examples/TreeModelFactory.cpp:48:        const QString department = department_name(d);
+Examples/TreeModelFactory.cpp:49:        const QString city = Cities[d % Cities.size()];
+Examples/TreeModelFactory.cpp:55:            const int n = d * EmployeesPerDepartment + e;
+Examples/TreeModelFactory.cpp:56:            const QString first = FirstNames[n % FirstNames.size()];
+Examples/TreeModelFactory.cpp:57:            const QString last = LastNames[n % LastNames.size()];
+Examples/tests/TableModelFactoryTest.cpp:12:const QStringList Headers = {"ID",     "First name", "Last name", "Department", "City",
+Examples/tests/TableModelFactoryTest.cpp:43:        const auto age = model->item(r, column_of("Age"))->data(Qt::DisplayRole).typeId();
+Examples/tests/TableModelFactoryTest.cpp:44:        const auto salary = model->item(r, column_of("Salary"))->data(Qt::DisplayRole).typeId();
+Examples/tests/TableModelFactoryTest.cpp:54:        const QVariant v = model->item(r, column_of("Hire date"))->data(Qt::DisplayRole);
+Examples/tests/StartupTest.cpp:24:    const QtMessageHandler previous = qInstallMessageHandler(counting_handler);
+Examples/tests/TreeModelFactoryTest.cpp:10:constexpr int DepartmentColumn = 3;
+Examples/tests/TreeModelFactoryTest.cpp:31:        const auto *parent = model->item(r, 0);
+Examples/tests/TreeModelFactoryTest.cpp:41:        const auto *parent = model->item(r, 0);
+Examples/tests/TreeModelFactoryTest.cpp:57:        const auto *parent = model->item(r, 0);
+Examples/tests/TreeModelFactoryTest.cpp:70:        const auto *parent = model->item(r, 0);

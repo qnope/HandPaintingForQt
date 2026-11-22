@@ -1,0 +1,37 @@
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/build
+[  0%] Built target gtest_autogen_timestamp_deps
+[  2%] Built target gtest_autogen
+[ 11%] Built target gtest
+[ 11%] Built target gmock_autogen_timestamp_deps
+[ 14%] Built target gmock_autogen
+[ 23%] Built target gmock
+[ 23%] Built target gmock_main_autogen_timestamp_deps
+[ 26%] Built target gmock_main_autogen
+[ 35%] Built target gmock_main
+[ 35%] Built target gtest_main_autogen_timestamp_deps
+[ 38%] Built target gtest_main_autogen
+[ 47%] Built target gtest_main
+[ 47%] Built target HandPaintingExampleLib_autogen_timestamp_deps
+[ 50%] Built target HandPaintingExampleLib_autogen
+[ 64%] Built target HandPaintingExampleLib
+[ 64%] Built target HandPaintingExample_autogen_timestamp_deps
+[ 66%] Built target HandPaintingExample_autogen
+[ 76%] Built target HandPaintingExample
+[ 76%] Built target HandPaintingExampleTests_autogen_timestamp_deps
+[ 78%] Built target HandPaintingExampleTests_autogen
+[100%] Built target HandPaintingExampleTests
+Test project /Users/amorrier/Programmation/HandPaintingForQt/build
+    Start 1: HandPaintingExampleTests
+1/4 Test #1: HandPaintingExampleTests ...........   Passed    0.17 sec
+    Start 2: HandPaintingExampleExists
+2/4 Test #2: HandPaintingExampleExists ..........   Passed    0.01 sec
+    Start 3: ConfigureNoWarning
+3/4 Test #3: ConfigureNoWarning .................   Passed    2.16 sec
+    Start 4: HandPaintingExampleRunsOffscreen
+4/4 Test #4: HandPaintingExampleRunsOffscreen ...   Passed    0.12 sec
+
+100% tests passed out of 4
+
+Total Test time (real) =   2.45 sec

@@ -1,0 +1,9 @@
+300x10
+ID|First name|Last name|Department|City|Age|Salary|Hire date|Active|Email|
+idbad 0 agebad 0 salbad 0 datebad 0 checkable 300 empty 0 diff 0
+checked 225 col8 display0='No'
+1 | Alice | Martin | Engineering | Paris | 22 | 30000 | 2010-01-01 | No | alice.martin.1@example.com | 0
+2 | Bob | Martin | Sales | Paris | 29 | 31237 | 2010-02-07 | Yes | bob.martin.2@example.com | 1
+3 | Clara | Martin | Marketing | Lyon | 36 | 32474 | 2010-03-16 | Yes | clara.martin.3@example.com | 1
+150 | Jules | Martin | HR | Lille | 33 | 74313 | 2011-05-29 | Yes | jules.martin.150@example.com | 1
+300 | Jules | Bernard | HR | Bordeaux | 51 | 49863 | 2012-11-29 | Yes | jules.bernard.300@example.com | 1

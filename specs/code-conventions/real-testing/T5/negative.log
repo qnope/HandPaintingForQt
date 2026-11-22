@@ -1,0 +1,22 @@
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+k-prefixed constant kBadConst in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.cpp"
+[  FAILED  ] Conventions.NoKPrefixedConstantInSources (13 ms)
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+camelCase variable kBadConst in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.cpp"
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+[  FAILED  ] Conventions.NoCamelCaseVariableInSources (50 ms)
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+non-PascalCase type lower_type in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/BadCode.cpp"
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:103: Failure
+non-PascalCase type bad_type in "/Users/amorrier/Programmation/HandPaintingForQt/Examples/bad_file.h"
+[  FAILED  ] Conventions.EveryTypeNameIsPascalCase (29 ms)
+/Users/amorrier/Programmation/HandPaintingForQt/Examples/tests/ConventionsTest.cpp:176: Failure
+"/Users/amorrier/Programmation/HandPaintingForQt/Examples/bad_file.h"
+[  FAILED  ] Conventions.EveryFileNameIsPascalCase (0 ms)
+[  PASSED  ] 39 tests.
+[  FAILED  ] 4 tests, listed below:
+[  FAILED  ] Conventions.NoKPrefixedConstantInSources
+[  FAILED  ] Conventions.NoCamelCaseVariableInSources
+[  FAILED  ] Conventions.EveryTypeNameIsPascalCase
+[  FAILED  ] Conventions.EveryFileNameIsPascalCase
+ 4 FAILED TESTS

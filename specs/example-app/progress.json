@@ -1,0 +1,99 @@
+{
+  "feature": "example-app",
+  "status": "closed",
+  "test_command": "cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/Qt/6.8.3/macos && cmake --build build && QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "CMake skeleton with gtest",
+      "file": "tasks/T1.md",
+      "depends_on": [],
+      "status": "done",
+      "rejections": 1,
+      "note": "FAILED\n- Configure prints a \"CMake Warning (author)\" from FetchContent: DOWNLOAD_EXTRACT_TIMESTAMP not given and policy CMP0135 not set. B1 requires configure and build with no error; the warning is noise on every configure. Fix: cmake_policy(SET CMP0135 NEW) or pass DOWNLOAD_EXTRACT_TIMESTAMP TRUE to FetchContent_Declare.\n- Everything else holds: C++17, binary build/Examples/HandPaintingExample exists, ctest 2/2 pass, binary exits 0 offscreen.",
+      "review": "APPROVED\n- Smoke.True (Examples/tests/SmokeTest.cpp), registered as ctest test HandPaintingExampleTests\n- HandPaintingExampleExists (Examples/CMakeLists.txt), which runs md5sum on $<TARGET_FILE:HandPaintingExample> and fails if the file is missing",
+      "real_testing": "PASSED\n- B1: Deleted build/, then ran the test command from the project root with a fresh build dir -> exit 0. The log has no \"CMake Warning\" and no CMP0135 text, so the previous remark is fixed. The executable build/Examples/HandPaintingExample exists. The gtest executable HandPaintingExampleTests was built, and ctest passed 3/3 (HandPaintingExampleTests, HandPaintingExampleExists, ConfigureNoWarning).\nEvidence: specs/example-app/real-testing/T1/"
+    },
+    {
+      "id": "T2",
+      "title": "Table model factory",
+      "file": "tasks/T2.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "done",
+      "rejections": 1,
+      "note": "REJECTED\n- Examples/tests/TableModelFactoryTest.cpp: test NoCellIsEmpty skips the \"Active\" column, but B6 says no cell is empty. The \"Active\" cell display value is empty in TableModelFactory.cpp, so the check is weakened. Give the \"Active\" items a non-empty display text (e.g. \"Yes\"/\"No\", matching the check state) and remove the `continue` so all 3000 cells are checked. Do not change the spec or task files.",
+      "review": "APPROVED\n- TableModelFactory.HasExpectedShapeAndHeaders\n- TableModelFactory.IdColumnIsRowOrder\n- TableModelFactory.AgeAndSalaryAreNumbers\n- TableModelFactory.HireDateIsValidDate\n- TableModelFactory.ActiveItemsAreCheckable\n- TableModelFactory.NoCellIsEmpty\n- TableModelFactory.IsDeterministic",
+      "real_testing": "PASSED\n- B5: built the project and wrote a probe at specs/example-app/real-testing/T2/probe.cpp that calls createTableModel(). The model has 300 rows and 10 columns. Headers in order \"ID|First name|Last name|Department|City|Age|Salary|Hire date|Active|Email\".\n- B6: checked every row. ID holds 1..300 in row order (0 mismatches). Age and Salary have numeric Int display data (0 non-numeric), e.g. age 22 and salary 30000. Hire date is a QDate in all 300 rows and always valid (e.g. 2010-01-01). All 300 Active items are checkable. Active shows \"Yes\"/\"No\" and 225 rows are checked. No cell has an empty display value (0 empty). Sample row: \"2 | Bob | Martin | Sales | Paris | 29 | 31237 | 2010-02-07 | Yes | bob.martin.2@example.com\".\n- B7: called the factory twice and compared display and check-state data in all 300x10 cells -> 0 differences.\n- Existing ctest run (3 tests) -> 100% passed. No crash, warning or garbled output.\nEvidence: specs/example-app/real-testing/T2/"
+    },
+    {
+      "id": "T3",
+      "title": "Tree model factory",
+      "file": "tasks/T3.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- HasExpectedShapeAndHeaders (rowCount is 20, columnCount is 10, 10 non-empty headers)\n- EachParentHasFifteenChildrenWithTenColumns (each parent has 15 children, each child has 10 columns)\n- ChildrenHaveNoChildren (no child has children)\n- NoCellIsEmpty (no cell of parents and children is empty)\n- ChildDepartmentEqualsParentName (a child's department column equals its parent's name)",
+      "real_testing": "PASSED\n- B8: throwaway probe linked to Examples/TreeModelFactory.cpp calling createTreeModel() -> 20 top-level rows, 10 columns, headers Name, Kind, Role, Department, City, Budget, Status, Level, Email, Phone (10, all non-empty), 20 distinct parent names.\n- B9: counted children and grandchildren for every parent -> all 20 parents have exactly 15 children, each child has 10 cells, 0 grandchildren.\n- B10: scanned every parent cell and every child cell, printed sample rows -> 0 empty cells. Parents are departments (e.g. \"Engineering | Department | Division | Engineering | Paris | 100000 | Active | 0 | engineering@example.com | +33 1 00 00 00\"). Children are employees whose Department column equals the parent's name (e.g. \"Alice Martin | Employee | Manager | Engineering | Paris | 30000 | Active | 1 | alice.martin@example.com | +33 6 00 00 00\"). Data looks meaningful.\n- other: build and ctest ran, all 3 tests passed. No crash, warning or garbled output. Data model, nothing to screenshot.\nEvidence: specs/example-app/real-testing/T3/"
+    },
+    {
+      "id": "T4",
+      "title": "Main window from the .ui with filled combobox",
+      "file": "tasks/T4.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- WidgetsOfTheUiExist (all widgets, File and Edit menus empty) and DefaultTextsAreUnchanged (TextLabel, CheckBox, GroupBox) in Examples/tests/MainWindowTest.cpp\n- ComboBoxHoldsTheThreeThemes\n- ComboBoxSelectionChangesNothing",
+      "real_testing": "PASSED\n- B2: built the project, wrote a probe that creates and shows hpq::example::MainWindow, looks up widgets by name and grabs a screenshot. label, checkBox, lineEdit, groupBox, tableView, treeView, graphicsView, menubar, menuFile, menuEdit and statusbar all exist. Texts: label \"TextLabel\", checkBox \"CheckBox\", groupBox \"GroupBox\", window title \"MainWindow\". File and Edit menus have 0 actions. Screenshot (window.png) matches the .ui layout; views are empty because the models come in later tasks.\n- B3: combobox count is 3: 0 \"Sketch\", 1 \"China Ink\", 2 \"Black slate and chalk\", in that order.\n- B4: receivers() on currentIndexChanged(int), currentTextChanged(QString) and activated(int) are all 0. After setCurrentIndex(2) and setCurrentIndex(1), lineEdit stays empty, checkBox unchecked, label \"TextLabel\", window title \"MainWindow\".\n- Other: no crash and no Qt warning (only usual qt.qpa.fonts and propagateSizeHints notes).\nEvidence: specs/example-app/real-testing/T4/"
+    },
+    {
+      "id": "T5",
+      "title": "Views bound to the models",
+      "file": "tasks/T5.md",
+      "depends_on": [
+        "T2",
+        "T3",
+        "T4"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- MainWindow.TableViewUsesTheTableModel\n- MainWindow.TreeViewUsesTheTreeModel\n- MainWindow.ViewsUseDistinctModels",
+      "real_testing": "PASSED\n- B11: built the project and ran a probe at specs/example-app/real-testing/T5/probe.cpp with QT_QPA_PLATFORM=offscreen. It creates and shows MainWindow, reads the two views through findChild, expands tree row 0 and grabs a screenshot. tableView model is a QStandardItemModel with 300 rows and 10 columns. treeView model is a QStandardItemModel with 20 top-level rows and 10 columns. The two model pointers are different. Expanding top-level row 0 shows 15 child rows. In window.png the table shows ID, First name, Last name, Department and City with rows Alice Martin, Bob Martin and so on; the tree shows \"Engineering\" (Department) expanded with Employee children. Layout fine, no crash or visible glitch. Only console output besides probe lines was Qt font-alias and propagateSizeHints notices (offscreen noise).\nEvidence: specs/example-app/real-testing/T5/"
+    },
+    {
+      "id": "T6",
+      "title": "Graphics scene with varied shapes",
+      "file": "tasks/T6.md",
+      "depends_on": [
+        "T4"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- GraphicsViewHasAScene (Examples/tests/MainWindowTest.cpp)\n- SceneContainsEachShapeKind (Examples/tests/MainWindowTest.cpp)",
+      "real_testing": "PASSED\n- B12: I built the project with the test command's configure and build steps. I wrote a small program (check.cpp) that creates MainWindow, shows it, counts the item kinds in graphicsView->scene(), and saves a screenshot. I also ran ctest, and all 3 tests passed. -> The scene exists. It holds 1 rectangle, 1 ellipse, 1 line, 2 polygons and 1 simple text item. In window.png the shapes are drawn in the graphics view: a blue rectangle, a red ellipse, a green line, a purple rounded shape, an orange triangle, a green star, a blue curve and the text \"Hand painting for Qt\". There is no crash and no error.\nEvidence: specs/example-app/real-testing/T6/"
+    },
+    {
+      "id": "T7",
+      "title": "Application entry point and offscreen smoke test",
+      "file": "tasks/T7.md",
+      "depends_on": [
+        "T5",
+        "T6"
+      ],
+      "status": "done",
+      "rejections": 1,
+      "note": "FAILED\n- B13: ran build/Examples/HandPaintingExample with QT_QPA_PLATFORM=offscreen (with HPQ_AUTO_QUIT=1, and also without it for 3 s then killed), then again with QT_FATAL_WARNINGS=1 -> there is no crash, and the window stays alive in the event loop. The auto-quit exit code is 0, and the ctest suite passes 4/4. Stderr does show Qt warnings, though: `qt.qpa.fonts: Populating font family aliases took 55 ms. Replace uses of missing font family \"Sans Serif\" with one that exists to avoid this cost.` and `This plugin does not support propagateSizeHints()`. With QT_FATAL_WARNINGS=1 the app aborts at the first of these, with exit 134. -> the spec expects no crash and no Qt warning. The in-process unit test counts 0 warnings, but a real run prints these two messages. The \"Sans Serif\" one probably comes from the .ui font or the default font; the propagateSizeHints one comes from the offscreen plugin and may be unavoidable.\nEvidence: specs/example-app/real-testing/T7/",
+      "review": "APPROVED\n- Startup.MainWindowShowsAndRunsEventLoopWithoutWarning (Examples/tests/StartupTest.cpp): counts warnings, creates and shows MainWindow, checks isVisible() inside the event loop, expects 0 warnings. It ignores only messages containing \"propagateSizeHints\".\n- ctest HandPaintingExampleRunsOffscreen (Examples/CMakeLists.txt): runs HandPaintingExample with QT_QPA_PLATFORM=offscreen and HPQ_AUTO_QUIT=1, expects exit code 0. main.cpp reads that variable.\n\nVerification notes (independent):\n- The full test command passes, 4 of 4 tests.\n- Running the app offscreen now prints only \"This plugin does not support propagateSizeHints()\". The \"Sans Serif\" warning is gone. The exit code is 0.\n- I built a bare QWidget + QVBoxLayout + QLabel (no application code) against Qt 6.8.3 and ran it offscreen. It prints the same propagateSizeHints message and exits with 0. It also printed the \"Sans Serif\" alias warning, because it does not call applyDefaultFont(). So the developer's claim is real: the remaining warning comes from the offscreen plugin, not from the application.\n- With QT_FATAL_WARNINGS=1 the app aborts with exit 134 on that one message. The bare widget would abort the same way.\n- I accept the remaining warning for B13. The app cannot avoid it without suppressing messages in production code, which would be worse. The test filter is narrow: every other warning, critical or fatal message is still counted.",
+      "real_testing": "PASSED\n- B13: Rebuilt the app and ran HandPaintingExample offscreen with HPQ_AUTO_QUIT=1 three times, then with no auto-quit for 4 s -> exit 0 each time, no crash, window shows and event loop runs (process still alive after 4 s without auto-quit). The \"Sans Serif\" font alias warning is gone. The only output is the single line \"This plugin does not support propagateSizeHints()\". All 4 ctest tests pass offscreen.\n- B13 (remaining warning): Built a bare QWidget + QVBoxLayout + QLabel program with no app code (specs/example-app/real-testing/T7/bare/) and ran it offscreen under Qt 6.8.3 -> it prints the same propagateSizeHints() line (plus the \"Sans Serif\" alias message that the app's Helvetica font avoids). So the remaining line comes from the offscreen plugin and any shown layout triggers it; the app cannot control it. I did not take a screenshot, since the spec only asks for offscreen output.\nJudgement call: read literally, B13 says \"without Qt warning\" and this one plugin line does appear on stderr. I accepted it as a plugin artefact rather than an app fault. If you want a strictly empty run, that would need a message-handler filter, which is your decision.\nEvidence: specs/example-app/real-testing/T7/"
+    }
+  ]
+}

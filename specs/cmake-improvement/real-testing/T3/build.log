@@ -1,0 +1,64 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages are already installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 45.2 us
+-- Running vcpkg install - done
+-- Configuring done (0.7s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/cmake-improvement/T3/build
+[  3%] Building CXX object hpq/CMakeFiles/hpq.dir/src/Hpq.cpp.o
+[  7%] Linking CXX static library libhpq.a
+[  7%] Built target hpq
+[  7%] Built target HandPaintingExampleLib_autogen_timestamp_deps
+[ 11%] Automatic MOC and UIC for target HandPaintingExampleLib
+[ 11%] Built target HandPaintingExampleLib_autogen
+[ 15%] Linking CXX static library libHandPaintingExampleLib.a
+[ 38%] Built target HandPaintingExampleLib
+[ 38%] Built target HandPaintingExample_autogen_timestamp_deps
+[ 42%] Automatic MOC for target HandPaintingExample
+[ 42%] Built target HandPaintingExample_autogen
+[ 46%] Linking CXX executable HandPaintingExample
+[ 57%] Built target HandPaintingExample
+[ 57%] Built target HandPaintingExampleTests_autogen_timestamp_deps
+[ 61%] Automatic MOC for target HandPaintingExampleTests
+[ 61%] Built target HandPaintingExampleTests_autogen
+[ 65%] Linking CXX executable HandPaintingExampleTests
+[100%] Built target HandPaintingExampleTests
+Test project /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/cmake-improvement/T3/build
+      Start  1: HandPaintingExampleTests
+ 1/10 Test  #1: HandPaintingExampleTests ....................   Passed    0.42 sec
+      Start  2: HandPaintingExampleExists
+ 2/10 Test  #2: HandPaintingExampleExists ...................   Passed    0.01 sec
+      Start  3: ConfigureNoWarning
+ 3/10 Test  #3: ConfigureNoWarning ..........................   Passed    2.00 sec
+      Start  4: HpqLinked
+ 4/10 Test  #4: HpqLinked ...................................   Passed    0.01 sec
+      Start  5: ProjectFiles
+ 5/10 Test  #5: ProjectFiles ................................   Passed    0.04 sec
+      Start  6: HandPaintingExampleRunsOffscreen
+ 6/10 Test  #6: HandPaintingExampleRunsOffscreen ............   Passed    0.14 sec
+      Start  7: TargetProperties_HandPaintingExampleLib
+ 7/10 Test  #7: TargetProperties_HandPaintingExampleLib .....   Passed    0.01 sec
+      Start  8: TargetProperties_HandPaintingExample
+ 8/10 Test  #8: TargetProperties_HandPaintingExample ........   Passed    0.01 sec
+      Start  9: TargetProperties_HandPaintingExampleTests
+ 9/10 Test  #9: TargetProperties_HandPaintingExampleTests ...   Passed    0.01 sec
+      Start 10: TargetProperties_hpq
+10/10 Test #10: TargetProperties_hpq ........................   Passed    0.01 sec
+
+100% tests passed out of 10
+
+Total Test time (real) =   2.65 sec

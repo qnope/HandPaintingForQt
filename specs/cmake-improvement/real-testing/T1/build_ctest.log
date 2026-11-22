@@ -1,0 +1,44 @@
+[  0%] Built target HandPaintingExampleLib_autogen_timestamp_deps
+[  4%] Automatic MOC and UIC for target HandPaintingExampleLib
+[  4%] Built target HandPaintingExampleLib_autogen
+[ 26%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TreeModelFactory.cpp.o
+[ 26%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/HandPaintingExampleLib_autogen/mocs_compilation.cpp.o
+[ 26%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/MainWindow.cpp.o
+[ 26%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TableModelFactory.cpp.o
+[ 26%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/AppFont.cpp.o
+[ 30%] Linking CXX static library libHandPaintingExampleLib.a
+[ 34%] Built target HandPaintingExampleLib
+[ 34%] Built target HandPaintingExampleTests_autogen_timestamp_deps
+[ 34%] Built target HandPaintingExample_autogen_timestamp_deps
+[ 43%] Automatic MOC and UIC for target HandPaintingExampleTests
+[ 43%] Automatic MOC and UIC for target HandPaintingExample
+[ 43%] Built target HandPaintingExample_autogen
+[ 43%] Built target HandPaintingExampleTests_autogen
+[ 52%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/HandPaintingExampleTests_autogen/mocs_compilation.cpp.o
+[ 52%] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/main.cpp.o
+[ 56%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/SmokeTest.cpp.o
+[ 69%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/StartupTest.cpp.o
+[ 69%] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/HandPaintingExample_autogen/mocs_compilation.cpp.o
+[ 69%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TableModelFactoryTest.cpp.o
+[ 73%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/MainWindowTest.cpp.o
+[ 78%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TestMain.cpp.o
+[ 82%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TreeModelFactoryTest.cpp.o
+[ 86%] Linking CXX executable HandPaintingExample
+[ 91%] Built target HandPaintingExample
+[ 95%] Linking CXX executable HandPaintingExampleTests
+[100%] Built target HandPaintingExampleTests
+Test project /private/tmp/claude-501/b1
+    Start 1: HandPaintingExampleTests
+1/5 Test #1: HandPaintingExampleTests ...........   Passed    0.55 sec
+    Start 2: HandPaintingExampleExists
+2/5 Test #2: HandPaintingExampleExists ..........   Passed    0.01 sec
+    Start 3: ConfigureNoWarning
+3/5 Test #3: ConfigureNoWarning .................   Passed    1.58 sec
+    Start 4: ProjectFiles
+4/5 Test #4: ProjectFiles .......................   Passed    0.10 sec
+    Start 5: HandPaintingExampleRunsOffscreen
+5/5 Test #5: HandPaintingExampleRunsOffscreen ...   Passed    0.14 sec
+
+100% tests passed out of 5
+
+Total Test time (real) =   2.38 sec

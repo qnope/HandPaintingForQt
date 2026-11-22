@@ -1,0 +1,16 @@
+OK hpq/src/Hpq.cpp
+OK build/Examples/HandPaintingExampleLib_autogen/mocs_compilation.cpp
+OK Examples/TableModelFactory.cpp
+OK Examples/TreeModelFactory.cpp
+OK Examples/AppFont.cpp
+OK Examples/MainWindow.cpp
+OK build/Examples/HandPaintingExample_autogen/mocs_compilation.cpp
+OK Examples/main.cpp
+OK build/Examples/HandPaintingExampleTests_autogen/mocs_compilation.cpp
+OK Examples/tests/TestMain.cpp
+OK Examples/tests/SmokeTest.cpp
+OK Examples/tests/StartupTest.cpp
+OK Examples/tests/MainWindowTest.cpp
+OK Examples/tests/TableModelFactoryTest.cpp
+OK Examples/tests/TreeModelFactoryTest.cpp
+OK Examples/tests/HpqTest.cpp

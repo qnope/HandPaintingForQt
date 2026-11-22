@@ -1,0 +1,82 @@
+{
+  "feature": "code-conventions",
+  "status": "closed",
+  "test_command": "cmake --preset debug && cmake --build --preset debug && ctest --preset debug --output-on-failure",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "CLAUDE.md file naming rule",
+      "file": "tasks/T1.md",
+      "depends_on": [],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- ClaudeMd.StatesPascalCaseFileNames and ClaudeMd.NamesFwdDeclsFile (in Examples/tests/ClaudeMdTest.cpp): the first checks for the \"File names: `PascalCase`\" rule, and the second checks that FwdDecls.h is present and fwd_decls.h is absent.",
+      "real_testing": "PASSED\n- B7: ran the test command (configure, build, ctest) then grepped CLAUDE.md. Build and ctest passed 2/2, including the ClaudeMd tests inside HandPaintingExampleTests. CLAUDE.md line 50 reads \"File names: `PascalCase`\", line 51 reads \"Introduce FwdDecls.h\", 0 occurrences of fwd_decls.h.\nEvidence: specs/code-conventions/real-testing/T1/"
+    },
+    {
+      "id": "T2",
+      "title": "FwdDecls.h per module",
+      "file": "tasks/T2.md",
+      "depends_on": [],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- FwdDecls.DeclaresIncompleteTypesVisibleFromExampleNamespace (in Examples/tests/FwdDeclsTest.cpp)\n- FwdDecls.HeadersIncludeItInsteadOfDeclaringTypes (in Examples/tests/FwdDeclsTest.cpp)",
+      "real_testing": "PASSED\n- B5: ran the test command (configure, build, ctest). Build was already up to date (no compiler output, warnings not checked). ctest passed 2/2: HandPaintingExampleTests and HandPaintingExampleRunsOffscreen. FwdDecls* gtests run directly: 2/2 pass. hpq/include/hpq/FwdDecls.h exists with namespace hpq; Examples/FwdDecls.h declares QStandardItemModel and Ui::MainWindow and has namespace hpq::example; MainWindow.h, TableModelFactory.h, TreeModelFactory.h include \"FwdDecls.h\" and their own forward declarations are removed. Editor gtest/std::string diagnostics do not occur in the real build.\nEvidence: specs/code-conventions/real-testing/T2/"
+    },
+    {
+      "id": "T3",
+      "title": "Model factories return unique_ptr",
+      "file": "tasks/T3.md",
+      "depends_on": [
+        "T2"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- static_assert that the return type of each factory is std::unique_ptr<QStandardItemModel>: in Examples/tests/TableModelFactoryTest.cpp and Examples/tests/TreeModelFactoryTest.cpp\n- Table model 300 rows x 10 columns; tree model 20 top-level rows each with 15 children and 10 columns: TableModelFactory.HasExpectedShapeAndHeaders, TreeModelFactory.HasExpectedShapeAndHeaders, TreeModelFactory.EachParentHasFifteenChildrenWithTenColumns\n- Existing factory tests no longer wrap the result in a unique_ptr themselves.\nBuild and tests passed. Ownership in Examples/MainWindow.cpp is safe: setParent(this) before release() hands the pointer to setModel; no leak, no double free, no caller keeps a raw owning pointer. B6 reasonably met.",
+      "real_testing": "PASSED\n- B6: forced rebuild of touched sources, 0 warnings; ctest 2/2 passed (HandPaintingExampleTests, HandPaintingExampleRunsOffscreen). Both factories return std::unique_ptr<QStandardItemModel> built with make_unique; static_asserts compile; factory tests no longer wrap the result. In MainWindow the models are parented to this then release()d to the views.\n- B6 (app, offscreen): QT_QPA_PLATFORM=offscreen HPQ_AUTO_QUIT=1 -> exit 0; leaks --atExit: 0 leaks; no crash or double free.\n- B6 (content): real MainWindow prints \"table 300 x 10\" and \"tree 20 top, 15 children, 10 cols\"; screenshot shows table, tree and shapes scene intact.\nNote: ctest ran 2 tests, not the 4 named in B8 of the spec (outside T3).\nEvidence: specs/code-conventions/real-testing/T3/"
+    },
+    {
+      "id": "T4",
+      "title": "snake_case function names",
+      "file": "tasks/T4.md",
+      "depends_on": [
+        "T3"
+      ],
+      "status": "done",
+      "rejections": 1,
+      "note": "REJECTED\n- Examples/tests: no test implements the task line \"A grep check finds no camelCase function definition left in hpq/ and Examples/ outside the Qt/GoogleTest names\". Add a test (for example NamingTest.cpp registered in Examples/CMakeLists.txt) that scans hpq/ and Examples/ sources, including tests, and fails on a camelCase function or method definition outside the Qt/GoogleTest allowlist. Check that it fails when a camelCase definition is present.\nEverything else checked OK: test command passes 2/2, all reported renames in place, no camelCase function definition left by manual grep, renamed tests not weakened. (StartupTest.cpp local `visibleInEventLoop` is T5 scope.)",
+      "review": "APPROVED\n- hpq::library_name() returns \"hpq\": Examples/tests/HpqTest.cpp (passes).\n- Tests call apply_default_font, create_table_model, create_tree_model and compile: TableModelFactoryTest, TreeModelFactoryTest, StartupTest, MainWindowTest. Test executable builds; both ctest tests pass.\n- No camelCase function definition left in hpq/ and Examples/: Naming.NoCamelCaseFunctionLeftInSources, backed by Naming.ScannerFindsCamelCaseDefinition and Naming.ScannerIgnoresSnakeCaseCallsOverridesAndLocals in Examples/tests/NamingTest.cpp.",
+      "real_testing": "PASSED\n- B1: forced rebuild of all project .cpp files, then the test command: 0 warnings, ctest passed 2/2 (HandPaintingExampleTests, HandPaintingExampleRunsOffscreen).\n- B1: independent grep for camelCase identifiers followed by `(` in all .h/.cpp under hpq/ and Examples/, tests included: every hit is a Qt/GoogleTest call, scanner fixture strings in NamingTest.cpp, or Qt message text. No project-defined camelCase function or method remains. Only Q_OBJECT in MainWindow.h stays unchanged.\n- B1: ran QT_QPA_PLATFORM=offscreen HPQ_AUTO_QUIT=1 build/debug/Examples/HandPaintingExample: started and exited 0 (only the Qt offscreen propagateSizeHints notice).\n- No file modified during testing; git diff unchanged (18 files).\nEvidence: specs/code-conventions/real-testing/T4/"
+    },
+    {
+      "id": "T5",
+      "title": "Constants, attributes, locals and type names",
+      "file": "tasks/T5.md",
+      "depends_on": [
+        "T4"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- No kPascal constant and no camelCase local in hpq/ and Examples/: Conventions.NoKPrefixedConstantInSources and Conventions.NoCamelCaseVariableInSources (scanner unit tests ScannerFindsKPrefixedConstants, ScannerFindsCamelCaseVariablesAndParameters, ScannerIgnoresSnakeCaseCallsAndReturns). Also Conventions.EveryAttributeHasMPrefix and Conventions.EveryTypeNameIsPascalCase for B3/B4.\n- MainWindow still builds its window (MainWindowTest passes) with m_ui in place of ui; Conventions.EveryAttributeHasMPrefix (ScannerFindsAttributesWithoutPrefix proves it flags `ui`).\n- Conventions.EveryFileNameIsPascalCase checks .h/.cpp/.ui file names (unit test FileStemPascalCheck).\nVerification: test command passes 2/2; independent grep finds no kPascal name; remaining camelCase hits are Qt/GoogleTest/uic-imposed; only attribute is m_ui; only type MainWindow; all files PascalCase (Main.cpp after rename); constants PascalCase; no test removed or weakened. Missing break-and-restore for type/file checks judged acceptable (scanner unit tests prove they flag bad names; file check failed on main.cpp before rename). Minor: ConventionsTest.cpp and NamingTest.cpp excluded from scans since they quote bad names on purpose; their own code follows the conventions.",
+      "real_testing": "PASSED\n- B2: grepped hpq/ and Examples/ for k[A-Z] identifiers; constants are Headers, RowCount, DepartmentCount, etc. -> no kPascal constants\n- B3: grepped camelCase and attributes; only m_ui attribute, locals/params snake_case (table_model, is_active, column_of); remaining camelCase hits are Qt API calls and .ui widget names -> conforms\n- B4: listed types and files -> MainWindow, ReceiverCounter, all files PascalCase\n- Build + ctest: 2/2 passed; app run offscreen with HPQ_AUTO_QUIT=1 -> exit 0\nEvidence: specs/code-conventions/real-testing/T5/"
+    },
+    {
+      "id": "T6",
+      "title": "Full build and tests",
+      "file": "tasks/T6.md",
+      "depends_on": [
+        "T1",
+        "T5"
+      ],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\nVerification-only task, no code change. Checked directly by the main agent (no reviewer subagent): clean rebuild from scratch of build/debug succeeds, no \"warning\" in configure/build output, ctest 2/2 pass (HandPaintingExampleTests, HandPaintingExampleRunsOffscreen). Tests named in T6 (HandPaintingExampleExists, ConfigureNoWarning) no longer exist in the project.",
+      "real_testing": "PASSED\nClean rebuild (rm -rf build/debug; cmake --preset debug; build; ctest --preset debug --output-on-failure): exit 0, zero \"warning\" lines, 2/2 tests passed."
+    }
+  ]
+}

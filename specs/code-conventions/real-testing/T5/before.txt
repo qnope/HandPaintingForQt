@@ -1,0 +1,12 @@
+ M Examples/CMakeLists.txt
+R  Examples/main.cpp -> Examples/Main.cpp
+ M Examples/MainWindow.cpp
+ M Examples/MainWindow.h
+ M Examples/TableModelFactory.cpp
+ M Examples/TreeModelFactory.cpp
+ M Examples/tests/StartupTest.cpp
+ M Examples/tests/TableModelFactoryTest.cpp
+ M Examples/tests/TreeModelFactoryTest.cpp
+ M specs/code-conventions/progress.json
+?? Examples/tests/ConventionsTest.cpp
+?? specs/code-conventions/real-testing/T5/

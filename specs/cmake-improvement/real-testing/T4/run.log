@@ -1,0 +1,104 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages will be built and installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+Additional packages (*) will be modified to complete this operation.
+Restored 3 package(s) from /Users/amorrier/.cache/vcpkg/archives in 52.8 ms. Use --debug to see more details.
+Installing 1/3 vcpkg-cmake-config:arm64-osx@2026-07-21...
+vcpkg-cmake-config:arm64-osx@2026-07-21 package ABI: 394b93477e3acaa710c057611a9e8c5268daee8c9cc3761e2ab9b203ba92c1a2
+Elapsed time to handle vcpkg-cmake-config:arm64-osx: 1.16 ms
+Installing 2/3 vcpkg-cmake:arm64-osx@2026-11-09...
+vcpkg-cmake:arm64-osx@2026-11-09 package ABI: 52e30c28cc418d64ce92abc9ca2370618e4ec78229416ea5d147bc6cee4de3a3
+Elapsed time to handle vcpkg-cmake:arm64-osx: 1.58 ms
+Installing 3/3 gtest:arm64-osx@1.18.0...
+gtest:arm64-osx@1.18.0 package ABI: fa8e418e2f760f327e2b380c570ef83190a1b33c99a5e0ea779bc099872d7038
+Elapsed time to handle gtest:arm64-osx: 9.88 ms
+Installed contents are licensed to you by owners. Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Packages installed in this vcpkg installation declare the following licenses:
+BSD-3-Clause
+MIT
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 13.3 ms
+-- Running vcpkg install - done
+-- The CXX compiler identification is AppleClang 21.0.0.21000401
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Configuring done (1.7s)
+-- Generating done (0.1s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/cmake-improvement/T4/build
+[  0%] Built target hpq_autogen_timestamp_deps
+[  3%] Automatic MOC and UIC for target hpq
+[  3%] Built target hpq_autogen
+[  6%] Building CXX object hpq/CMakeFiles/hpq.dir/hpq_autogen/mocs_compilation.cpp.o
+[ 10%] Building CXX object hpq/CMakeFiles/hpq.dir/src/Hpq.cpp.o
+[ 13%] Linking CXX static library libhpq.a
+[ 17%] Built target hpq
+[ 17%] Built target HandPaintingExampleLib_autogen_timestamp_deps
+[ 20%] Automatic MOC and UIC for target HandPaintingExampleLib
+[ 20%] Built target HandPaintingExampleLib_autogen
+[ 24%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/HandPaintingExampleLib_autogen/mocs_compilation.cpp.o
+[ 27%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TableModelFactory.cpp.o
+[ 31%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/TreeModelFactory.cpp.o
+[ 34%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/AppFont.cpp.o
+[ 37%] Building CXX object Examples/CMakeFiles/HandPaintingExampleLib.dir/MainWindow.cpp.o
+[ 41%] Linking CXX static library libHandPaintingExampleLib.a
+[ 44%] Built target HandPaintingExampleLib
+[ 44%] Built target HandPaintingExample_autogen_timestamp_deps
+[ 48%] Automatic MOC and UIC for target HandPaintingExample
+[ 48%] Built target HandPaintingExample_autogen
+[ 51%] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/HandPaintingExample_autogen/mocs_compilation.cpp.o
+[ 55%] Building CXX object Examples/CMakeFiles/HandPaintingExample.dir/main.cpp.o
+[ 58%] Linking CXX executable HandPaintingExample
+[ 62%] Built target HandPaintingExample
+[ 62%] Built target HandPaintingExampleTests_autogen_timestamp_deps
+[ 65%] Automatic MOC and UIC for target HandPaintingExampleTests
+[ 65%] Built target HandPaintingExampleTests_autogen
+[ 68%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/HandPaintingExampleTests_autogen/mocs_compilation.cpp.o
+[ 72%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TestMain.cpp.o
+[ 75%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/SmokeTest.cpp.o
+[ 79%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/StartupTest.cpp.o
+[ 82%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/MainWindowTest.cpp.o
+[ 86%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TableModelFactoryTest.cpp.o
+[ 89%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/TreeModelFactoryTest.cpp.o
+[ 93%] Building CXX object Examples/CMakeFiles/HandPaintingExampleTests.dir/tests/HpqTest.cpp.o
+[ 96%] Linking CXX executable HandPaintingExampleTests
+[100%] Built target HandPaintingExampleTests
+Test project /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/cmake-improvement/T4/build
+    Start 1: HandPaintingExampleTests
+1/6 Test #1: HandPaintingExampleTests ...........   Passed    0.42 sec
+    Start 2: HandPaintingExampleExists
+2/6 Test #2: HandPaintingExampleExists ..........   Passed    0.01 sec
+    Start 3: ConfigureNoWarning
+3/6 Test #3: ConfigureNoWarning .................   Passed    1.71 sec
+    Start 4: HpqLinked
+4/6 Test #4: HpqLinked ..........................   Passed    0.01 sec
+    Start 5: ProjectFiles
+5/6 Test #5: ProjectFiles .......................   Passed    0.04 sec
+    Start 6: HandPaintingExampleRunsOffscreen
+6/6 Test #6: HandPaintingExampleRunsOffscreen ...   Passed    0.13 sec
+
+100% tests passed out of 6
+
+Total Test time (real) =   2.31 sec

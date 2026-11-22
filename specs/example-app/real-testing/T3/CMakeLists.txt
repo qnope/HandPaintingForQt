@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(Probe CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+add_executable(probe probe.cpp ${SRC}/Examples/TreeModelFactory.cpp)
+target_include_directories(probe PRIVATE ${SRC}/Examples)
+target_link_libraries(probe Qt6::Widgets)

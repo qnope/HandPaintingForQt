@@ -1,0 +1,4 @@
+50:* File names: `PascalCase`
+51:* Introduce FwdDecls.h
+52:* Type Names: `PascalCase`
+55:* constant names: `PascalCase` ; no k in front of it

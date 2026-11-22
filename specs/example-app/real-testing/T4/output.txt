@@ -1,0 +1,23 @@
+qt.qpa.fonts: Populating font family aliases took 46 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support propagateSizeHints()
+count 3
+0: Sketch
+1: China Ink
+2: Black slate and chalk
+label found
+checkBox found
+lineEdit found
+groupBox found
+tableView found
+treeView found
+graphicsView found
+menuFile found
+menuEdit found
+statusbar found
+menubar found
+label=TextLabel check=CheckBox group=GroupBox title=MainWindow
+menuFile actions 0
+menuEdit actions 0
+receivers idxChanged 0 0 activated 0
+before: idx 0 le='' chk 0
+after: le='' chk 0 label=TextLabel title=MainWindow

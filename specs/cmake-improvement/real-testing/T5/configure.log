@@ -1,0 +1,50 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet arm64-osx...
+Compiler found: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
+The following packages will be built and installed:
+    gtest:arm64-osx@1.18.0
+  * vcpkg-cmake:arm64-osx@2026-11-09
+  * vcpkg-cmake-config:arm64-osx@2026-07-21
+Additional packages (*) will be modified to complete this operation.
+Restored 3 package(s) from /Users/amorrier/.cache/vcpkg/archives in 57.5 ms. Use --debug to see more details.
+Installing 1/3 vcpkg-cmake-config:arm64-osx@2026-07-21...
+vcpkg-cmake-config:arm64-osx@2026-07-21 package ABI: 394b93477e3acaa710c057611a9e8c5268daee8c9cc3761e2ab9b203ba92c1a2
+Elapsed time to handle vcpkg-cmake-config:arm64-osx: 1.38 ms
+Installing 2/3 vcpkg-cmake:arm64-osx@2026-11-09...
+vcpkg-cmake:arm64-osx@2026-11-09 package ABI: 52e30c28cc418d64ce92abc9ca2370618e4ec78229416ea5d147bc6cee4de3a3
+Elapsed time to handle vcpkg-cmake:arm64-osx: 1.57 ms
+Installing 3/3 gtest:arm64-osx@1.18.0...
+gtest:arm64-osx@1.18.0 package ABI: fa8e418e2f760f327e2b380c570ef83190a1b33c99a5e0ea779bc099872d7038
+Elapsed time to handle gtest:arm64-osx: 10.7 ms
+Installed contents are licensed to you by owners. Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Packages installed in this vcpkg installation declare the following licenses:
+BSD-3-Clause
+MIT
+The package gtest is compatible with built-in CMake targets:
+
+    enable_testing()
+    
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    
+    add_test(AllTestsInMain main)
+
+All requested installations completed successfully in: 14.2 ms
+-- Running vcpkg install - done
+-- The CXX compiler identification is AppleClang 21.0.0.21000401
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Configuring done (1.9s)
+-- Generating done (0.1s)
+-- Build files have been written to: /Users/amorrier/Programmation/HandPaintingForQt/.worktrees/cmake-improvement/T5/build

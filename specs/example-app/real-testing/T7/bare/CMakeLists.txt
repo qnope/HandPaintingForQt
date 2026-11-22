@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.16)
+project(bare)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+add_executable(bare main.cpp)
+target_link_libraries(bare Qt6::Widgets)

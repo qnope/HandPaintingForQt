@@ -1,0 +1,3 @@
+./Examples/tests/ProjectFiles.cmake:23:  if(_content MATCHES "CACHE[^\n]*FORCE")
+./Examples/tests/ProjectFiles.cmake:24:    message(FATAL_ERROR "${_file} contains set(... CACHE ... FORCE)")
+./specs/example-app/real-testing/T6/CMakeLists.txt:7:  set(WrapOpenGL_AGL "-framework OpenGL" CACHE STRING "" FORCE)

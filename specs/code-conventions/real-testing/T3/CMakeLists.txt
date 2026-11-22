@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(chk CXX)
+set(WrapOpenGL_AGL "-framework OpenGL")
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+add_executable(chk check.cpp)
+target_include_directories(chk PRIVATE /Users/amorrier/Programmation/HandPaintingForQt/Examples /Users/amorrier/Programmation/HandPaintingForQt/hpq/include)
+target_link_libraries(chk PRIVATE /Users/amorrier/Programmation/HandPaintingForQt/build/debug/Examples/libHandPaintingExampleLib.a Qt6::Widgets $ENV{HOME}/Programmation/HandPaintingForQt/build/debug/hpq/libhpq.a)

@@ -1,0 +1,18 @@
+build/
+.qtcreator/
+CMakeUserPresets.json
+
+# >>> Agentic: paths written by install_claude.py and install_cursor.py >>>
+/.claude/agents/tdd-developer.md
+/.claude/agents/tdd-real-tester.md
+/.claude/agents/tdd-reviewer.md
+/.claude/settings.json
+/.claude/skills/build-system/
+/.claude/skills/github-ci/
+/.claude/skills/tdd-elaborate/
+/.claude/skills/tdd-implement/
+/.claude/skills/tdd-plan/
+/.mcp.json
+/hooks/tdd_gate.py
+/mcp-servers/tdd-progress/
+# <<< Agentic <<<
