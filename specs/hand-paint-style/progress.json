@@ -21,9 +21,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T2",
+      "review": "APPROVED\n- ButtonPanelTest.RaisedPanelIsAFlatShapeOfTheButtonColor\n- ButtonPanelTest.SunkenPanelIsAFlatShapeOfTheMidlightColor\n- ButtonPanelTest.CheckedPanelIsAFlatShapeOfTheMidlightColor"
     },
     {
       "id": "T3",
@@ -32,9 +34,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T3",
+      "review": "APPROVED\n- ArrowTest.UpArrowIsOneFilledTrianglePointingUp, ArrowTest.DownArrowIsOneFilledTrianglePointingDown, ArrowTest.LeftArrowIsOneFilledTrianglePointingLeft, ArrowTest.RightArrowIsOneFilledTrianglePointingRight\n- ArrowTest.UpArrowIsOneFilledTrianglePointingUp (smallest y), ArrowTest.DownArrowIsOneFilledTrianglePointingDown (largest y), ArrowTest.LeftArrowIsOneFilledTrianglePointingLeft (smallest x), ArrowTest.RightArrowIsOneFilledTrianglePointingRight (largest x)"
     },
     {
       "id": "T4",
@@ -43,9 +47,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T4",
+      "review": "APPROVED\n- GroupBoxFrameTest.FrameIsOneRectangleOutlineInDarkWithoutImage\n- GroupBoxFrameTest.TitledGroupBoxRendersOneDarkOutlineWithoutImage"
     },
     {
       "id": "T5",
@@ -88,9 +94,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T8",
+      "review": "APPROVED\n- HeaderSectionTest.TableHeadersAreFlatSectionsWithoutImage (/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T8/hpq/tests/HeaderSectionTest.cpp)"
     },
     {
       "id": "T9",
@@ -121,9 +129,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T11",
+      "review": "APPROVED\n- SliderTest.HorizontalSliderDrawsGrooveAndHandleAsVectorShapes\n- SliderTest.VerticalSliderDrawsGrooveAndHandleAsVectorShapes"
     },
     {
       "id": "T12",
@@ -132,9 +142,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- OtherWidgetsTest.UncheckedCheckBoxHasNoImage, OtherWidgetsTest.CheckedCheckBoxHasNoImage, OtherWidgetsTest.UncheckedRadioButtonHasNoImage, OtherWidgetsTest.CheckedRadioButtonHasNoImage, OtherWidgetsTest.LineEditWithTextHasNoImage, OtherWidgetsTest.ProgressBarAtHalfHasNoImage (/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/hand-paint-style/T12/hpq/tests/OtherWidgetsTest.cpp)",
+      "real_testing": "PASSED\n- B13: built worktree hpq; small program linking libhpq.a set hpq::HandPaintStyle (base \"fusion\") + SketchTheme palette on QCheckBox (unchecked/checked/partial/disabled), QRadioButton (unchecked/checked), QLineEdit (text, read-only), QProgressBar (0/50/100%), rendered with QWidget::render on a counting QPaintEngine -> every widget pixmap=0 image=0 tiled=0, only paths/rects/lines/text; \"overall: all NO IMAGE\", exit 0. grab.png shows a clean legible panel in Architects Daughter (box, checked box, circle, dotted circle, outlined line edit, half-filled 50% progress bar), no layout defect, no crash.\nEvidence: scratchpad t12/ (main.cpp, CMakeLists.txt, run-output.txt, grab.png)."
     },
     {
       "id": "T13",
@@ -143,9 +155,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T13",
+      "review": "APPROVED\n- ApplyThemeTest.SetsPaletteFontHandPaintStyleAndEffect\n- RemoveThemeTest.RestoresEffectPaletteFontAndStyles"
     },
     {
       "id": "T14",
