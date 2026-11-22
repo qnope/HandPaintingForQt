@@ -77,7 +77,9 @@ QColor color_for(QPalette::ColorRole role, const GroupColors &colors) {
     case QPalette::Shadow:
         return colors.graphite;
     case QPalette::Highlight:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)  // The accent role appeared in Qt 6.6.
     case QPalette::Accent:
+#endif
         return colors.highlight;
     case QPalette::HighlightedText:
         return colors.highlighted_text;
