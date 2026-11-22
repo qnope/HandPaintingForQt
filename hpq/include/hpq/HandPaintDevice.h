@@ -19,7 +19,9 @@ public:
     QPaintEngine *paintEngine() const override;
 
 protected:
-    // The metrics of the target painter's device, so that sizes and DPI are the same.
+    // The metrics of the target painter's device, so that sizes and DPI are the same, except
+    // that the size is in logical pixels and the device pixel ratio is 1: the target painter
+    // already scales to device pixels.
     int metric(PaintDeviceMetric metric) const override;
 
 private:

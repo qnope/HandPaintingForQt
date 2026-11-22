@@ -13,7 +13,23 @@ HandPaintDevice::HandPaintDevice(QPainter &target, const Theme &theme, const Geo
 QPaintEngine *HandPaintDevice::paintEngine() const { return &m_engine; }
 
 int HandPaintDevice::metric(PaintDeviceMetric metric) const {
-    return qt_paint_device_metric(m_target.device(), metric);
+    const QPaintDevice *target_device = m_target.device();
+    switch (metric) {
+    // The target painter already scales logical coordinates to device pixels: a device pixel
+    // ratio above 1 here would make the painter of this device scale them a second time.
+    case PdmDevicePixelRatio:
+    case PdmDevicePixelRatioScaled:
+    case PdmDevicePixelRatioF_EncodedA:
+    case PdmDevicePixelRatioF_EncodedB:
+        return QPaintDevice::metric(metric);
+    // So the size is in the logical coordinates of the target painter.
+    case PdmWidth:
+        return qRound(qt_paint_device_metric(target_device, metric) / target_device->devicePixelRatio());
+    case PdmHeight:
+        return qRound(qt_paint_device_metric(target_device, metric) / target_device->devicePixelRatio());
+    default:
+        return qt_paint_device_metric(target_device, metric);
+    }
 }
 
 }  // namespace hpq

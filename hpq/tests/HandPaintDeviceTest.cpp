@@ -79,4 +79,27 @@ TEST_F(HandPaintDeviceTest, RectangleWithNoBrushReachesTargetAsTwoStrokesOnly) {
     EXPECT_TRUE(engine.calls()[1].is_stroke());
 }
 
+// On a high DPI target, the target painter already scales logical coordinates to device
+// pixels: the hand painter must not scale them a second time.
+TEST(HandPaintDeviceHighDpiTest, ShapeLandsAtTheSameLogicalPlaceOnAHighDpiTarget) {
+    constexpr double DevicePixelRatio = 2.0;
+    QImage target(200, 200, QImage::Format_ARGB32_Premultiplied);
+    target.setDevicePixelRatio(DevicePixelRatio);
+    target.fill(Qt::white);
+    hpq::SketchTheme theme;
+    hpq::RoughGeometryEngine geometry_engine;
+    {
+        QPainter target_painter(&target);
+        hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+        EXPECT_EQ(device.width(), 100);
+        EXPECT_EQ(device.height(), 100);
+        QPainter painter(&device);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(Qt::blue);
+        painter.drawRect(QRectF(40, 40, 30, 30));
+    }
+    // Center of the rectangle, in device pixels.
+    EXPECT_EQ(target.pixelColor(110, 110), QColor(Qt::blue));
+}
+
 }  // namespace
