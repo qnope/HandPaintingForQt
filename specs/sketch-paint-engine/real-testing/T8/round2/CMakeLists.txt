@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(T8ProbeR2 LANGUAGES CXX)
+find_package(Qt6 REQUIRED COMPONENTS Gui)
+find_package(GTest CONFIG REQUIRED)
+enable_testing()
+add_subdirectory(/Users/amorrier/Programmation/HandPaintingForQt/.worktrees/sketch-paint-engine/T8/hpq hpq)
+add_executable(probe main.cpp)
+target_link_libraries(probe PRIVATE hpq::hpq Qt6::Gui)

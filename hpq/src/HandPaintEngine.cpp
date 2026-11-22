@@ -12,6 +12,40 @@
 
 namespace hpq {
 
+namespace {
+
+constexpr std::uint32_t FnvOffsetBasis = 2166136261u;
+constexpr std::uint32_t FnvPrime = 16777619u;
+// Coordinates are rounded to this fraction of a device pixel before hashing.
+constexpr double SeedPrecision = 100.0;
+
+// FNV-1a: mixes the four bytes of `value` into `hash`.
+std::uint32_t fnv1a(std::uint32_t hash, std::uint32_t value) {
+    for (int byte = 0; byte < 4; ++byte) {
+        hash ^= (value >> (8 * byte)) & 0xFFu;
+        hash *= FnvPrime;
+    }
+    return hash;
+}
+
+std::uint32_t rounded(double coordinate) {
+    return static_cast<std::uint32_t>(static_cast<std::int64_t>(std::llround(coordinate * SeedPrecision)));
+}
+
+// A hash of the element types and rounded coordinates of `path`.
+std::uint32_t path_hash(const QPainterPath &path) {
+    std::uint32_t hash = FnvOffsetBasis;
+    for (int index = 0; index < path.elementCount(); ++index) {
+        const QPainterPath::Element element = path.elementAt(index);
+        hash = fnv1a(hash, static_cast<std::uint32_t>(element.type));
+        hash = fnv1a(hash, rounded(element.x));
+        hash = fnv1a(hash, rounded(element.y));
+    }
+    return hash;
+}
+
+}  // namespace
+
 HandPaintEngine::HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine)
     : QPaintEngine(QPaintEngine::AllFeatures), m_target(target), m_theme(theme), m_geometry_engine(geometry_engine) {}
 
@@ -137,8 +171,9 @@ void HandPaintEngine::save_target_in_logical_coordinates() {
     m_target.setTransform(m_transform, true);
 }
 
-// The same seed for every shape, for now.
-std::uint32_t HandPaintEngine::seed(const QPainterPath &) const { return 0; }
+// `shape` is already in device coordinates: the same primitive drawn at the same place on the
+// device gets the same seed, and so the same rough paths.
+std::uint32_t HandPaintEngine::seed(const QPainterPath &shape) const { return path_hash(shape); }
 
 namespace {
 
