@@ -72,6 +72,15 @@ void draw_arrow(QStyle::PrimitiveElement arrow, const QStyleOption &option, QPai
     painter.restore();
 }
 
+// One rectangle outline inside the option rectangle, in the palette Dark color, without fill.
+void draw_group_box_frame(const QStyleOption &option, QPainter &painter) {
+    painter.save();
+    painter.setPen(option.palette.color(QPalette::Dark));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
+    painter.restore();
+}
+
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
@@ -88,6 +97,9 @@ void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
     case PE_IndicatorArrowLeft:
     case PE_IndicatorArrowRight:
         draw_arrow(element, *option, *painter);
+        return;
+    case PE_FrameGroupBox:
+        draw_group_box_frame(*option, *painter);
         return;
     default:
         QProxyStyle::drawPrimitive(element, option, painter, widget);
