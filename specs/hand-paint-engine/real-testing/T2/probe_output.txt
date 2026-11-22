@@ -1,0 +1,23 @@
+device 200x200
+sketch: begin=1 active=1
+sketch: end=1 active-after=0
+sketch: 200x200 expected #ffffffff -> 0 non-background pixels
+sketch ctor-form active=1
+sketch second-cycle active=1
+sketch RGB32 2nd cycle: 200x200 expected #ffffffff -> 0 non-background pixels
+device 200x200
+china_ink: begin=1 active=1
+china_ink: end=1 active-after=0
+china_ink: 200x200 expected #fff5efe0 -> 0 non-background pixels
+china_ink ctor-form active=1
+china_ink second-cycle active=1
+china_ink RGB32 2nd cycle: 200x200 expected #fff5efe0 -> 0 non-background pixels
+device 200x200
+chalk: begin=1 active=1
+chalk: end=1 active-after=0
+chalk: 200x200 expected #ff2f3b33 -> 0 non-background pixels
+chalk ctor-form active=1
+chalk second-cycle active=1
+chalk RGB32 2nd cycle: 200x200 expected #ff2f3b33 -> 0 non-background pixels
+failures=0
+exit=0

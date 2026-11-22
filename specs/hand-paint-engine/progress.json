@@ -21,11 +21,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
+      "status": "done",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T2",
-      "review": "APPROVED\n- HandPaintDevice.EmptyPaintingWithSketchFillsSketchBackground\n- HandPaintDevice.EmptyPaintingWithChalkFillsChalkBackground\n- HandPaintDevice.PainterIsActiveFromBeginUntilEnd"
+      "review": "APPROVED\n- HandPaintDevice.EmptyPaintingWithSketchFillsSketchBackground\n- HandPaintDevice.EmptyPaintingWithChalkFillsChalkBackground\n- HandPaintDevice.PainterIsActiveFromBeginUntilEnd",
+      "real_testing": "PASSED\n- B4: probe (specs/hand-paint-engine/real-testing/T2/probe/main.cpp) linking hpq::hpq, run offscreen: for Sketch, China Ink and Chalk, a 200x200 ARGB32 QImage filled red wrapped in hpq::HandPaintDevice, QPainter begin/end with no drawing -> 0 non-background pixels (#ffffff, #f5efe0, #2f3b33). Same on RGB32 with the QPainter(&device) constructor, twice on one device: begin=1, isActive=1 until end, 0 after. Exit 0, no Qt or build warnings. PNGs: before solid red; after plain white / cream / dark slate green, no red left, no artifacts.\nEvidence: specs/hand-paint-engine/real-testing/T2/"
     },
     {
       "id": "T3",

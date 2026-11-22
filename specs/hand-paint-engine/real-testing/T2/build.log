@@ -1,0 +1,7 @@
+[1/7] Building CXX object hpq_root/hpq/CMakeFiles/hpq.dir/src/Hpq.cpp.o
+[2/7] Building CXX object hpq_root/hpq/CMakeFiles/hpq.dir/src/Theme.cpp.o
+[3/7] Building CXX object hpq_root/hpq/CMakeFiles/hpq.dir/src/HandPaintDevice.cpp.o
+[4/7] Building CXX object hpq_root/hpq/CMakeFiles/hpq.dir/src/HandPaintEngine.cpp.o
+[5/7] Linking CXX static library hpq_root/hpq/libhpq.a
+[6/7] Building CXX object CMakeFiles/probe.dir/main.cpp.o
+[7/7] Linking CXX executable probe
