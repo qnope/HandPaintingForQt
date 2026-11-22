@@ -39,7 +39,7 @@ struct Grab {
 // Builds a 400x260 window with `build`, gives it the Fusion style, the Sketch palette and
 // font, applies the theme when `themed`, and grabs it.
 Grab grab_window(const Builder &build, bool themed) {
-    const auto theme = std::make_shared<const hpq::SketchTheme>();
+    const hpq::Theme theme = hpq::sketch_theme();
     std::unique_ptr<QStyle> style(QStyleFactory::create("Fusion"));
     QMainWindow window;
     auto *central = new QWidget;
@@ -49,8 +49,8 @@ Grab grab_window(const Builder &build, bool themed) {
     if (themed) {
         hpq::apply_theme(window, theme, std::make_shared<const hpq::RoughGeometryEngine>());
     } else {
-        window.setPalette(theme->palette());
-        window.setFont(theme->font());
+        window.setPalette(theme.palette());
+        window.setFont(theme.font());
         window.setStyle(style.get());
         for (QWidget *descendant : window.findChildren<QWidget *>()) {
             descendant->setStyle(style.get());
@@ -80,7 +80,7 @@ int dark_pixel_count(const QImage &image, const QRect &rect) {
 // The share (0..1) of the columns of `band` that hold a pixel clearly darker than the
 // window color: a line drawn across the band, even wobbly, covers every column.
 double covered_column_share(const QImage &image, const QRect &band) {
-    const int window_lightness = hpq::SketchTheme().palette().color(QPalette::Window).lightness();
+    const int window_lightness = hpq::sketch_theme().palette().color(QPalette::Window).lightness();
     constexpr int MinDarkening = 30;
     int covered = 0;
     for (int x = band.left(); x <= band.right(); ++x) {

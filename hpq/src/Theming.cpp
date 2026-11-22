@@ -80,20 +80,20 @@ SavedLook *find_saved_look(QWidget &window) {
 
 }  // namespace
 
-void apply_theme(QWidget &window, std::shared_ptr<const Theme> theme,
+void apply_theme(QWidget &window, const Theme &theme,
                  std::shared_ptr<const GeometryEngine> geometry_engine) {
     if (!find_saved_look(window)) {
         new SavedLook(window);
     }
-    window.setPalette(theme->palette());
-    window.setFont(theme->font());
+    window.setPalette(theme.palette());
+    window.setFont(theme.font());
     QStyle *style = hand_paint_style();
     window.setStyle(style);
     for (QWidget *descendant : window.findChildren<QWidget *>()) {
         descendant->setStyle(style);
     }
     window.setGraphicsEffect(
-        new HandPaintEffect(std::move(theme), std::move(geometry_engine), &window));
+        new HandPaintEffect(theme, std::move(geometry_engine), &window));
 }
 
 void remove_theme(QWidget &window) {

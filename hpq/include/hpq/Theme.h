@@ -10,17 +10,21 @@
 namespace hpq {
 
 // What a hand-painted look draws with: colors, font, roughness and fill.
+// The values are set at construction and can only be read afterwards.
 class Theme {
 public:
-    Theme() = default;
-    Theme(const Theme &) = default;
-    Theme &operator=(const Theme &) = default;
-    virtual ~Theme() = default;
+    Theme(QPalette palette, QFont font, RoughOptions rough_options, FillStyle fill_style);
 
-    virtual QPalette palette() const = 0;
-    virtual QFont font() const = 0;
-    virtual RoughOptions rough_options() const = 0;
-    virtual FillStyle fill_style() const = 0;
+    QPalette palette() const;
+    QFont font() const;
+    RoughOptions rough_options() const;
+    FillStyle fill_style() const;
+
+private:
+    QPalette m_palette;
+    QFont m_font;
+    RoughOptions m_rough_options;
+    FillStyle m_fill_style;
 };
 
 }  // namespace hpq

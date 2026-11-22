@@ -32,10 +32,6 @@ namespace {
 
 const QString ThemeFontFamily("Architects Daughter");
 
-std::shared_ptr<const hpq::Theme> sketch_theme() {
-    return std::make_shared<const hpq::SketchTheme>();
-}
-
 std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
     return std::make_shared<const hpq::RoughGeometryEngine>();
 }
@@ -49,11 +45,11 @@ TEST(ApplyThemeTest, SetsPaletteFontHandPaintStyleAndEffect) {
     layout->addWidget(button);
     layout->addWidget(check_box);
     window.setCentralWidget(central);
-    const auto theme = sketch_theme();
+    const hpq::Theme theme = hpq::sketch_theme();
 
     hpq::apply_theme(window, theme, rough_geometry_engine());
 
-    EXPECT_EQ(window.palette(), theme->palette());
+    EXPECT_EQ(window.palette(), theme.palette());
     EXPECT_EQ(window.font().family(), ThemeFontFamily);
     const auto *style = qobject_cast<hpq::HandPaintStyle *>(window.style());
     ASSERT_NE(style, nullptr);
@@ -86,9 +82,9 @@ private:
 };
 
 TEST(ApplyThemeTest, ThemedGrabDiffersFromPlainGrab) {
-    const auto theme = sketch_theme();
-    FramedWindow plain(*theme);
-    FramedWindow themed(*theme);
+    const hpq::Theme theme = hpq::sketch_theme();
+    FramedWindow plain(theme);
+    FramedWindow themed(theme);
 
     hpq::apply_theme(themed.window(), theme, rough_geometry_engine());
 
@@ -121,7 +117,7 @@ TEST(ApplyThemeTest, ChildAtAnOffsetKeepsWhatItDrawsInsideItsClip) {
     auto *line_edit = new QLineEdit("WWWWWWWW", &parent);
     line_edit->setGeometry(40, 40, 160, 30);
 
-    hpq::apply_theme(parent, sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(parent, hpq::sketch_theme(), rough_geometry_engine());
 
     const QImage image = parent.grab().toImage();
     const qreal ratio = image.devicePixelRatio();
@@ -213,7 +209,7 @@ TEST(ApplyThemeTest, ThemedWindowPaintsWithoutWarning) {
     layout->addWidget(new QGraphicsView(scene, central));
     window.setCentralWidget(central);
     window.resize(400, 500);
-    hpq::apply_theme(window, sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window, hpq::sketch_theme(), rough_geometry_engine());
 
     window.show();
     ASSERT_TRUE(wait_for_window_exposed(window));
@@ -248,7 +244,7 @@ TEST(ApplyThemeTest, ThemedWindowChildGetsMouseClick) {
     layout->addWidget(check_box, 0, Qt::AlignLeft | Qt::AlignTop);
     window.setCentralWidget(central);
     window.resize(200, 100);
-    hpq::apply_theme(window, sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window, hpq::sketch_theme(), rough_geometry_engine());
     window.show();
     ASSERT_TRUE(wait_for_window_exposed(window));
     ASSERT_FALSE(check_box->isChecked());

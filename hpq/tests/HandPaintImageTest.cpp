@@ -56,7 +56,7 @@ protected:
         }
     }
 
-    hpq::SketchTheme m_theme;
+    hpq::Theme m_theme = hpq::sketch_theme();
     hpq::RoughGeometryEngine m_geometry_engine;
     const QImage m_source = four_color_image();
 };

@@ -38,7 +38,7 @@ protected:
         return path;
     }
 
-    hpq::SketchTheme m_theme;
+    hpq::Theme m_theme = hpq::sketch_theme();
     hpq::RoughGeometryEngine m_geometry_engine;
     RecordingPaintDevice m_target;
 };
@@ -86,7 +86,7 @@ TEST(HandPaintDeviceHighDpiTest, ShapeLandsAtTheSameLogicalPlaceOnAHighDpiTarget
     QImage target(200, 200, QImage::Format_ARGB32_Premultiplied);
     target.setDevicePixelRatio(DevicePixelRatio);
     target.fill(Qt::white);
-    hpq::SketchTheme theme;
+    const hpq::Theme theme = hpq::sketch_theme();
     hpq::RoughGeometryEngine geometry_engine;
     {
         QPainter target_painter(&target);

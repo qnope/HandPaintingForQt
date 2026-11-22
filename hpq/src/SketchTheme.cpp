@@ -91,13 +91,7 @@ QColor color_for(QPalette::ColorRole role, const GroupColors &colors) {
     }
 }
 
-}  // namespace
-
-SketchTheme::SketchTheme() {
-    font_family();
-}
-
-QPalette SketchTheme::palette() const {
+QPalette sketch_palette() {
     QPalette palette;
     for (const QPalette::ColorGroup group : PaletteGroups) {
         const GroupColors colors = colors_for(group);
@@ -109,16 +103,10 @@ QPalette SketchTheme::palette() const {
     return palette;
 }
 
-QFont SketchTheme::font() const {
-    return QFont(font_family());
-}
+}  // namespace
 
-RoughOptions SketchTheme::rough_options() const {
-    return RoughOptions{};
-}
-
-FillStyle SketchTheme::fill_style() const {
-    return FillStyle::Solid;
+Theme sketch_theme() {
+    return Theme(sketch_palette(), QFont(font_family()), RoughOptions{}, FillStyle::Solid);
 }
 
 }  // namespace hpq
