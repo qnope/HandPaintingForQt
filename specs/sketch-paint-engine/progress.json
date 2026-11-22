@@ -75,9 +75,11 @@
         "T3",
         "T4"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- HandPaintDeviceTest.RectangleReachesTargetAsOneRoughFillThenTwoRoughStrokes\n- HandPaintDeviceTest.RectangleWithNoPenReachesTargetAsOneFillOnly\n- HandPaintDeviceTest.RectangleWithNoBrushReachesTargetAsTwoStrokesOnly",
+      "real_testing": "PASSED\n- B12: A probe program (QGuiApplication offscreen, linked to build/debug/hpq/libhpq.a) draws on a QImage through a target QPainter scaled x2, wrapped in hpq::HandPaintDevice(SketchTheme, RoughGeometryEngine). It calls drawRect(10,10,100,50) with a red 2 px pen and a blue brush, saved as both.png. -> The QPainter on the device is active and the exit code is 0. both.png shows a solid blue fill with wavy, uneven edges, so it is not an exact rectangle. On top of it is a thick red hand-drawn outline, and on the right side you can see two red strokes that do not quite overlap. The pen colour and width match a red 2 px pen at x2 scale. reference_exact.png is the same rectangle drawn directly with plain Qt, and the rough version clearly differs from it. Drawing the same rectangle twice gives the same image, pixel for pixel.\n- B13: Same rectangle drawn with Qt::NoPen (nopen.png) and with Qt::NoBrush (nobrush.png). -> nopen.png shows only the wavy blue fill and has no outline (pixel count: 0 red pixels, 19860 blue). nobrush.png shows only the two red rough strokes over a white inside, with the double line visible on the sides (3519 red pixels, 0 blue).\nEvidence: specs/sketch-paint-engine/real-testing/T6/"
     },
     {
       "id": "T7",

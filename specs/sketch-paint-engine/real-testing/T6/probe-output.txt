@@ -1,0 +1,6 @@
+both.png     red-ish px=3484 blue-ish px=17958 other non-white px=486
+nopen.png    red-ish px=0 blue-ish px=19860 other non-white px=383
+nobrush.png  red-ish px=3519 blue-ish px=0 other non-white px=686
+reference    red-ish px=2388 blue-ish px=18816 other non-white px=8
+both drawn twice identical: yes
+QPicture target size bytes=5588
