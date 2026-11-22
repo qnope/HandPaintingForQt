@@ -4,7 +4,12 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
+#include <hpq/RoughGeometryEngine.h>
+#include <hpq/SketchTheme.h>
+#include <hpq/Theming.h>
+
 #include <QBrush>
+#include <QComboBox>
 #include <QtMath>
 #include <cmath>
 #include <QFont>
@@ -18,6 +23,8 @@
 namespace hpq::example {
 
 namespace {
+constexpr int SketchIndex = 0;
+
 QGraphicsScene *create_shapes_scene(QObject *parent)
 {
     auto *scene = new QGraphicsScene(parent);
@@ -74,6 +81,19 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->treeView->setModel(tree_model.release());
 
     m_ui->graphicsView->setScene(create_shapes_scene(this));
+
+    connect(m_ui->comboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &MainWindow::select_theme);
+    select_theme(m_ui->comboBox->currentIndex());
+}
+
+void MainWindow::select_theme(int index)
+{
+    if (index == SketchIndex)
+        hpq::apply_theme(*this, std::make_shared<const hpq::SketchTheme>(),
+                         std::make_shared<const hpq::RoughGeometryEngine>());
+    else
+        hpq::remove_theme(*this);
 }
 
 MainWindow::~MainWindow() = default;

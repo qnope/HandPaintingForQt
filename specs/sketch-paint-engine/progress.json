@@ -197,10 +197,11 @@
       "depends_on": [
         "T14"
       ],
-      "status": "dev",
+      "status": "done",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/sketch-paint-engine/T15"
+      "review": "APPROVED\n- MainWindow.StartsWithTheSketchThemeApplied\n- ChinaInkAndBlackSlate/MainWindowOtherTheme.SelectingItRemovesTheSketchTheme/0 and /1\n- ChinaInkAndBlackSlate/MainWindowOtherTheme.SelectingSketchAgainAppliesTheSketchTheme/0 and /1\n- Removal confirmed: at HEAD no test checks that the combobox has no behavior, and the ReceiverCounter helper was defined but never used. It is now deleted from Examples/tests/MainWindowTest.cpp",
+      "real_testing": "PASSED\n- B27: Built with the debug preset. Ran HandPaintingExample offscreen with HPQ_AUTO_QUIT; it exited 0 and printed only the offscreen \"propagateSizeHints\" message. Then ran a probe linked to HandPaintingExampleLib and hpq, which creates hpq::example::MainWindow, shows it and grabs it -> comboBox at index 0 reading \"Sketch\". graphicsEffect() is hpq::HandPaintEffect, the palette equals the SketchTheme palette (window colour #fbf8ef) and the font is \"Architects Daughter\". In 1_startup_screen.png and 1_startup_grab.png I see cream paper, wobbly double-stroked borders on the group box, combos, table, tree, scrollbars and buttons, hand-drawn rectangle, ellipse, line, rounded rect, triangle, star and curve, and the handwritten \"Hand painting for Qt\".\n- B28: In the probe I set comboBox to index 1 (\"China Ink\"), then 2 (\"Black slate and chalk\"), then 0 (\"Sketch\"), and also 1 then 0 -> for indexes 1 and 2, graphicsEffect() is null, the palette is not Sketch (#efefef) and the font is Helvetica. 2_china_ink_screen.png and 3_black_slate_screen.png show default Fusion rendering: straight borders, grey/white widgets, clean geometric shapes and plain text. Back on \"Sketch\", and after 1 then 0, HandPaintEffect, the Sketch palette and Architects Daughter are back. 4_sketch_again_screen.png looks the same as the startup sketch look. No crash, the probe exited 0, and there were no messages except the offscreen propagateSizeHints one.\nEvidence: specs/sketch-paint-engine/real-testing/T15/"
     },
     {
       "id": "T16",

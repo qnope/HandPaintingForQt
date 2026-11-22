@@ -15,6 +15,9 @@ public:
     ~MainWindow() override;
 
 private:
+    // Applies the Sketch theme for the "Sketch" entry of comboBox, removes the theme otherwise.
+    void select_theme(int index);
+
     std::unique_ptr<Ui::MainWindow> m_ui;
 };
 
