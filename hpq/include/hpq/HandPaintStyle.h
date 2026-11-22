@@ -27,6 +27,9 @@ public:
 
 private:
     void draw_slider(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
+    void draw_scroll_bar(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
+    void draw_scroll_bar_line_button(const QStyleOptionSlider &option, SubControl button, PrimitiveElement arrow,
+                                     QPainter &painter, const QWidget *widget) const;
 };
 
 }  // namespace hpq

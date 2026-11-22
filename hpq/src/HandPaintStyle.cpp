@@ -155,6 +155,12 @@ void HandPaintStyle::drawComplexControl(ComplexControl control, const QStyleOpti
             return;
         }
     }
+    if (control == CC_ScrollBar) {
+        if (const auto *scroll_bar = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
+            draw_scroll_bar(*scroll_bar, *painter, widget);
+            return;
+        }
+    }
     if (control == CC_SpinBox) {
         if (const auto *spin_box = qstyleoption_cast<const QStyleOptionSpinBox *>(option)) {
             draw_spin_box(*this, *spin_box, *painter, widget);
@@ -197,6 +203,38 @@ void HandPaintStyle::draw_slider(const QStyleOptionSlider &option, QPainter &pai
         tick_marks.subControls = SC_SliderTickmarks;
         QProxyStyle::drawComplexControl(CC_Slider, &tick_marks, &painter, widget);
     }
+}
+
+// Fusion draws the arrows of the line buttons from a cached pixmap: let Fusion draw the rest,
+// then draw each line button as a flat panel with a vector arrow.
+void HandPaintStyle::draw_scroll_bar(const QStyleOptionSlider &option, QPainter &painter,
+                                     const QWidget *widget) const {
+    QStyleOptionSlider without_line_buttons = option;
+    without_line_buttons.subControls &= ~(SC_ScrollBarSubLine | SC_ScrollBarAddLine);
+    QProxyStyle::drawComplexControl(CC_ScrollBar, &without_line_buttons, &painter, widget);
+
+    const bool is_horizontal = option.orientation == Qt::Horizontal;
+    const PrimitiveElement sub_arrow = is_horizontal ? PE_IndicatorArrowLeft : PE_IndicatorArrowUp;
+    const PrimitiveElement add_arrow = is_horizontal ? PE_IndicatorArrowRight : PE_IndicatorArrowDown;
+    draw_scroll_bar_line_button(option, SC_ScrollBarSubLine, sub_arrow, painter, widget);
+    draw_scroll_bar_line_button(option, SC_ScrollBarAddLine, add_arrow, painter, widget);
+}
+
+void HandPaintStyle::draw_scroll_bar_line_button(const QStyleOptionSlider &option, SubControl button,
+                                                 PrimitiveElement arrow, QPainter &painter,
+                                                 const QWidget *widget) const {
+    if (!(option.subControls & button)) {
+        return;
+    }
+    QStyleOption button_option = option;
+    button_option.rect = subControlRect(CC_ScrollBar, &option, button, widget);
+    const bool is_pressed = (option.activeSubControls & button) && (option.state & State_Sunken);
+    button_option.state &= ~(State_Sunken | State_On);
+    if (is_pressed) {
+        button_option.state |= State_Sunken;
+    }
+    drawPrimitive(PE_PanelButtonCommand, &button_option, &painter, widget);
+    drawPrimitive(arrow, &button_option, &painter, widget);
 }
 
 }  // namespace hpq
