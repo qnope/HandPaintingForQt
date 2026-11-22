@@ -1,0 +1,27 @@
+platform=offscreen screen dpr=1,0
+theme is sketch: 1
+B22 sketch: pixmap 100x80 dpr=1,0 logical 100x80
+  center(50,40)=#ffffff corner(2,2)=#ffffff (95,75)=#ffffff
+  non-bg pixels=642 bbox(logical)=(9,0,8,0)-(91,0,71,0) distinct colors=180
+  most contrasting color=#ff333333
+theme is chalk: 1
+B23 chalk: pixmap 100x80 dpr=1,0 logical 100x80
+  center(50,40)=#2f3b33 corner(2,2)=#2f3b33 (95,75)=#2f3b33
+  non-bg pixels=973 bbox(logical)=(8,0,7,0)-(92,0,71,0) distinct colors=190
+  most contrasting color=#fff0f0e8
+B23 chalk after events: pixmap 100x80 dpr=1,0 logical 100x80
+  center(50,40)=#2f3b33 corner(2,2)=#2f3b33 (95,75)=#2f3b33
+  non-bg pixels=973 bbox(logical)=(8,0,7,0)-(92,0,71,0) distinct colors=190
+  most contrasting color=#fff0f0e8
+qt.qpa.fonts: Populating font family aliases took 40 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support propagateSizeHints()
+frame chalk: pixmap 220x180 dpr=1,0 logical 220x180
+  center(50,40)=#2f3b33 corner(2,2)=#2f3b33 (95,75)=#2f3b33
+  non-bg pixels=11024 bbox(logical)=(9,0,41,0)-(210,0,170,0) distinct colors=421
+  most contrasting color=#ffffffff
+This plugin does not support propagateSizeHints()
+mainwindow sketch: pixmap 240x140 dpr=1,0 logical 240x140
+  center(50,40)=#f8f8f8 corner(2,2)=#ffffff (95,75)=#ffffff
+  non-bg pixels=33392 bbox(logical)=(0,0,0,0)-(239,0,139,0) distinct colors=188
+  most contrasting color=#ff333333
+exit=0

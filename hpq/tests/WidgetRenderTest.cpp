@@ -1,4 +1,5 @@
 #include "HandDrawnCheck.h"
+#include "RectWidget.h"
 
 #include <gtest/gtest.h>
 
@@ -6,33 +7,14 @@
 #include <hpq/Theme.h>
 
 #include <QImage>
-#include <QPainter>
 #include <QPainterPath>
-#include <QPen>
 #include <QPoint>
 #include <QRectF>
 #include <QRegion>
-#include <QWidget>
 
 namespace {
 
 constexpr int ImageSize = 200;
-
-// A 100x80 widget that draws the outline of the rect (10,10,80,60) with a pen and no brush.
-class RectWidget : public QWidget
-{
-public:
-    RectWidget() { resize(100, 80); }
-
-protected:
-    void paintEvent(QPaintEvent* /*event*/) override
-    {
-        QPainter painter(this);
-        painter.setPen(QPen(Qt::black));
-        painter.setBrush(Qt::NoBrush);
-        painter.drawRect(10, 10, 80, 60);
-    }
-};
 
 // Renders the widget at (50,50) through a device with the theme, on a red image.
 QImage rendered_widget(const hpq::Theme& theme)
@@ -40,7 +22,7 @@ QImage rendered_widget(const hpq::Theme& theme)
     QImage image(ImageSize, ImageSize, QImage::Format_ARGB32_Premultiplied);
     image.fill(Qt::red);
     hpq::HandPaintDevice device(image, theme);
-    RectWidget widget;
+    hpq_tests::RectWidget widget;
     widget.render(&device, QPoint(50, 50), QRegion(), QWidget::DrawChildren);
     return image;
 }

@@ -166,10 +166,11 @@
       "depends_on": [
         "T12"
       ],
-      "status": "dev",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T13"
+      "status": "done",
+      "rejections": 2,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-engine/T13, run `git merge 95c63a3a45ba0f3aef5f9c3eeabdcd7f7c19c961`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- HandPaintEffectTest.GrabIsHandDrawnOutlineOfTheRect\n- HandPaintEffectTest.GrabInsideTheRectIsSketchBackground\n- HandPaintEffectTest.GrabAfterSetThemeChalkInsideTheRectIsChalkBackground\n- HandPaintEffectTest.GrabAfterSetThemeChalkIsHandDrawnOutlineInChalkColors",
+      "real_testing": "PASSED\n- B22: merged T13 worktree rebuilt (ctest 4/4 offscreen; ThemeDrawingTest.cpp and HandPaintEffectTest.cpp both in HpqTests). Probe linked to this worktree's libhpq.a: 100x80 widget drawing drawRect(10,10,80,60) with HandPaintEffect(Sketch), grab(), offscreen and native cocoa (DPR 2) -> white background with a #333333 hand-drawn outline, slightly wobbly strokes with corner overshoot, bbox ~(9,9)-(91,71), pixel (50,40) #ffffff, same on both platforms. Exit 0.\n- B23: set_theme(Theme::chalk()) then grab (immediately and after events) -> dark slate #2f3b33 background with chalk-white #f0f0e8 hand-drawn outline at the same place; (50,40) #2f3b33 on offscreen and cocoa; theme()==chalk.\nEvidence: specs/hand-paint-engine/real-testing/T13/"
     },
     {
       "id": "T14",

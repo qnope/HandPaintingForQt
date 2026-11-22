@@ -1,0 +1,92 @@
+platform=cocoa screen dpr=2,0
+theme is sketch: 1
+B22 sketch: pixmap 200x160 dpr=2,0 logical 100x80
+  center(50,40)=#ffffff corner(2,2)=#ffffff (95,75)=#ffffff
+  non-bg pixels=1277 bbox(logical)=(9,5,9,0)-(90,5,70,5) distinct colors=202
+  most contrasting color=#ff333333
+theme is chalk: 1
+B23 chalk: pixmap 200x160 dpr=2,0 logical 100x80
+  center(50,40)=#2f3b33 corner(2,2)=#2f3b33 (95,75)=#2f3b33
+  non-bg pixels=1932 bbox(logical)=(9,0,9,0)-(91,0,70,5) distinct colors=236
+  most contrasting color=#fff0f0e8
+B23 chalk after events: pixmap 200x160 dpr=2,0 logical 100x80
+  center(50,40)=#2f3b33 corner(2,2)=#2f3b33 (95,75)=#2f3b33
+  non-bg pixels=1932 bbox(logical)=(9,0,9,0)-(91,0,70,5) distinct colors=236
+  most contrasting color=#fff0f0e8
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+frame chalk: pixmap 440x360 dpr=2,0 logical 220x180
+  center(50,40)=#2f3b33 corner(2,2)=#2f3b33 (95,75)=#2f3b33
+  non-bg pixels=9346 bbox(logical)=(17,0,39,0)-(202,5,162,5) distinct colors=250
+  most contrasting color=#fff0f0e8
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+QMacCGContext:: Unsupported paint engine type 50
+mainwindow sketch: pixmap 480x280 dpr=2,0 logical 240x140
+  center(50,40)=#ffffff corner(2,2)=#ffffff (95,75)=#ffffff
+  non-bg pixels=2930 bbox(logical)=(30,5,40,0)-(162,0,104,0) distinct colors=195
+  most contrasting color=#ff333333
+exit=0
