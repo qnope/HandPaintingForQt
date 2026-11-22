@@ -29,6 +29,8 @@ public:
                    Qt::ImageConversionFlags flags = Qt::AutoColor) override;
     void drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap, const QPointF &offset) override;
     Type type() const override;
+    // Draws the text on the target in the theme font, at the same pixel size, in the pen color.
+    void drawTextItem(const QPointF &position, const QTextItem &text_item) override;
 
 private:
     // Draws `shape` on the target: its rough fill area when it is closed and the brush is set,

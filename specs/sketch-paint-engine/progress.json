@@ -89,10 +89,10 @@
         "T6"
       ],
       "status": "real-testing",
-      "rejections": 0,
-      "note": "",
+      "rejections": 1,
+      "note": "FAILED\n- B14: drew `drawPolygon(star, Qt::WindingFill)` (a five-point star, red brush, black pen) on a `HandPaintDevice` (SketchTheme + RoughGeometryEngine) onto a white QImage, and drew the same scene with a plain QPainter as a reference -> in `hand.png` the Winding star has a white hole in the middle, the same as the OddEven star next to it. The pixel at the star center (280,215) is rgb(255,255,255) on the device but rgb(255,120,120) in the reference. The fill rule is lost on the way to the target, even though `HandPaintEngine::drawPolygon` calls `setFillRule(WindingFill)` on the shape it builds. -> the spec expects the primitive to look the same, only rough: a Winding star filled with no hole.\n- other: the other primitives look right (lines, rect, rounded rect, ellipse, OddEven star with hole, convex hexagon, cubic paths, int polygon, QGraphicsScene render); polyline open and unfilled; deterministic; no warnings. So the Winding star is the only remark.\nEvidence: .worktrees/sketch-paint-engine/T7/specs/sketch-paint-engine/real-testing/T7/",
       "worktree": ".worktrees/sketch-paint-engine/T7",
-      "review": "APPROVED\n- HandPaintPrimitivesTest.LineGoesThroughGeometryEngine, RectangleGoesThroughGeometryEngine, EllipseGoesThroughGeometryEngine, OddEvenPolygonGoesThroughGeometryEngineWithItsFillRule, WindingPolygonGoesThroughGeometryEngineWithItsFillRule, ConvexPolygonGoesThroughGeometryEngine, PolylineGoesThroughGeometryEngine, PathGoesThroughGeometryEngine\n- HandPaintPrimitivesTest.PolylineIsAnOpenShapeAndIsNotFilled"
+      "review": "APPROVED\n- LineGoesThroughGeometryEngine, IntegerLineGoesThroughGeometryEngine, RectangleGoesThroughGeometryEngine, EllipseGoesThroughGeometryEngine, IntegerEllipseGoesThroughGeometryEngine, OddEvenPolygonGoesThroughGeometryEngineWithItsFillRule, WindingPolygonGoesThroughGeometryEngineWithItsFillRule, ConvexPolygonGoesThroughGeometryEngine, IntegerPolygonGoesThroughGeometryEngine, PolylineGoesThroughGeometryEngine, PathGoesThroughGeometryEngine (hpq/tests/HandPaintPrimitivesTest.cpp)\n- PolylineIsAnOpenShapeAndIsNotFilled"
     },
     {
       "id": "T8",
@@ -114,9 +114,9 @@
       "depends_on": [
         "T6"
       ],
-      "status": "real-testing",
-      "rejections": 0,
-      "note": "",
+      "status": "dev",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/sketch-paint-engine/T9, run `git merge a38798c6fc36169ca5b5a89659a25df7e1292e55`, keep the work of both sides and make the tests pass",
       "worktree": ".worktrees/sketch-paint-engine/T9",
       "review": "APPROVED\n- HandPaintTransformClipTest.RoughShapeLandsAtTransformedPosition\n- HandPaintTransformClipTest.NothingIsDrawnOutsideTheClip"
     },
@@ -128,11 +128,11 @@
         "T5",
         "T6"
       ],
-      "status": "real-testing",
-      "rejections": 1,
-      "note": "REJECTED\n- hpq/src/HandPaintEngine.cpp: `drawTextItem` copies the weight and the italic flag of the original font onto the theme font (`font.setWeight(item_font.weight()); font.setItalic(item_font.italic());`). Neither B19 nor the task asks for this: they say only to use the theme font at the same pixel size, in the pen color. No test covers these lines. -> Remove the two lines, or get the spec changed to add this behavior and write a test for it.",
-      "worktree": ".worktrees/sketch-paint-engine/T10",
-      "review": "APPROVED\n- HandPaintTextTest.TextReachesTargetInThemeFontAtSamePixelSizeInPenColor\n- HandPaintTextTest.PointSizeBecomesSamePixelSizeOnDevice"
+      "status": "done",
+      "rejections": 2,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/sketch-paint-engine/T10, run `git merge a38798c6fc36169ca5b5a89659a25df7e1292e55`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- HandPaintTextTest.TextReachesTargetInThemeFontAtSamePixelSizeInPenColor\n- HandPaintTextTest.PointSizeBecomesSamePixelSizeOnDevice",
+      "real_testing": "PASSED\n- B19: In the T10 worktree with the T11 image code merged in, I ran the test command (configure, build, then `QT_QPA_PLATFORM=offscreen ctest`), and all 3 tests passed. I then rebuilt the probe against the current hpq with Ninja, keeping `set(WrapOpenGL_AGL \"-framework OpenGL\")` before `find_package(Qt6)`. The probe draws text through hpq::HandPaintDevice and compares it, pixel by pixel, with text drawn straight in Architects Daughter at the original pixel size and pen color. For Helvetica 16px dark red, Helvetica point 12 blue, Courier New 28px bold green and Times New Roman 40px black, the original font sizes were 16, 16, 28 and 40 px, and every case gave diff_vs_themefont_ref=0. The darkest pixel matched the pen color in each case (#800000, #0000ff, #008000, #000000), and the theme family is \"Architects Daughter\". In the PNGs, each line of device text is in the hand-written Architects Daughter font, in the right color, at about the same height as the original. The Helvetica reference image is in a plain sans-serif font. I also drew image, text, image, text through the device. Both gradient images arrived unchanged (image_pixel_mismatches=0) at their own positions, and the two lines of dark red text (#800000) are in Architects Daughter. Nothing overlaps and nothing is garbled. -> as the spec expects: the same text in the theme font, at the same pixel size, in the pen color, and the images from T11 still unchanged.\nEvidence: specs/sketch-paint-engine/real-testing/T10/"
     },
     {
       "id": "T11",

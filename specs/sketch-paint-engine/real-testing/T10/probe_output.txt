@@ -1,0 +1,5 @@
+helvetica16_darkred: font px=16 ink=1040 bbox=(10,35 180x21) darkest=#800000 expected=#800000 diff_vs_themefont_ref=0
+point12_blue: font px=16 ink=1173 bbox=(10,39 220x12) darkest=#0000ff expected=#0000ff diff_vs_themefont_ref=0
+courier28_bold_green: font px=28 ink=1932 bbox=(10,27 240x34) darkest=#008000 expected=#008000 diff_vs_themefont_ref=0
+times40_black: font px=40 ink=3162 bbox=(9,21 300x46) darkest=#000000 expected=#000000 diff_vs_themefont_ref=0
+theme family: Architects Daughter
