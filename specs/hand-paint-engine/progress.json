@@ -1,0 +1,186 @@
+{
+  "feature": "hand-paint-engine",
+  "status": "open",
+  "test_command": "cmake --preset debug && cmake --build --preset debug && QT_QPA_PLATFORM=offscreen ctest --preset debug --output-on-failure",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Theme value and presets",
+      "file": "tasks/T1.md",
+      "depends_on": [],
+      "status": "done",
+      "rejections": 0,
+      "note": "",
+      "review": "APPROVED\n- Theme.SketchPreset\n- Theme.ChinaInkPreset\n- Theme.ChalkPreset",
+      "real_testing": "PASSED\n- B1: built hpq with the preset command (configure/build/ctest green, no warnings), built a separate probe against libhpq.a + hpq/Theme.h, ran it and printed hpq::Theme::sketch() -> background #FFFFFF, ink #333333, fill #D0D0D0 (alpha 255), stroke width 1.00, roughness 1.50, 2 passes, fill style Solid \u2014 matches the spec.\n- B2: same probe printed hpq::Theme::china_ink() -> background #F5EFE0, ink #000000, fill #808080, stroke width 2.50, roughness 1.00, 1 pass, fill style Solid \u2014 matches the spec.\n- B3: same probe printed hpq::Theme::chalk() -> background #2F3B33, ink #F0F0E8, fill #A0A8A0, stroke width 2.00, roughness 2.00, 2 passes, fill style Solid \u2014 matches the spec. Copy/assign/==/!= behave as a plain value; probe exit code 0.\nEvidence: specs/hand-paint-engine/real-testing/T1/"
+    },
+    {
+      "id": "T2",
+      "title": "HandPaintDevice fills the theme background",
+      "file": "tasks/T2.md",
+      "depends_on": [
+        "T1"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T3",
+      "title": "Pluggable GeometryEngine with theme colors",
+      "file": "tasks/T3.md",
+      "depends_on": [
+        "T2"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T4",
+      "title": "RoughGeometryEngine draws a rough line",
+      "file": "tasks/T4.md",
+      "depends_on": [
+        "T3"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T5",
+      "title": "Rough rectangles, polygons and polylines",
+      "file": "tasks/T5.md",
+      "depends_on": [
+        "T4"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T6",
+      "title": "Rough curves (ellipses and paths)",
+      "file": "tasks/T6.md",
+      "depends_on": [
+        "T4"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T7",
+      "title": "Solid fill with the theme fill color",
+      "file": "tasks/T7.md",
+      "depends_on": [
+        "T5"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T8",
+      "title": "Text, images and pixmaps pass through",
+      "file": "tasks/T8.md",
+      "depends_on": [
+        "T2"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T9",
+      "title": "Painter transforms",
+      "file": "tasks/T9.md",
+      "depends_on": [
+        "T5"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T10",
+      "title": "Seeded randomness",
+      "file": "tasks/T10.md",
+      "depends_on": [
+        "T5",
+        "T6"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T11",
+      "title": "The three themes give different drawings",
+      "file": "tasks/T11.md",
+      "depends_on": [
+        "T6",
+        "T7"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T12",
+      "title": "QWidget::render through the device",
+      "file": "tasks/T12.md",
+      "depends_on": [
+        "T9"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T13",
+      "title": "HandPaintEffect",
+      "file": "tasks/T13.md",
+      "depends_on": [
+        "T12"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T14",
+      "title": "Example comboBox with \"None\" first",
+      "file": "tasks/T14.md",
+      "depends_on": [],
+      "status": "real-testing",
+      "rejections": 0,
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T14",
+      "review": "APPROVED\n- MainWindow.ComboBoxHoldsNoneThenTheThreeThemes\n- MainWindow.ComboBoxStartsOnNone\n- MainWindow.StartsWithoutGraphicsEffect"
+    },
+    {
+      "id": "T15",
+      "title": "Theme selection applies the effect to the window",
+      "file": "tasks/T15.md",
+      "depends_on": [
+        "T13",
+        "T14"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    },
+    {
+      "id": "T16",
+      "title": "Window stays usable and runs offscreen with themes",
+      "file": "tasks/T16.md",
+      "depends_on": [
+        "T15"
+      ],
+      "status": "new",
+      "rejections": 0,
+      "note": ""
+    }
+  ]
+}

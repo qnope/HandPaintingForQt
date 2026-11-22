@@ -2,6 +2,7 @@
 
 namespace hpq {
 
-// Forward declarations of the hpq library (none yet).
+enum class FillStyle;
+class Theme;
 
 } // namespace hpq

@@ -1,1 +1,1 @@
-target_sources(hpq PRIVATE Hpq.h FwdDecls.h)
+target_sources(hpq PRIVATE Hpq.h FwdDecls.h Theme.h)

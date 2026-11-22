@@ -1,1 +1,1 @@
-target_sources(hpq PRIVATE Hpq.cpp)
+target_sources(hpq PRIVATE Hpq.cpp Theme.cpp)
