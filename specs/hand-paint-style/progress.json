@@ -8,9 +8,11 @@
       "title": "HandPaintStyle is a proxy over Fusion",
       "file": "tasks/T1.md",
       "depends_on": [],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- HandPaintStyleTest.IsAProxyOverTheFusionStyle (/Users/amorrier/Programmation/HandPaintingForQt/hpq/tests/HandPaintStyleTest.cpp)",
+      "real_testing": "PASSED\n- B1: built hpq (debug preset), small program linking libhpq.a creating hpq::HandPaintStyle (QT_QPA_PLATFORM=offscreen): qobject_cast<QProxyStyle*> ok, class name hpq::HandPaintStyle, baseStyle()->name() == \"fusion\" (ignore case) -> yes, exit 0. A QPushButton grabbed with the style renders normally (Fusion look, readable text), no crash. Only output: offscreen note \"missing font family 'Sans Serif'\" (not caused by the style).\nEvidence: scratchpad t1/ (main.cpp, CMakeLists.txt, output.txt, button.png); writing into specs/hand-paint-style/real-testing/T1/ was blocked by permissions."
     },
     {
       "id": "T2",

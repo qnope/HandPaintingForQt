@@ -11,5 +11,6 @@ enum class FillStyle;
 class HandPaintDevice;
 class HandPaintEngine;
 class HandPaintEffect;
+class HandPaintStyle;
 
 } // namespace hpq
