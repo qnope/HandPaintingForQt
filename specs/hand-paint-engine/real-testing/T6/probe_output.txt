@@ -1,0 +1,40 @@
+== sketch
+  B7 ellipse QRectF: D=2.5 nonBg=849 notInkBlend=0 red=0 maxDistFromIdeal=1.65742 pixelsBeyondD=0 outlineSamplesUncovered=0/387 worstNearestInk=0.707107 differsFromPlain=yes
+    center(100,100)=#ffffff bg=#ffffff (background)
+  B10 path: D=2.5 nonBg=683 notInkBlend=0 red=0 maxDistFromIdeal=1.58942 pixelsBeyondD=0 outlineSamplesUncovered=0/293 worstNearestInk=0.707107 differsFromPlain=yes
+  ellipse int QRect: D=2.5 nonBg=849 notInkBlend=0 red=0 maxDistFromIdeal=1.65742 pixelsBeyondD=0 outlineSamplesUncovered=0/387 worstNearestInk=0.707107 differsFromPlain=yes
+  oval 160x80: D=2.5 nonBg=909 notInkBlend=0 red=0 maxDistFromIdeal=1.8025 pixelsBeyondD=0 outlineSamplesUncovered=0/395 worstNearestInk=0.71684 differsFromPlain=yes
+  ellipse repeat identical=yes
+== china_ink
+  B7 ellipse QRectF: D=3.5 nonBg=1413 notInkBlend=0 red=0 maxDistFromIdeal=2.42681 pixelsBeyondD=0 outlineSamplesUncovered=0/387 worstNearestInk=0.707107 differsFromPlain=yes
+    center(100,100)=#f5efe0 bg=#f5efe0 (background)
+  B10 path: D=3.5 nonBg=1104 notInkBlend=0 red=0 maxDistFromIdeal=2.54951 pixelsBeyondD=0 outlineSamplesUncovered=0/293 worstNearestInk=0.707107 differsFromPlain=yes
+  ellipse int QRect: D=3.5 nonBg=1413 notInkBlend=0 red=0 maxDistFromIdeal=2.42681 pixelsBeyondD=0 outlineSamplesUncovered=0/387 worstNearestInk=0.707107 differsFromPlain=yes
+  oval 160x80: D=3.5 nonBg=1448 notInkBlend=0 red=0 maxDistFromIdeal=2.50767 pixelsBeyondD=0 outlineSamplesUncovered=0/395 worstNearestInk=0.707107 differsFromPlain=yes
+  ellipse repeat identical=yes
+== chalk
+  B7 ellipse QRectF: D=4 nonBg=1481 notInkBlend=0 red=0 maxDistFromIdeal=2.51892 pixelsBeyondD=0 outlineSamplesUncovered=0/387 worstNearestInk=0.707107 differsFromPlain=yes
+    center(100,100)=#2f3b33 bg=#2f3b33 (background)
+  B10 path: D=4 nonBg=1156 notInkBlend=0 red=0 maxDistFromIdeal=2.69947 pixelsBeyondD=0 outlineSamplesUncovered=0/293 worstNearestInk=0.707107 differsFromPlain=yes
+  ellipse int QRect: D=4 nonBg=1481 notInkBlend=0 red=0 maxDistFromIdeal=2.51892 pixelsBeyondD=0 outlineSamplesUncovered=0/387 worstNearestInk=0.707107 differsFromPlain=yes
+  oval 160x80: D=4 nonBg=1516 notInkBlend=0 red=0 maxDistFromIdeal=2.74051 pixelsBeyondD=0 outlineSamplesUncovered=0/395 worstNearestInk=0.707107 differsFromPlain=yes
+  ellipse repeat identical=yes
+== merge sketch
+  B6 rect: D=2.5 nonBg=1106 notInkBlend=0 red=0 maxDistFromIdeal=1.58114 pixelsBeyondD=0 outlineSamplesUncovered=0/481 worstNearestInk=0.707107 differsFromPlain=yes
+    rect center(100,100) background=yes
+  B8 triangle: D=2.5 nonBg=1077 notInkBlend=0 red=0 maxDistFromIdeal=1.58114 pixelsBeyondD=0 outlineSamplesUncovered=0/454 worstNearestInk=0.707107 differsFromPlain=yes
+  B9 polyline: D=2.5 nonBg=713 notInkBlend=0 red=0 maxDistFromIdeal=1.58114 pixelsBeyondD=0 outlineSamplesUncovered=0/314 worstNearestInk=0.707107 differsFromPlain=yes
+  all five shapes: D=2.5 nonBg=3944 notInkBlend=0 red=0 maxDistFromIdeal=1.69808 pixelsBeyondD=0 outlineSamplesUncovered=0/1926 worstNearestInk=0.771033 differsFromPlain=yes
+== merge china_ink
+  B6 rect: D=3.5 nonBg=1794 notInkBlend=0 red=0 maxDistFromIdeal=2.12132 pixelsBeyondD=0 outlineSamplesUncovered=0/481 worstNearestInk=0.707107 differsFromPlain=yes
+    rect center(100,100) background=yes
+  B8 triangle: D=3.5 nonBg=1699 notInkBlend=0 red=0 maxDistFromIdeal=2.45984 pixelsBeyondD=0 outlineSamplesUncovered=0/454 worstNearestInk=0.707107 differsFromPlain=yes
+  B9 polyline: D=3.5 nonBg=1225 notInkBlend=0 red=0 maxDistFromIdeal=2.54951 pixelsBeyondD=0 outlineSamplesUncovered=0/314 worstNearestInk=0.707107 differsFromPlain=yes
+  all five shapes: D=3.5 nonBg=6401 notInkBlend=0 red=0 maxDistFromIdeal=2.5 pixelsBeyondD=0 outlineSamplesUncovered=0/1926 worstNearestInk=0.707107 differsFromPlain=yes
+== merge chalk
+  B6 rect: D=4 nonBg=1664 notInkBlend=0 red=0 maxDistFromIdeal=2.5 pixelsBeyondD=0 outlineSamplesUncovered=0/481 worstNearestInk=0.707107 differsFromPlain=yes
+    rect center(100,100) background=yes
+  B8 triangle: D=4 nonBg=1791 notInkBlend=0 red=0 maxDistFromIdeal=2.54951 pixelsBeyondD=0 outlineSamplesUncovered=0/454 worstNearestInk=0.707107 differsFromPlain=yes
+  B9 polyline: D=4 nonBg=1289 notInkBlend=0 red=0 maxDistFromIdeal=2.91548 pixelsBeyondD=0 outlineSamplesUncovered=0/314 worstNearestInk=0.707107 differsFromPlain=yes
+  all five shapes: D=4 nonBg=6236 notInkBlend=0 red=0 maxDistFromIdeal=2.61442 pixelsBeyondD=0 outlineSamplesUncovered=0/1926 worstNearestInk=0.707107 differsFromPlain=yes
+done

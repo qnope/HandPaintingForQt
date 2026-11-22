@@ -73,10 +73,11 @@
       "depends_on": [
         "T4"
       ],
-      "status": "dev",
-      "rejections": 0,
-      "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T6"
+      "status": "done",
+      "rejections": 1,
+      "note": "hpq/tests/CMakeLists.txt: merge conflict with the last commit of the project root -> in the worktree .worktrees/hand-paint-engine/T6, run `git merge bfdefd79a9f78b274fe13a8f70f5bec65fef298a`, keep the work of both sides and make the tests pass",
+      "review": "APPROVED\n- RoughCurveEllipse.ReachesTheGeometryEngineAsTheIdealEllipse\n- Themes/RoughCurve.EllipseIsHandDrawnOutline (Sketch, ChinaInk, Chalk)\n- Themes/RoughCurve.EllipseCenterIsBackground (Sketch, ChinaInk, Chalk)\n- Themes/RoughCurve.LineAndCubicPathIsHandDrawnOutline (Sketch, ChinaInk, Chalk)",
+      "real_testing": "PASSED\n- B7: merged T6 worktree builds and passes ctest 3/3. Probe (worktree libhpq.a), drawEllipse(QRectF(40,40,120,120)), red pen, NoBrush on a red-filled 200x200 HandPaintDevice, 3 themes -> 0 red, 0 non-ink-blend, 0 pixels beyond D (max 1.66/2.43/2.52 for D 2.5/3.5/4), 0 of 387 outline samples uncovered, differs from plain, (100,100) background. Clean slightly wobbly circle with closed seam; int QRect and 160x80 oval also pass.\n- B10: drawPath moveTo(20,150) lineTo(80,150) cubicTo((100,20),(140,20),(180,150)), 3 themes -> 0 red, 0 non-ink-blend, 0 beyond D (max 1.59/2.55/2.70), 0 of 293 samples uncovered, differs from plain; joint at (80,150) continuous.\n- merge check (T5 + T6 together): rect, triangle, polyline alone and combined with ellipse + cubic path, 3 themes -> all meet the hand-drawn outline check (0 of 1926 samples uncovered combined), rect centre background, polyline open.\nEvidence: specs/hand-paint-engine/real-testing/T6/"
     },
     {
       "id": "T7",
@@ -85,9 +86,10 @@
       "depends_on": [
         "T5"
       ],
-      "status": "new",
-      "rejections": 0,
-      "note": ""
+      "status": "review",
+      "rejections": 1,
+      "note": "REJECTED\n- hpq/tests/SolidFillTest.cpp: SketchFilledRectHasHandDrawnOutline still passes when no outline is drawn. Checked on a scratch copy where `if (m_has_pen)` in draw_hand_drawn was changed to `if (false && m_has_pen)`: all 6 SolidFill tests passed. Cause: outline_is_covered_by_ink accepts any pixel for which is_ink_blend is true, and the Sketch fill #D0D0D0 lies between #FFFFFF and #333333 so it counts as ink blend; fill pixels next to the edge cover every outline point, and \"differs from plain QPainter\" also passes on a rough fill alone. -> Make the check need real ink on the outline: for each outline point, require a pixel within D that is darker than the theme fill, or that is neither background nor fill. Also check that the pixels between the inner rect (D+1 inside) and the outer band (D outside) are not all fill or background. Then confirm the test fails when the stroke is removed.",
+      "worktree": ".worktrees/hand-paint-engine/T7"
     },
     {
       "id": "T8",
@@ -109,9 +111,10 @@
       "depends_on": [
         "T5"
       ],
-      "status": "new",
+      "status": "review",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T9"
     },
     {
       "id": "T10",

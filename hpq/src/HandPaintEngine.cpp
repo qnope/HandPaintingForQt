@@ -35,6 +35,13 @@ void HandPaintEngine::updateState(const QPaintEngineState& state)
 
 void HandPaintEngine::drawPath(const QPainterPath& path) { draw_hand_drawn(path, true); }
 
+void HandPaintEngine::drawEllipse(const QRectF& rect)
+{
+    QPainterPath ideal;
+    ideal.addEllipse(rect);
+    draw_hand_drawn(ideal, true);
+}
+
 void HandPaintEngine::drawPolygon(const QPointF* points, int point_count, PolygonDrawMode mode)
 {
     QPainterPath ideal;

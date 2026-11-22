@@ -19,6 +19,8 @@ public:
     void updateState(const QPaintEngineState& state) override;
 
     void drawPath(const QPainterPath& path) override;
+    // The ideal ellipse keeps its curves, so the geometry engine can draw it as a curve.
+    void drawEllipse(const QRectF& rect) override;
     void drawPolygon(const QPointF* points, int point_count, PolygonDrawMode mode) override;
     void drawPixmap(const QRectF& target_rect, const QPixmap& pixmap, const QRectF& source_rect) override;
     void drawImage(const QRectF& target_rect, const QImage& image, const QRectF& source_rect,
