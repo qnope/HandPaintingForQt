@@ -25,6 +25,9 @@ public:
     void drawPath(const QPainterPath &path) override;
     void drawRects(const QRectF *rects, int count) override;
     void drawPixmap(const QRectF &rect, const QPixmap &pixmap, const QRectF &source_rect) override;
+    void drawImage(const QRectF &rect, const QImage &image, const QRectF &source_rect,
+                   Qt::ImageConversionFlags flags = Qt::AutoColor) override;
+    void drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap, const QPointF &offset) override;
     Type type() const override;
 
 private:

@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(T11Probe LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Gui)
+set(WT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../..)
+add_executable(probe main.cpp)
+target_include_directories(probe PRIVATE ${WT}/hpq/include)
+target_link_libraries(probe PRIVATE ${WT}/build/debug/hpq/libhpq.a Qt6::Gui)

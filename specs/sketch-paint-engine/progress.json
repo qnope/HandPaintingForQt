@@ -88,9 +88,11 @@
       "depends_on": [
         "T6"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/sketch-paint-engine/T7",
+      "review": "APPROVED\n- HandPaintPrimitivesTest.LineGoesThroughGeometryEngine, RectangleGoesThroughGeometryEngine, EllipseGoesThroughGeometryEngine, OddEvenPolygonGoesThroughGeometryEngineWithItsFillRule, WindingPolygonGoesThroughGeometryEngineWithItsFillRule, ConvexPolygonGoesThroughGeometryEngine, PolylineGoesThroughGeometryEngine, PathGoesThroughGeometryEngine\n- HandPaintPrimitivesTest.PolylineIsAnOpenShapeAndIsNotFilled"
     },
     {
       "id": "T8",
@@ -99,9 +101,11 @@
       "depends_on": [
         "T6"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/sketch-paint-engine/T8",
+      "review": "APPROVED\n- HandPaintSeedTest.IdentityEngineMakesTargetReceiveTheExactRectangle\n- HandPaintSeedTest.SameRectangleDrawnTwiceGivesTheSamePaths\n- HandPaintSeedTest.DifferentRectanglesGiveDifferentPaths"
     },
     {
       "id": "T9",
@@ -110,9 +114,11 @@
       "depends_on": [
         "T6"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/sketch-paint-engine/T9",
+      "review": "APPROVED\n- HandPaintTransformClipTest.RoughShapeLandsAtTransformedPosition\n- HandPaintTransformClipTest.NothingIsDrawnOutsideTheClip"
     },
     {
       "id": "T10",
@@ -122,9 +128,11 @@
         "T5",
         "T6"
       ],
-      "status": "new",
-      "rejections": 0,
-      "note": ""
+      "status": "real-testing",
+      "rejections": 1,
+      "note": "REJECTED\n- hpq/src/HandPaintEngine.cpp: `drawTextItem` copies the weight and the italic flag of the original font onto the theme font (`font.setWeight(item_font.weight()); font.setItalic(item_font.italic());`). Neither B19 nor the task asks for this: they say only to use the theme font at the same pixel size, in the pen color. No test covers these lines. -> Remove the two lines, or get the spec changed to add this behavior and write a test for it.",
+      "worktree": ".worktrees/sketch-paint-engine/T10",
+      "review": "APPROVED\n- HandPaintTextTest.TextReachesTargetInThemeFontAtSamePixelSizeInPenColor\n- HandPaintTextTest.PointSizeBecomesSamePixelSizeOnDevice"
     },
     {
       "id": "T11",
@@ -133,9 +141,11 @@
       "depends_on": [
         "T6"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- HandPaintImageTest.DrawImageReachesTargetUnchanged\n- HandPaintImageTest.DrawPixmapReachesTargetUnchanged\n- HandPaintImageTest.DrawTiledPixmapFillsTargetAreaWithTiles",
+      "real_testing": "PASSED\n- B20: A probe (QGuiApplication offscreen, linked to the built libhpq.a) used hpq::HandPaintDevice (SketchTheme + RoughGeometryEngine) on a white 200x200 QImage target. It called drawImage(QPoint(20,20), 10x10 four-colour image), drawPixmap(QRect(50,50,10,10), pixmap) and drawTiledPixmap(QRect(0,100,40,20), 10x10 pixmap). It also ran a 32x32 icon case that covers drawImage, a scaled drawPixmap to 64x64, drawPixmap with a source rect, and drawTiledPixmap with an offset. Each result was compared pixel by pixel with the same calls made directly on a QPainter. -> Every case had 0 differing pixels. The target areas were exactly the source pixels, and every 10x10 tile of the tiled area matched the pixmap. The target painter's brush, pen and opacity (magenta, cyan, 0.5) were the same after the calls. The probe exited with code 0. In the 3x upscaled screenshots I see sharp red/green/blue/yellow quadrants with a black disc at the expected places. The scaled 64x64 copy is clean, the half-icon from the source rect is correct, and the tiled strip is offset as expected. None of the image calls added rough strokes or changed any colour. Transforms and clipping were not tested: they belong to task T9, so every call used the identity transform.\nEvidence: specs/sketch-paint-engine/real-testing/T11/"
     },
     {
       "id": "T12",
