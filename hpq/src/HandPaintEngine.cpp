@@ -188,7 +188,7 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
         std::uint32_t stroke_seed = shape_seed;
         for (const QPainterPath &outline : m_geometry_engine.outline(shape, options, shape_seed)) {
             // Each stroke of the outline gets its own seed: with chalk, its own pressure and gaps.
-            draw_stroke(is_frame ? kept_outside(outline, shape) : outline, m_pen, ++stroke_seed, options.max_offset);
+            draw_stroke(is_frame ? kept_outside(outline, shape) : outline, m_pen, ++stroke_seed, StrokeKind::Outline);
         }
     }
 }
@@ -203,7 +203,7 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, const RoughOptions &
     }
     // The paper shows between the hachures, and hides what was drawn under the shape.
     draw_on_target(area, Qt::NoPen, seen_through_medium(m_theme.palette().window()));
-    draw_stroke(hachure, QPen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap), shape_seed, 0.0);
+    draw_stroke(hachure, QPen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap), shape_seed, StrokeKind::Hachure);
 }
 
 bool HandPaintEngine::is_hatched(const QBrush &brush) const {
@@ -220,16 +220,18 @@ bool HandPaintEngine::is_hatched(const QBrush &brush) const {
 }
 
 void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed,
-                                  double max_offset) {
+                                  StrokeKind kind) {
+    const bool is_chalk = m_theme.medium() == Medium::Chalk;
+    const double width = is_chalk ? chalk_width(pen) : pen.widthF();
     // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
     // the edge of a widget would be cut by the widget's area without this margin.
-    if (m_theme.medium() != Medium::Chalk) {
-        draw_on_target(stroke, pen, Qt::NoBrush, static_cast<int>(std::ceil(max_offset + pen.widthF())));
-        return;
-    }
-    const double width = chalk_width(pen);
-    const int system_clip_margin = static_cast<int>(std::ceil(max_offset + width * ChalkWidestPressure));
-    if (is_plain_line(pen)) {
+    // Hachures stay inside their shape: they get no margin.
+    const double widest = is_chalk ? width * ChalkWidestPressure : width;
+    const int system_clip_margin =
+        kind == StrokeKind::Outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
+    if (!is_chalk) {
+        draw_on_target(stroke, pen, Qt::NoBrush, system_clip_margin);
+    } else if (is_plain_line(pen)) {
         draw_on_target(chalk_ribbon(stroke, width, stroke_seed), Qt::NoPen,
                        chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()), system_clip_margin);
     } else {
