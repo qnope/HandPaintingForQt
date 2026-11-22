@@ -100,6 +100,12 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/smoke-test/node_modules" \
             node .github/scripts/WasmSmokeTest.cjs _site "$RUNNER_TEMP/application.png"
 
+      # DIAGNOSTIC (temporary)
+      - name: Diagnose the input of text on a phone
+        run: |
+          NODE_PATH="$RUNNER_TEMP/smoke-test/node_modules" \
+            node .github/scripts/WasmMobileInputTest.cjs _site "Pixel 7"
+
       - name: Upload the screenshot of the application
         if: always()
         uses: actions/upload-artifact@v7
