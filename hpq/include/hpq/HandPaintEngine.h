@@ -39,6 +39,7 @@ private:
     RandomGenerator m_random;
     bool m_has_pen = true;
     bool m_has_brush = false;
+    int m_brush_alpha = 255;
     QTransform m_transform;
 };
 

@@ -1,0 +1,241 @@
+== sketch (bg #ffffffff ink #ff333333 fill #ffd0d0d0 stroke 1 D=2,5)
+ B11 rect brush+pen
+  [ok] pixel(100,100)=#ffd0d0d0 expected fill #ffd0d0d0
+  [ok] pixels farther than D outside rect not background: 0
+  [ok] user brush/pen colored pixels: 0
+  [ok] outline samples with ink within D: 121/121
+  [ok] differs from a plain QPainter rect
+ B11 + Antialiasing
+  [ok] pixel(100,100)=#ffd0d0d0 expected fill #ffd0d0d0
+  [ok] pixels farther than D outside rect not background: 0
+  [ok] user brush/pen colored pixels: 0
+  [ok] outline samples with ink within D: 121/121
+  [ok] differs from a plain QPainter rect
+ B12 alpha128 NoPen
+  [ok] pixel(100,100)=#ffe7e7e7 expected ~#ffe7e7e7 (+-3)
+  [ok] ink-color pixels: 0
+  [ok] non-bg pixels >1px outside rect: 0
+ B12 + Antialiasing
+  [ok] pixel(100,100)=#ffe7e7e7 expected ~#ffe7e7e7 (+-3)
+  [ok] ink-color pixels: 0
+  [ok] non-bg pixels >1px outside rect: 0
+ B13 NoPen NoBrush
+  [ok] non-background pixels: 0
+ tr(30,0) rect a128 NoPen
+  [ok] pixel(75,100)=#ffe7e7e7 expected ~#ffe7e7e7
+  [ok] pixel(130,100)=#ffe7e7e7 expected ~#ffe7e7e7
+  [ok] pixel(185,100)=#ffe7e7e7 expected ~#ffe7e7e7
+  [ok] pixel(65,100)=#ffffffff pixel(195,100)=#ffffffff expected bg
+  [ok] row 100 non-bg x 70..189 (ideal 70..189)
+  [ok] user-colored pixels: 0
+ tr(30,0) ellipse a128 + pen
+  [ok] center (130,100)=#ffe7e7e7 expected ~#ffe7e7e7
+  [ok] (70,100) inside translated ellipse=#ffe7e7e7 expected ~#ffe7e7e7
+  [ok] row 100 left edge x=59 (ideal 60, within D)
+  [ok] column 130 non-bg y 48..150 (ideal 50..150)
+  [ok] user-colored pixels: 0
+ tr(30,0) rect brush+pen
+  [ok] center (130,100)=#ffd0d0d0 expected fill
+  [ok] translated rect: pixels farther than D outside ideal rect (70,40)-(190,160) not background: 0
+  [ok] translated rect: row 100 non-bg x 69..190 (ideal 70..190)
+  [ok] translated rect: column 130 non-bg y 39..160 (ideal 40..160)
+  [ok] user-colored pixels: 0
+ tr(30,0) triangle yellow brush red pen
+  [ok] (130,120)=#ffd0d0d0 expected fill #ffd0d0d0
+  [ok] user-colored pixels: 0
+  [ok] row 165 non-bg x 61..198 (ideal ~62.5..197.5)
+  [ok] column 130 top y=29 (ideal apex y 30)
+  [ok] non-bg pixels left of x=60-D: 0
+ tr(30,0) path magenta brush
+  [ok] (120,100)=#ffd0d0d0 expected fill #ffd0d0d0
+  [ok] user-colored pixels: 0
+  [ok] row 100 non-bg x 68..170 (ideal 70..170)
+ scale(2,2) rect(20,20,60,60) brush+pen
+  [ok] center (100,100)=#ffd0d0d0 expected fill
+  [ok] scaled rect: pixels farther than D outside ideal rect (40,40)-(160,160) not background: 0
+  [ok] scaled rect: row 100 non-bg x 39..160 (ideal 40..160)
+  [ok] scaled rect: column 100 non-bg y 39..160 (ideal 40..160)
+  [ok] user-colored pixels: 0
+  [info] left edge ink run length (max over 5 rows) = 3 px, theme stroke width 1
+  [ok] stroke not doubled: run 3 <= stroke_width+3
+ reference: rect(40,40,120,120) brush+pen, no transform
+  [info] untransformed left edge ink run length = 3 px
+ scale(2,2) triangle yellow brush
+  [ok] (100,120)=#ffd0d0d0 expected fill
+  [ok] user-colored pixels: 0
+  [ok] row 165 non-bg x 31..168 (ideal ~32.5..167.5)
+  [ok] column 100 non-bg y 29..170 (ideal 30..170)
+ scale(2,2) path magenta brush
+  [ok] (100,100)=#ffd0d0d0 expected fill
+  [ok] user-colored pixels: 0
+  [ok] row 100 non-bg x 38..140 (ideal 40..140)
+  [ok] column 70 non-bg y 39..161 (ideal 40..160)
+ tr(30,0) drawText(20,100) red pen
+  [ok] identical to plain QPainter text at translate(30,0): differing pixels 0, leftmost text pixel x=51 (expected ~50, not ~80)
+ tr(30,0) drawImage(80,80) 40x40 red
+  [ok] region (110,80)-(150,120) equals the source: differing pixels 0
+  [ok] non-bg pixels outside (110,80)-(150,120): 0 (twice-translated copy would be at 140..180)
+ tr(30,0) drawPixmap(80,80) 40x40 red
+  [ok] region (110,80)-(150,120) equals the source: differing pixels 0
+  [ok] non-bg pixels outside (110,80)-(150,120): 0 (twice-translated copy would be at 140..180)
+== china_ink (bg #fff5efe0 ink #ff000000 fill #ff808080 stroke 2,5 D=3,5)
+ B11 rect brush+pen
+  [ok] pixel(100,100)=#ff808080 expected fill #ff808080
+  [ok] pixels farther than D outside rect not background: 0
+  [ok] user brush/pen colored pixels: 0
+  [ok] outline samples with ink within D: 121/121
+  [ok] differs from a plain QPainter rect
+ B11 + Antialiasing
+  [ok] pixel(100,100)=#ff808080 expected fill #ff808080
+  [ok] pixels farther than D outside rect not background: 0
+  [ok] user brush/pen colored pixels: 0
+  [ok] outline samples with ink within D: 121/121
+  [ok] differs from a plain QPainter rect
+ B12 alpha128 NoPen
+  [ok] pixel(100,100)=#ffbab7b0 expected ~#ffbab7b0 (+-3)
+  [ok] ink-color pixels: 0
+  [ok] non-bg pixels >1px outside rect: 0
+ B12 + Antialiasing
+  [ok] pixel(100,100)=#ffbab7b0 expected ~#ffbab7b0 (+-3)
+  [ok] ink-color pixels: 0
+  [ok] non-bg pixels >1px outside rect: 0
+ B13 NoPen NoBrush
+  [ok] non-background pixels: 0
+ tr(30,0) rect a128 NoPen
+  [ok] pixel(75,100)=#ffbab7b0 expected ~#ffbab7b0
+  [ok] pixel(130,100)=#ffbab7b0 expected ~#ffbab7b0
+  [ok] pixel(185,100)=#ffbab7b0 expected ~#ffbab7b0
+  [ok] pixel(65,100)=#fff5efe0 pixel(195,100)=#fff5efe0 expected bg
+  [ok] row 100 non-bg x 70..189 (ideal 70..189)
+  [ok] user-colored pixels: 0
+ tr(30,0) ellipse a128 + pen
+  [ok] center (130,100)=#ffbab7b0 expected ~#ffbab7b0
+  [ok] (70,100) inside translated ellipse=#ffbab7b0 expected ~#ffbab7b0
+  [ok] row 100 left edge x=59 (ideal 60, within D)
+  [ok] column 130 non-bg y 48..151 (ideal 50..150)
+  [ok] user-colored pixels: 0
+ tr(30,0) rect brush+pen
+  [ok] center (130,100)=#ff808080 expected fill
+  [ok] translated rect: pixels farther than D outside ideal rect (70,40)-(190,160) not background: 0
+  [ok] translated rect: row 100 non-bg x 68..190 (ideal 70..190)
+  [ok] translated rect: column 130 non-bg y 38..161 (ideal 40..160)
+  [ok] user-colored pixels: 0
+ tr(30,0) triangle yellow brush red pen
+  [ok] (130,120)=#ff808080 expected fill #ff808080
+  [ok] user-colored pixels: 0
+  [ok] row 165 non-bg x 60..199 (ideal ~62.5..197.5)
+  [ok] column 130 top y=28 (ideal apex y 30)
+  [ok] non-bg pixels left of x=60-D: 0
+ tr(30,0) path magenta brush
+  [ok] (120,100)=#ff808080 expected fill #ff808080
+  [ok] user-colored pixels: 0
+  [ok] row 100 non-bg x 68..170 (ideal 70..170)
+ scale(2,2) rect(20,20,60,60) brush+pen
+  [ok] center (100,100)=#ff808080 expected fill
+  [ok] scaled rect: pixels farther than D outside ideal rect (40,40)-(160,160) not background: 0
+  [ok] scaled rect: row 100 non-bg x 38..160 (ideal 40..160)
+  [ok] scaled rect: column 100 non-bg y 38..161 (ideal 40..160)
+  [ok] user-colored pixels: 0
+  [info] left edge ink run length (max over 5 rows) = 4 px, theme stroke width 2,5
+  [ok] stroke not doubled: run 4 <= stroke_width+3
+ reference: rect(40,40,120,120) brush+pen, no transform
+  [info] untransformed left edge ink run length = 4 px
+ scale(2,2) triangle yellow brush
+  [ok] (100,120)=#ff808080 expected fill
+  [ok] user-colored pixels: 0
+  [ok] row 165 non-bg x 30..169 (ideal ~32.5..167.5)
+  [ok] column 100 non-bg y 28..170 (ideal 30..170)
+ scale(2,2) path magenta brush
+  [ok] (100,100)=#ff808080 expected fill
+  [ok] user-colored pixels: 0
+  [ok] row 100 non-bg x 38..140 (ideal 40..140)
+  [ok] column 70 non-bg y 38..161 (ideal 40..160)
+ tr(30,0) drawText(20,100) red pen
+  [ok] identical to plain QPainter text at translate(30,0): differing pixels 0, leftmost text pixel x=51 (expected ~50, not ~80)
+ tr(30,0) drawImage(80,80) 40x40 red
+  [ok] region (110,80)-(150,120) equals the source: differing pixels 0
+  [ok] non-bg pixels outside (110,80)-(150,120): 0 (twice-translated copy would be at 140..180)
+ tr(30,0) drawPixmap(80,80) 40x40 red
+  [ok] region (110,80)-(150,120) equals the source: differing pixels 0
+  [ok] non-bg pixels outside (110,80)-(150,120): 0 (twice-translated copy would be at 140..180)
+== chalk (bg #ff2f3b33 ink #fff0f0e8 fill #ffa0a8a0 stroke 2 D=4)
+ B11 rect brush+pen
+  [ok] pixel(100,100)=#ffa0a8a0 expected fill #ffa0a8a0
+  [ok] pixels farther than D outside rect not background: 0
+  [ok] user brush/pen colored pixels: 0
+  [ok] outline samples with ink within D: 121/121
+  [ok] differs from a plain QPainter rect
+ B11 + Antialiasing
+  [ok] pixel(100,100)=#ffa0a8a0 expected fill #ffa0a8a0
+  [ok] pixels farther than D outside rect not background: 0
+  [ok] user brush/pen colored pixels: 0
+  [ok] outline samples with ink within D: 121/121
+  [ok] differs from a plain QPainter rect
+ B12 alpha128 NoPen
+  [ok] pixel(100,100)=#ff677169 expected ~#ff68726a (+-3)
+  [ok] ink-color pixels: 0
+  [ok] non-bg pixels >1px outside rect: 0
+ B12 + Antialiasing
+  [ok] pixel(100,100)=#ff677169 expected ~#ff68726a (+-3)
+  [ok] ink-color pixels: 0
+  [ok] non-bg pixels >1px outside rect: 0
+ B13 NoPen NoBrush
+  [ok] non-background pixels: 0
+ tr(30,0) rect a128 NoPen
+  [ok] pixel(75,100)=#ff677169 expected ~#ff68726a
+  [ok] pixel(130,100)=#ff677169 expected ~#ff68726a
+  [ok] pixel(185,100)=#ff677169 expected ~#ff68726a
+  [ok] pixel(65,100)=#ff2f3b33 pixel(195,100)=#ff2f3b33 expected bg
+  [ok] row 100 non-bg x 70..189 (ideal 70..189)
+  [ok] user-colored pixels: 0
+ tr(30,0) ellipse a128 + pen
+  [ok] center (130,100)=#ff677169 expected ~#ff68726a
+  [ok] (70,100) inside translated ellipse=#ff677169 expected ~#ff68726a
+  [ok] row 100 left edge x=59 (ideal 60, within D)
+  [ok] column 130 non-bg y 48..151 (ideal 50..150)
+  [ok] user-colored pixels: 0
+ tr(30,0) rect brush+pen
+  [ok] center (130,100)=#ffa0a8a0 expected fill
+  [ok] translated rect: pixels farther than D outside ideal rect (70,40)-(190,160) not background: 0
+  [ok] translated rect: row 100 non-bg x 69..191 (ideal 70..190)
+  [ok] translated rect: column 130 non-bg y 38..161 (ideal 40..160)
+  [ok] user-colored pixels: 0
+ tr(30,0) triangle yellow brush red pen
+  [ok] (130,120)=#ffa0a8a0 expected fill #ffa0a8a0
+  [ok] user-colored pixels: 0
+  [ok] row 165 non-bg x 60..199 (ideal ~62.5..197.5)
+  [ok] column 130 top y=28 (ideal apex y 30)
+  [ok] non-bg pixels left of x=60-D: 0
+ tr(30,0) path magenta brush
+  [ok] (120,100)=#ffa0a8a0 expected fill #ffa0a8a0
+  [ok] user-colored pixels: 0
+  [ok] row 100 non-bg x 68..170 (ideal 70..170)
+ scale(2,2) rect(20,20,60,60) brush+pen
+  [ok] center (100,100)=#ffa0a8a0 expected fill
+  [ok] scaled rect: pixels farther than D outside ideal rect (40,40)-(160,160) not background: 0
+  [ok] scaled rect: row 100 non-bg x 39..161 (ideal 40..160)
+  [ok] scaled rect: column 100 non-bg y 38..161 (ideal 40..160)
+  [ok] user-colored pixels: 0
+  [info] left edge ink run length (max over 5 rows) = 4 px, theme stroke width 2
+  [ok] stroke not doubled: run 4 <= stroke_width+3
+ reference: rect(40,40,120,120) brush+pen, no transform
+  [info] untransformed left edge ink run length = 4 px
+ scale(2,2) triangle yellow brush
+  [ok] (100,120)=#ffa0a8a0 expected fill
+  [ok] user-colored pixels: 0
+  [ok] row 165 non-bg x 30..170 (ideal ~32.5..167.5)
+  [ok] column 100 non-bg y 28..171 (ideal 30..170)
+ scale(2,2) path magenta brush
+  [ok] (100,100)=#ffa0a8a0 expected fill
+  [ok] user-colored pixels: 0
+  [ok] row 100 non-bg x 38..140 (ideal 40..140)
+  [ok] column 70 non-bg y 38..162 (ideal 40..160)
+ tr(30,0) drawText(20,100) red pen
+  [ok] identical to plain QPainter text at translate(30,0): differing pixels 0, leftmost text pixel x=51 (expected ~50, not ~80)
+ tr(30,0) drawImage(80,80) 40x40 red
+  [ok] region (110,80)-(150,120) equals the source: differing pixels 0
+  [ok] non-bg pixels outside (110,80)-(150,120): 0 (twice-translated copy would be at 140..180)
+ tr(30,0) drawPixmap(80,80) 40x40 red
+  [ok] region (110,80)-(150,120) equals the source: differing pixels 0
+  [ok] non-bg pixels outside (110,80)-(150,120): 0 (twice-translated copy would be at 140..180)
+failures: 0
