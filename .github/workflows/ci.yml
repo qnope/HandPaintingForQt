@@ -51,10 +51,9 @@ jobs:
           QT_LOGGING_RULES: "*=true"
         run: |
           T=build/Examples/tests/Debug/HandPaintingExampleTests.exe
-          echo "=== one MainWindow test"
-          timeout 60 $T --gtest_filter=MainWindow.WidgetsOfTheUiExist > out1.txt 2>&1; echo "exit $?"; head -c 3000 out1.txt
-          echo "=== QT_QPA_PLATFORM=windows MainWindow tests"
-          QT_QPA_PLATFORM=windows timeout 60 $T --gtest_filter=MainWindow.WidgetsOfTheUiExist > out2.txt 2>&1; echo "exit $?"; head -c 3000 out2.txt
+          for t in FontComboBox Graphics Table MainWin; do
+            timeout 60 $T --gtest_filter=Diag.$t > out.txt 2>&1; echo "RESULT Diag.$t exit $?"
+          done
           true
       - name: Test
         run: ctest --test-dir build -C Debug --output-on-failure --timeout 120 -V
