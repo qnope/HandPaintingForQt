@@ -47,11 +47,11 @@
       "depends_on": [
         "T1"
       ],
-      "status": "real-testing",
+      "status": "done",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/sketch-paint-engine/T4",
-      "review": "APPROVED\n- SketchTheme.PaletteSetsEveryRoleOfEveryGroup\n- SketchTheme.PaletteIsLightPaperWithDarkGraphite\n- SketchTheme.ActiveTextContrastIsReadableAndDisabledIsLower\n- SketchTheme.UsesSolidFillAndTwoStrokes"
+      "review": "APPROVED\n- SketchTheme.PaletteSetsEveryRoleOfEveryGroup\n- SketchTheme.PaletteIsLightPaperWithDarkGraphite\n- SketchTheme.ActiveTextContrastIsReadableAndDisabledIsLower\n- SketchTheme.UsesSolidFillAndTwoStrokes",
+      "real_testing": "PASSED\n- B8: Built the project with the test command (3/3 tests pass), then built and ran a probe program linked to build/debug/hpq/libhpq.a. It creates hpq::SketchTheme through a hpq::Theme pointer and prints palette().isBrushSet() for every group (Active, Disabled, Inactive) and every role from 0 to NColorRoles-1 (22 roles). -> Every role is set in all 3 groups. The only unset brush is NoRole in each group, which Qt never reports as set, as expected.\n- B9: The probe printed the Active colors and the WCAG contrast ratios, then drew enabled and disabled QLabel, QPushButton, QLineEdit and QCheckBox with the palette and the Fusion style (offscreen, widget->grab()), and I opened the PNG. -> Window and Base are the paper color #fbf8ef (lightness 245). WindowText, Text and ButtonText are graphite #2b2b2b (lightness 43). WindowText against Window is 13.33 in Active and Inactive and 2.34 in Disabled. In the screenshot the background is cream paper and the enabled widgets have dark, crisp text and outlines. The disabled column is a fainter grey but still readable. The checkbox tick is visible and the layout is not broken.\n- B11: The probe printed fill_style() and rough_options(). -> fill_style() == FillStyle::Solid is true, and the rough options are stroke_count=2, roughness=1.00 and max_offset=2.00. The program exited with code 0.\nEvidence: specs/sketch-paint-engine/real-testing/T4/"
     },
     {
       "id": "T5",
