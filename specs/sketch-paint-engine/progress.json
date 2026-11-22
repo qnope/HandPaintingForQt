@@ -210,9 +210,11 @@
       "depends_on": [
         "T15"
       ],
-      "status": "new",
-      "rejections": 0,
-      "note": ""
+      "status": "done",
+      "rejections": 1,
+      "note": "REJECTED\n- Examples/src/PlatformMessages.h: it forward-declares `class QMessageLogContext;` and `class QString;` in the header itself. CLAUDE.md says to use FwdDecls.h, and Examples/src/FwdDecls.h is where the example keeps its Qt global-namespace forward declarations (it already has `class QStandardItemModel;`). Both declarations are also redundant, because `<QtGlobal>` already declares QMessageLogContext. -> Remove the two forward declarations. If a forward declaration is still needed, add it to Examples/src/FwdDecls.h and include FwdDecls.h from PlatformMessages.h.",
+      "review": "APPROVED\n- HandPaintingExampleRunsOffscreen (Examples/tests/CMakeLists.txt, FAIL_REGULAR_EXPRESSION \"Unexpected Qt warning|QWidget::|QPainter::|QPaintEngine|QPaintDevice|QGraphicsEffect|Recursive repaint\", with the offscreen platform messages qt.qpa.* and propagateSizeHints ignored by name, as the human partner decided for B29)\n- Startup.ThemedMainWindowExposedPaintsWithoutWarning (Examples/tests/StartupTest.cpp), with Startup.MainWindowShowsAndRunsEventLoopWithoutWarning, Startup.OffscreenPlatformMessagesAreNotUnexpectedWarnings and Startup.OtherWarningsAreUnexpected",
+      "real_testing": "PASSED\n- B29: Ran the built `build/debug/Examples/HandPaintingExample` five times with `QT_QPA_PLATFORM=offscreen HPQ_AUTO_QUIT=1`. Every run exited with code 0, and the only output was \"This plugin does not support propagateSizeHints()\", which is an ignored platform message. Without `HPQ_AUTO_QUIT`, the app was still running after 4 s and I killed it (exit 143); it printed only that platform message twice. With `QT_LOGGING_RULES=\"*.debug=false\"`, I ran it once with auto quit (exit 0) and once without it, killed after 4 s; both showed only the same platform message. I also built a probe linked to `HandPaintingExampleLib` and `hpq`. It shows `MainWindow` offscreen with a message handler that records every Qt message, of any level. The window was visible and exposed at 697x600. The handler recorded 6 messages, all \"This plugin does not support propagateSizeHints()\", and none from hpq (no QWidget, QPainter or QPaintEngine message). I saved the window to PNG and looked at it: the Sketch theme is applied, with a cream paper background, wobbly hand-drawn double-stroke borders, a handwritten font, and sketched shapes and tables. The combobox reads \"Sketch\". For comparison, choosing \"China Ink\" gave the plain default Qt look. The full test command passed: 3/3 tests, including `HandPaintingExampleRunsOffscreen`.\nEvidence: specs/sketch-paint-engine/real-testing/T16/"
     }
   ]
 }

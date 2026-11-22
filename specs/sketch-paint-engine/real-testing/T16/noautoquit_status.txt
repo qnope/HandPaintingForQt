@@ -1,0 +1,2 @@
+alive after 4s
+exit after kill=143

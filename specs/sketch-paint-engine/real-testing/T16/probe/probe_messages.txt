@@ -1,0 +1,6 @@
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
+[warning] [default] This plugin does not support propagateSizeHints()
