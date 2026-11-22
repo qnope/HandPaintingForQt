@@ -1,0 +1,28 @@
+-- The CXX compiler identification is AppleClang 21.0.0.21000401
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Found OpenGL: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+-- Found WrapOpenGL: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Configuring done (0.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /private/tmp/claude-501/-Users-amorrier-Programmation-HandPaintingForQt/85ebdcd8-99a9-4512-93fd-0e849de00285/scratchpad/t7probe
+[1/11] Running rcc for resource hpq_fonts
+[2/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/Hpq.cpp.o
+[3/11] Building CXX object hpq/CMakeFiles/hpq_resources_1.dir/.qt/rcc/qrc_hpq_fonts_init.cpp.o
+[4/11] Building CXX object hpq/CMakeFiles/hpq.dir/.qt/rcc/qrc_hpq_fonts.cpp.o
+[5/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/SketchTheme.cpp.o
+[6/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/RoughGeometryEngine.cpp.o
+[7/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/HandPaintDevice.cpp.o
+[8/11] Building CXX object hpq/CMakeFiles/hpq.dir/src/HandPaintEngine.cpp.o
+[9/11] Linking CXX static library hpq/libhpq.a
+[10/11] Building CXX object CMakeFiles/probe.dir/main.cpp.o
+[11/11] Linking CXX executable probe
