@@ -60,9 +60,11 @@
       "depends_on": [
         "T2"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- ButtonWidgetsTest.PushButtonIsAFlatPanelWithItsText\n- ButtonWidgetsTest.ToolButtonIsAFlatPanelWithItsText",
+      "real_testing": "PASSED\n- B6: built the worktree (configure, build, ctest 3/3). Program linking worktree libhpq.a sets HandPaintStyle + SketchTheme palette/font on a QPushButton \"OK\" and a QToolButton \"Tool\" (text only, auto raise off), QWidget::render on a counting engine -> each: drawPixmap=0, drawImage=0, drawTiledPixmap=0, 2 shapes with solid Button #fbf8ef brush, drawTextItem with its text; exit 0. Grabs: flat cream panels, thin grey outline, centred label, no gradient. Window themed with apply_theme: both buttons have rough doubled pencil outlines, labels readable. Only usual offscreen notices.\nEvidence: scratchpad t5/ (main.cpp, CMakeLists.txt, run_output.txt, push_style.png, tool_style.png, push_disabled.png, window_themed.png)."
     },
     {
       "id": "T6",
@@ -83,9 +85,11 @@
         "T2",
         "T3"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T7",
+      "review": "APPROVED\n- ComboBoxTest.NonEditableComboBoxIsDarkOutlineAndDownArrowWithoutImage\n- ComboBoxTest.EditableComboBoxIsDarkOutlineAndDownArrowWithoutImage"
     },
     {
       "id": "T8",
@@ -107,9 +111,11 @@
       "depends_on": [
         "T3"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T9",
+      "review": "APPROVED\n- ScrollBarTest.HorizontalScrollBarDrawsOneLeftAndOneRightVectorArrow\n- ScrollBarTest.VerticalScrollBarDrawsOneUpAndOneDownVectorArrow"
     },
     {
       "id": "T10",
@@ -118,9 +124,11 @@
       "depends_on": [
         "T3"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-style/T10",
+      "review": "APPROVED\n- SpinBoxTest.SpinBoxDrawsDarkFrameAndUpAndDownArrowsWithoutImage\n- SpinBoxTest.DoubleSpinBoxDrawsDarkFrameAndUpAndDownArrowsWithoutImage"
     },
     {
       "id": "T11",
