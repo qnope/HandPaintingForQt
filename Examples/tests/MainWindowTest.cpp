@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QMenuBar>
 #include <QStandardItemModel>
 #include <QStatusBar>
 #include <QTableView>
@@ -20,15 +21,6 @@ template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
 {
     return w.findChild<T *>(name);
 }
-
-// Exposes the protected QObject::receivers.
-struct ReceiverCounter : QObject
-{
-    static int count(const QObject *o, const char *signal)
-    {
-        return static_cast<const ReceiverCounter *>(o)->receivers(signal);
-    }
-};
 } // namespace
 
 TEST(MainWindow, WidgetsOfTheUiExist)
@@ -54,15 +46,33 @@ TEST(MainWindow, WidgetsOfTheUiExist)
     EXPECT_TRUE(edit->actions().isEmpty());
 }
 
-TEST(MainWindow, ComboBoxHoldsTheThreeThemes)
+TEST(MainWindow, ComboBoxHoldsNoneThenTheThreeThemes)
 {
     hpq::example::MainWindow w;
     auto *combo = find<QComboBox>(w, "comboBox");
     ASSERT_NE(combo, nullptr);
-    ASSERT_EQ(combo->count(), 3);
-    EXPECT_EQ(combo->itemText(0), "Sketch");
-    EXPECT_EQ(combo->itemText(1), "China Ink");
-    EXPECT_EQ(combo->itemText(2), "Black slate and chalk");
+    ASSERT_EQ(combo->count(), 4);
+    EXPECT_EQ(combo->itemText(0), "None");
+    EXPECT_EQ(combo->itemText(1), "Sketch");
+    EXPECT_EQ(combo->itemText(2), "China Ink");
+    EXPECT_EQ(combo->itemText(3), "Black slate and chalk");
+}
+
+TEST(MainWindow, ComboBoxStartsOnNone)
+{
+    hpq::example::MainWindow w;
+    auto *combo = find<QComboBox>(w, "comboBox");
+    ASSERT_NE(combo, nullptr);
+    EXPECT_EQ(combo->currentIndex(), 0);
+    EXPECT_EQ(combo->currentText(), "None");
+}
+
+TEST(MainWindow, StartsWithoutGraphicsEffect)
+{
+    hpq::example::MainWindow w;
+    EXPECT_EQ(w.menuBar()->graphicsEffect(), nullptr);
+    EXPECT_EQ(w.centralWidget()->graphicsEffect(), nullptr);
+    EXPECT_EQ(w.statusBar()->graphicsEffect(), nullptr);
 }
 
 TEST(MainWindow, TableViewUsesTheTableModel)

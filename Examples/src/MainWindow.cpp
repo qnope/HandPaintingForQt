@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_ui(std::make_unique<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
-    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk"});
+    m_ui->comboBox->addItems({"None", "Sketch", "China Ink", "Black slate and chalk"});
 
     auto table_model = create_table_model();
     table_model->setParent(this);

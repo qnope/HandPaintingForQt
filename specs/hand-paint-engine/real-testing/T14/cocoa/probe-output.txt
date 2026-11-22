@@ -1,0 +1,12 @@
+count=4
+item[0]="None"
+item[1]="Sketch"
+item[2]="China Ink"
+item[3]="Black slate and chalk"
+currentIndex=0 currentText="None"
+menuBar effect=0x0
+centralWidget effect=0x0
+statusBar effect=0x0
+window title="MainWindow" size=697x600
+popup visible=1
+exit=0

@@ -21,9 +21,10 @@
       "depends_on": [
         "T1"
       ],
-      "status": "new",
+      "status": "dev",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T2"
     },
     {
       "id": "T3",
@@ -153,11 +154,11 @@
       "title": "Example comboBox with \"None\" first",
       "file": "tasks/T14.md",
       "depends_on": [],
-      "status": "real-testing",
+      "status": "done",
       "rejections": 0,
       "note": "",
-      "worktree": ".worktrees/hand-paint-engine/T14",
-      "review": "APPROVED\n- MainWindow.ComboBoxHoldsNoneThenTheThreeThemes\n- MainWindow.ComboBoxStartsOnNone\n- MainWindow.StartsWithoutGraphicsEffect"
+      "review": "APPROVED\n- MainWindow.ComboBoxHoldsNoneThenTheThreeThemes\n- MainWindow.ComboBoxStartsOnNone\n- MainWindow.StartsWithoutGraphicsEffect",
+      "real_testing": "PASSED\n- B24: Built with the debug preset; HandPaintingExample offscreen with HPQ_AUTO_QUIT=1 exits 0 (only Qt's offscreen \"propagateSizeHints()\" line). Probe (specs/hand-paint-engine/real-testing/T14/probe/probe.cpp) using MainWindow, run offscreen and on the native macOS display: comboBox count=4, items \"None\", \"Sketch\", \"China Ink\", \"Black slate and chalk\" in order, currentIndex=0 / currentText \"None\"; menu bar, central widget and status bar graphicsEffect are null. Screenshots (offscreen/window.png, cocoa/window.png) show a plain Qt window; the open drop-down (combo-popup.png) shows the 4 items in order with \"None\" highlighted. Nothing garbled or broken.\nEvidence: specs/hand-paint-engine/real-testing/T14/"
     },
     {
       "id": "T15",
