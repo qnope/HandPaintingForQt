@@ -1,6 +1,6 @@
 {
   "feature": "hand-paint-style",
-  "status": "open",
+  "status": "closed",
   "test_command": "cmake --preset debug && cmake --build --preset debug && QT_QPA_PLATFORM=offscreen ctest --preset debug",
   "tasks": [
     {
