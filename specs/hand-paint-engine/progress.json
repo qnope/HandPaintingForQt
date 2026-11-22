@@ -140,9 +140,11 @@
         "T6",
         "T7"
       ],
-      "status": "new",
+      "status": "real-testing",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "worktree": ".worktrees/hand-paint-engine/T11",
+      "review": "APPROVED\n- ThemeDrawing.SketchChinaInkAndChalkGivePairwiseDifferentImages\n- ThemeDrawing.SketchDrawingHasOnlyThemeBlends\n- ThemeDrawing.ChinaInkDrawingHasOnlyThemeBlends\n- ThemeDrawing.ChalkDrawingHasOnlyThemeBlends"
     },
     {
       "id": "T12",
@@ -151,9 +153,11 @@
       "depends_on": [
         "T9"
       ],
-      "status": "new",
+      "status": "done",
       "rejections": 0,
-      "note": ""
+      "note": "",
+      "review": "APPROVED\n- WidgetRender.RenderedWidgetRectIsHandDrawnOutlineAtOffset\n- WidgetRender.RenderedWidgetLeavesPixelOutsideTheRectBackground",
+      "real_testing": "PASSED\n- B21: probe using only the public API, linked to this worktree's libhpq.a, QApplication offscreen; QWidget 100x80 whose paintEvent draws drawRect(10,10,80,60) (black pen, no brush); widget.render(&device, QPoint(50,50), QRegion(), QWidget::DrawChildren) onto hpq::HandPaintDevice(200x200, theme) for Sketch, China Ink, Chalk -> exit 0. Each screenshot (3x) shows one closed, slightly uneven hand-drawn outline in the theme ink on the theme background. (20,20) and the centre (100,90) are background; all non-background pixels lie within 4 px of the edges of (60,60,80,60) (bbox ~(58,57)-(142,121)), none inside or elsewhere.\n- Out of scope, for information: a QFrame with QLabel, QPushButton, QCheckBox, QLineEdit rendered with default flags and with DrawChildren: no crash, no warning; frame, button, line edit and check mark hand-drawn; text readable. With default flags the window background is filled with the theme fill colour (grey / grey-green) instead of the theme background. With Chalk, \"Push me\" text is nearly invisible (light text on a light button) and the checkbox is hard to see.\nEvidence: specs/hand-paint-engine/real-testing/T12/"
     },
     {
       "id": "T13",

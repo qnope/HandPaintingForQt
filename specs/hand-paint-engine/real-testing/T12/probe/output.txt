@@ -1,0 +1,6 @@
+qt.qpa.fonts: Populating font family aliases took 44 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+sketch: bg=#ffffff ink=#333333 px(20,20)=#ffffff px(100,90 center)=#ffffff bbox non-bg=(59,58)-(141,121) near-edges=642 inside=0 elsewhere=0
+china_ink: bg=#f5efe0 ink=#000000 px(20,20)=#f5efe0 px(100,90 center)=#f5efe0 bbox non-bg=(58,58)-(141,121) near-edges=1054 inside=0 elsewhere=0
+chalk: bg=#2f3b33 ink=#f0f0e8 px(20,20)=#2f3b33 px(100,90 center)=#2f3b33 bbox non-bg=(58,57)-(142,121) near-edges=973 inside=0 elsewhere=0
+done
+exit=0
