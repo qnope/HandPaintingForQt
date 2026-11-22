@@ -15,4 +15,6 @@ qt_add_resources(hpq "hpq_fonts"
 # C++ standard and warnings: PUBLIC, so everything that links hpq gets them.
 target_compile_features(hpq PUBLIC cxx_std_17)
 target_compile_options(hpq PUBLIC $<IF:$<CXX_COMPILER_ID:MSVC>,/W4,-Wall;-Wextra>)
-add_subdirectory(tests)
+if(HPQ_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
