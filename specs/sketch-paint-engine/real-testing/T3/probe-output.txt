@@ -1,0 +1,14 @@
+[rect] fill elements=32 subpaths=1 first=(8,898,5,168) last=(8,898,5,168) closed=1
+[rect] fill bbox=(5,098,5,168 109,900x56,900) limit=(5,000,5,000 110,000x60,000) inside=1 contains_center=1 identical_to_shape=0
+[rect] determinism fill=1 outline=1 (outline strokes=2)
+[rect] seed 9 fill differs from seed 7: 1
+[ellipse] fill elements=66 subpaths=1 first=(78,898,15,168) last=(78,898,15,168) closed=1
+[ellipse] fill bbox=(-2,529,-4,042 86,830x46,724) limit=(-5,000,-5,000 90,000x50,000) inside=1 contains_center=1 identical_to_shape=0
+[ellipse] determinism fill=1 outline=1 (outline strokes=2)
+[ellipse] seed 9 fill differs from seed 7: 1
+[small-rect-offset8] fill elements=10 subpaths=1 first=(-1,763,-7,731) last=(-1,763,-7,731) closed=1
+[small-rect-offset8] fill bbox=(-7,802,-7,731 35,733x31,040) limit=(-8,000,-8,000 36,000x36,000) inside=1 contains_center=1 identical_to_shape=0
+[small-rect-offset8] determinism fill=1 outline=1 (outline strokes=2)
+[small-rect-offset8] seed 9 fill differs from seed 7: 1
+bad=0
+exit=0

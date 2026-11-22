@@ -63,13 +63,19 @@ QPainterPath rough_stroke(const QPolygonF &polygon, double amplitude, double max
     return stroke;
 }
 
+// Largest random move of a vertex, from the roughness and max_offset options.
+double wobble_amplitude(const RoughOptions &options)
+{
+    return std::min(options.roughness * options.max_offset, options.max_offset);
+}
+
 }  // namespace
 
 std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape, const RoughOptions &options,
                                                        std::uint32_t seed) const
 {
     SeededRandom random(seed);
-    const double amplitude = std::min(options.roughness * options.max_offset, options.max_offset);
+    const double amplitude = wobble_amplitude(options);
     const QList<QPolygonF> polygons = shape.toSubpathPolygons();
 
     std::vector<QPainterPath> strokes;
@@ -82,6 +88,23 @@ std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape
         strokes.push_back(stroke);
     }
     return strokes;
+}
+
+QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const RoughOptions &options,
+                                            std::uint32_t seed) const
+{
+    SeededRandom random(seed);
+    const double amplitude = wobble_amplitude(options);
+
+    QPainterPath area;
+    for (const QPolygonF &polygon : shape.toSubpathPolygons()) {
+        if (polygon.isEmpty())
+            continue;
+        QPainterPath boundary = rough_stroke(polygon, amplitude, options.max_offset, random);
+        boundary.closeSubpath();
+        area.addPath(boundary);
+    }
+    return area;
 }
 
 }  // namespace hpq
