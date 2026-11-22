@@ -47,9 +47,11 @@ private:
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
     void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush);
     std::uint32_t seed(const QPainterPath &shape) const;
-    // Saves the target state, then intersects the target clip with the device painter's clip.
+    // Saves the target state, then intersects the target clip with the system clip and the
+    // device painter's clip.
     // What is drawn next is in device coordinates; restore the target when done.
-    void save_target_in_device_coordinates();
+    // The system clip (the area of the widget being rendered) is grown by `system_clip_margin`.
+    void save_target_in_device_coordinates(int system_clip_margin = 0);
     // Like save_target_in_device_coordinates, then composes the device painter's world transform,
     // so that what is drawn next is in the device painter's logical coordinates.
     void save_target_in_logical_coordinates();

@@ -1,9 +1,10 @@
 add_library(hpq STATIC)
 add_library(hpq::hpq ALIAS hpq)
+set_target_properties(hpq PROPERTIES AUTOMOC ON)
 add_subdirectory(src)
 add_subdirectory(include/hpq)
 target_include_directories(hpq PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(hpq PUBLIC Qt6::Gui)
+target_link_libraries(hpq PUBLIC Qt6::Widgets)
 
 # Architects Daughter font (SIL OFL 1.1) and its license, embedded as ":/hpq/fonts/...".
 qt_add_resources(hpq "hpq_fonts"

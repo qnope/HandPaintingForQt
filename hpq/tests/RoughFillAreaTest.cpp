@@ -97,3 +97,20 @@ TEST(RoughFillAreaTest, SameShapeOptionsAndSeedGiveTheSamePaths)
     EXPECT_GT(first_fill.elementCount(), 0);
     EXPECT_TRUE(same_elements(first_fill, second_fill));
 }
+
+// Adjacent fills (for example the rectangles of a widget background region) must leave no
+// unpainted seam between them: the fill area wobbles outward only, never inside the shape.
+TEST(RoughFillAreaTest, FillAreaCoversTheWholeShape)
+{
+    constexpr double Step = 0.5;
+    const QPainterPath shape = rectangle_shape();
+    const QRectF inside = shape.boundingRect().adjusted(Step, Step, -Step, -Step);
+    for (std::uint32_t seed = 0; seed < 10; ++seed) {
+        const QPainterPath fill = hpq::RoughGeometryEngine().fill_area(shape, fill_options(), seed);
+        for (double y = inside.top(); y <= inside.bottom(); y += Step) {
+            for (double x = inside.left(); x <= inside.right(); x += Step) {
+                ASSERT_TRUE(fill.contains(QPointF(x, y))) << "seed " << seed << " point " << x << "," << y;
+            }
+        }
+    }
+}

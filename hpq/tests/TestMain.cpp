@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <QGuiApplication>
+#include <QApplication>
 
-// Fonts need a QGuiApplication; run the tests without a display.
+// Fonts and widgets need a QApplication; run the tests without a display.
 int main(int argc, char **argv) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
-    QGuiApplication application(argc, argv);
+    QApplication application(argc, argv);
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

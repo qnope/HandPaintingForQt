@@ -6,6 +6,7 @@
 
 #include <QPaintDevice>
 #include <QPainter>
+#include <QRegion>
 #include <QTextItem>
 
 #include <cmath>
@@ -26,6 +27,18 @@ std::uint32_t fnv1a(std::uint32_t hash, std::uint32_t value) {
         hash *= FnvPrime;
     }
     return hash;
+}
+
+// `region` with each of its rectangles grown by `margin` on every side.
+QRegion grown(const QRegion &region, int margin) {
+    if (margin == 0) {
+        return region;
+    }
+    QRegion result;
+    for (const QRect &rect : region) {
+        result += rect.adjusted(-margin, -margin, margin, margin);
+    }
+    return result;
 }
 
 std::uint32_t rounded(double coordinate) {
@@ -65,10 +78,12 @@ void HandPaintEngine::updateState(const QPaintEngineState &state) {
         m_transform = state.transform();
     }
     if (flags & (DirtyClipPath | DirtyClipRegion | DirtyClipEnabled)) {
-        // QPainter::clipPath() is in the current logical coordinates: map it back to the device.
+        // QPainter::clipPath() is in the current logical coordinates: map it back to the device
+        // with the engine's transform. Unlike QPainter::combinedTransform(), it includes the
+        // redirection offset of a child widget rendered through a shared painter.
         const QPainter &painter = *state.painter();
         m_clipping = painter.hasClipping();
-        m_clip = m_clipping ? painter.combinedTransform().map(painter.clipPath()) : QPainterPath();
+        m_clip = m_clipping ? state.transform().map(painter.clipPath()) : QPainterPath();
     }
 }
 
@@ -150,17 +165,29 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, bool closed)
 }
 
 void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush) {
-    save_target_in_device_coordinates();
+    // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
+    // the edge of a widget would be cut by the widget's area without this margin.
+    const int system_clip_margin =
+        pen.style() == Qt::NoPen
+            ? 0
+            : static_cast<int>(std::ceil(m_theme.rough_options().max_offset + pen.widthF()));
+    save_target_in_device_coordinates(system_clip_margin);
     m_target.setPen(pen);
     m_target.setBrush(brush);
     m_target.drawPath(path);
     m_target.restore();
 }
 
-void HandPaintEngine::save_target_in_device_coordinates() {
+void HandPaintEngine::save_target_in_device_coordinates(int system_clip_margin) {
     m_target.save();
+    // Intersect keeps the clip the target painter already has.
+    // The system clip is the area of the widget Qt is rendering through a shared painter:
+    // styles draw past it (for example the fill of a selected tab) and rely on it to cut.
+    const QRegion system_clip = systemClip();
+    if (!system_clip.isEmpty()) {
+        m_target.setClipRegion(grown(system_clip, system_clip_margin), Qt::IntersectClip);
+    }
     if (m_clipping) {
-        // Intersect keeps the clip the target painter already has.
         m_target.setClipPath(m_clip, Qt::IntersectClip);
     }
 }
