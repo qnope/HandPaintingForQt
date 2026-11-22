@@ -1,0 +1,80 @@
+== Active ==
+   0 WindowText       set=1 #2b2b2b alpha=255 lightness=43
+   1 Button           set=1 #fbf8ef alpha=255 lightness=245
+   2 Light            set=1 #fbf8ef alpha=255 lightness=245
+   3 Midlight         set=1 #f2eddf alpha=255 lightness=233
+   4 Dark             set=1 #8a867d alpha=255 lightness=132
+   5 Mid              set=1 #8a867d alpha=255 lightness=132
+   6 Text             set=1 #2b2b2b alpha=255 lightness=43
+   7 BrightText       set=1 #fbf8ef alpha=255 lightness=245
+   8 ButtonText       set=1 #2b2b2b alpha=255 lightness=43
+   9 Base             set=1 #fbf8ef alpha=255 lightness=245
+  10 Window           set=1 #fbf8ef alpha=255 lightness=245
+  11 Shadow           set=1 #2b2b2b alpha=255 lightness=43
+  12 Highlight        set=1 #4a4a4a alpha=255 lightness=74
+  13 HighlightedText  set=1 #fbf8ef alpha=255 lightness=245
+  14 Link             set=1 #2a4a7a alpha=255 lightness=82
+  15 LinkVisited      set=1 #2a4a7a alpha=255 lightness=82
+  16 AlternateBase    set=1 #f2eddf alpha=255 lightness=233
+  17 NoRole           set=0 #2b2b2b alpha=255 lightness=43
+  18 ToolTipBase      set=1 #fbf8ef alpha=255 lightness=245
+  19 ToolTipText      set=1 #2b2b2b alpha=255 lightness=43
+  20 PlaceholderText  set=1 #9a968c alpha=255 lightness=147
+  21 Accent           set=1 #4a4a4a alpha=255 lightness=74
+== Disabled ==
+   0 WindowText       set=1 #a8a49a alpha=255 lightness=161
+   1 Button           set=1 #fbf8ef alpha=255 lightness=245
+   2 Light            set=1 #fbf8ef alpha=255 lightness=245
+   3 Midlight         set=1 #f2eddf alpha=255 lightness=233
+   4 Dark             set=1 #8a867d alpha=255 lightness=132
+   5 Mid              set=1 #8a867d alpha=255 lightness=132
+   6 Text             set=1 #a8a49a alpha=255 lightness=161
+   7 BrightText       set=1 #fbf8ef alpha=255 lightness=245
+   8 ButtonText       set=1 #a8a49a alpha=255 lightness=161
+   9 Base             set=1 #fbf8ef alpha=255 lightness=245
+  10 Window           set=1 #fbf8ef alpha=255 lightness=245
+  11 Shadow           set=1 #a8a49a alpha=255 lightness=161
+  12 Highlight        set=1 #b8b4aa alpha=255 lightness=177
+  13 HighlightedText  set=1 #fbf8ef alpha=255 lightness=245
+  14 Link             set=1 #9aa4b4 alpha=255 lightness=167
+  15 LinkVisited      set=1 #9aa4b4 alpha=255 lightness=167
+  16 AlternateBase    set=1 #f2eddf alpha=255 lightness=233
+  17 NoRole           set=0 #a8a49a alpha=255 lightness=161
+  18 ToolTipBase      set=1 #fbf8ef alpha=255 lightness=245
+  19 ToolTipText      set=1 #a8a49a alpha=255 lightness=161
+  20 PlaceholderText  set=1 #9a968c alpha=255 lightness=147
+  21 Accent           set=1 #b8b4aa alpha=255 lightness=177
+== Inactive ==
+   0 WindowText       set=1 #2b2b2b alpha=255 lightness=43
+   1 Button           set=1 #fbf8ef alpha=255 lightness=245
+   2 Light            set=1 #fbf8ef alpha=255 lightness=245
+   3 Midlight         set=1 #f2eddf alpha=255 lightness=233
+   4 Dark             set=1 #8a867d alpha=255 lightness=132
+   5 Mid              set=1 #8a867d alpha=255 lightness=132
+   6 Text             set=1 #2b2b2b alpha=255 lightness=43
+   7 BrightText       set=1 #fbf8ef alpha=255 lightness=245
+   8 ButtonText       set=1 #2b2b2b alpha=255 lightness=43
+   9 Base             set=1 #fbf8ef alpha=255 lightness=245
+  10 Window           set=1 #fbf8ef alpha=255 lightness=245
+  11 Shadow           set=1 #2b2b2b alpha=255 lightness=43
+  12 Highlight        set=1 #4a4a4a alpha=255 lightness=74
+  13 HighlightedText  set=1 #fbf8ef alpha=255 lightness=245
+  14 Link             set=1 #2a4a7a alpha=255 lightness=82
+  15 LinkVisited      set=1 #2a4a7a alpha=255 lightness=82
+  16 AlternateBase    set=1 #f2eddf alpha=255 lightness=233
+  17 NoRole           set=0 #2b2b2b alpha=255 lightness=43
+  18 ToolTipBase      set=1 #fbf8ef alpha=255 lightness=245
+  19 ToolTipText      set=1 #2b2b2b alpha=255 lightness=43
+  20 PlaceholderText  set=1 #9a968c alpha=255 lightness=147
+  21 Accent           set=1 #4a4a4a alpha=255 lightness=74
+unset brushes: 3
+contrast WindowText/Window Active: 13,33  Text/Base: 13,33  ButtonText/Button: 13,33
+contrast Wiqt.qpa.fonts: Populating font family aliases took 43 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support propagateSizeHints()
+ndowText/Window Disabled: 2,34  Text/Base: 2,34  ButtonText/Button: 2,34
+contrast WindowText/Window Inactive: 13,33  Text/Base: 13,33  ButtonText/Button: 13,33
+fill_style Solid: 1
+rough_options: roughness=1,00 stroke_count=2 max_offset=2,00
+font family: Sans Serif
+saved png: 1
+exit=0
