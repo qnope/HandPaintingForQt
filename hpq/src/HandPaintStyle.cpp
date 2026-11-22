@@ -155,6 +155,12 @@ void HandPaintStyle::drawComplexControl(ComplexControl control, const QStyleOpti
             return;
         }
     }
+    if (control == CC_ComboBox) {
+        if (const auto *combo_box = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
+            draw_combo_box(*combo_box, *painter, widget);
+            return;
+        }
+    }
     if (control == CC_ScrollBar) {
         if (const auto *scroll_bar = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
             draw_scroll_bar(*scroll_bar, *painter, widget);
@@ -202,6 +208,25 @@ void HandPaintStyle::draw_slider(const QStyleOptionSlider &option, QPainter &pai
         QStyleOptionSlider tick_marks = option;
         tick_marks.subControls = SC_SliderTickmarks;
         QProxyStyle::drawComplexControl(CC_Slider, &tick_marks, &painter, widget);
+    }
+}
+
+// Fusion caches the combobox in a pixmap: draw a flat frame (Base fill when editable, Button
+// fill otherwise, Dark outline) and the down arrow instead.
+void HandPaintStyle::draw_combo_box(const QStyleOptionComboBox &option, QPainter &painter,
+                                    const QWidget *widget) const {
+    const QPalette::ColorRole fill_role = option.editable ? QPalette::Base : QPalette::Button;
+
+    painter.save();
+    painter.setPen(option.palette.color(QPalette::Dark));
+    painter.setBrush(option.palette.color(fill_role));
+    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
+    painter.restore();
+
+    if (option.subControls & SC_ComboBoxArrow) {
+        QStyleOption arrow = option;
+        arrow.rect = subControlRect(CC_ComboBox, &option, SC_ComboBoxArrow, widget);
+        drawPrimitive(PE_IndicatorArrowDown, &arrow, &painter, widget);
     }
 }
 
