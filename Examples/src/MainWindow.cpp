@@ -4,6 +4,7 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
+#include <hpq/NotebookTheme.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
@@ -22,11 +23,29 @@
 #include <QPolygonF>
 #include <QStandardItemModel>
 
+#include <optional>
+
 namespace hpq::example {
 
 namespace {
 constexpr int SketchIndex = 0;
 constexpr int BlackSlateIndex = 2;
+constexpr int SchoolNotebookIndex = 3;
+
+// The theme of an entry of the combo box; nothing for an entry whose theme does not exist yet.
+std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
+{
+    switch (index) {
+    case SketchIndex:
+        return hpq::sketch_theme(fill_style);
+    case BlackSlateIndex:
+        return hpq::slate_theme(fill_style);
+    case SchoolNotebookIndex:
+        return hpq::notebook_theme(fill_style);
+    default:
+        return std::nullopt;
+    }
+}
 
 QGraphicsScene *create_shapes_scene(QObject *parent)
 {
@@ -73,7 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_ui(std::make_unique<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
-    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk"});
+    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk", "School notebook"});
 
     auto table_model = create_table_model();
     table_model->setParent(this);
@@ -94,16 +113,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::update_theme()
 {
-    const int index = m_ui->comboBox->currentIndex();
-    if (index != SketchIndex && index != BlackSlateIndex) {
+    const hpq::FillStyle fill_style =
+        m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
+    const std::optional<hpq::Theme> theme = theme_for(m_ui->comboBox->currentIndex(), fill_style);
+    if (!theme) {
         hpq::remove_theme(*this);
         return;
     }
-    const hpq::FillStyle fill_style =
-        m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
-    const hpq::Theme theme =
-        index == SketchIndex ? hpq::sketch_theme(fill_style) : hpq::slate_theme(fill_style);
-    hpq::apply_theme(*this, theme, std::make_shared<const hpq::RoughGeometryEngine>());
+    hpq::apply_theme(*this, *theme, std::make_shared<const hpq::RoughGeometryEngine>());
 }
 
 MainWindow::~MainWindow() = default;

@@ -15,6 +15,7 @@
 #include <QTreeView>
 #include <gtest/gtest.h>
 #include <hpq/HandPaintEffect.h>
+#include <hpq/NotebookTheme.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
 
@@ -58,15 +59,16 @@ TEST(MainWindow, LabelBuddyIsTheComboBox)
     EXPECT_EQ(label->buddy(), find<QComboBox>(w, "comboBox"));
 }
 
-TEST(MainWindow, ComboBoxHoldsTheThreeThemes)
+TEST(MainWindow, ComboBoxHoldsTheFourThemes)
 {
     hpq::example::MainWindow w;
     auto *combo = find<QComboBox>(w, "comboBox");
     ASSERT_NE(combo, nullptr);
-    ASSERT_EQ(combo->count(), 3);
+    ASSERT_EQ(combo->count(), 4);
     EXPECT_EQ(combo->itemText(0), "Sketch");
     EXPECT_EQ(combo->itemText(1), "China Ink");
     EXPECT_EQ(combo->itemText(2), "Black slate and chalk");
+    EXPECT_EQ(combo->itemText(3), "School notebook");
 }
 
 TEST(MainWindow, TableViewUsesTheTableModel)
@@ -118,6 +120,7 @@ bool has_hand_paint_effect(const QWidget &widget)
 constexpr int SketchIndex = 0;
 constexpr int ChinaInkIndex = 1;
 constexpr int BlackSlateIndex = 2;
+constexpr int SchoolNotebookIndex = 3;
 } // namespace
 
 TEST(MainWindow, StartsWithTheSketchThemeApplied)
@@ -194,6 +197,25 @@ TEST(MainWindow, SelectingBlackSlateAppliesTheSlateTheme)
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
+TEST(MainWindow, SelectingSchoolNotebookAppliesTheNotebookTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(SchoolNotebookIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::notebook_theme().palette());
+    EXPECT_EQ(w.font().family(), "Playwrite FR Moderne");
+}
+
+TEST(MainWindow, CheckingHachuresUnderSchoolNotebookAppliesTheHatchedNotebookTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(SchoolNotebookIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::notebook_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_NE(w.palette(), hpq::notebook_theme().palette());
+}
+
 class MainWindowOtherTheme : public ::testing::TestWithParam<int>
 {
 };
@@ -208,5 +230,5 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
     EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
 }
 
-INSTANTIATE_TEST_SUITE_P(ChinaInkAndBlackSlate, MainWindowOtherTheme,
-                         ::testing::Values(ChinaInkIndex, BlackSlateIndex));
+INSTANTIATE_TEST_SUITE_P(ChinaInkBlackSlateAndSchoolNotebook, MainWindowOtherTheme,
+                         ::testing::Values(ChinaInkIndex, BlackSlateIndex, SchoolNotebookIndex));
