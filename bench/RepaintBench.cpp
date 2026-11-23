@@ -142,12 +142,15 @@ int main(int argc, char *argv[]) {
 
     QCommandLineParser parser;
     parser.addOptions({{"theme", "none, sketch, sketch-hachure, slate or slate-hachure.", "theme", "sketch"},
-                       {"scenario", "full, resize, table, line-edit, button or rectangles.", "scenario", "full"},
+                       {"scenario", "full, resize, interact, table, line-edit, button or rectangles.", "scenario", "full"},
                        {"size", "Size of the window, as WIDTHxHEIGHT.", "size"},
                        {"repetitions", "Measured repaints.", "count", "200"},
                        {"warmup", "Repaints before the measure.", "count", "20"},
                        {"screenshot", "Saves a new rendering of the window to this file.", "file"},
-                       {"backing-store", "Saves what the repaints left on the window to this file.", "file"}});
+                       {"backing-store",
+                        "Saves what the repaints left on the window to this file, and what a repaint of the "
+                        "whole window then draws to this file followed by .whole.png.",
+                        "file"}});
     parser.addHelpOption();
     parser.process(app);
     const QString theme_name = parser.value("theme");
@@ -204,6 +207,22 @@ int main(int argc, char *argv[]) {
                              10 + (index * 29) % 90);
             window.repaint(part);
         };
+    } else if (scenario == "interact") {
+        // What a user does: types in the line edit, selects a row of the table, presses a
+        // button. Each widget asks for its own repaint, which the event loop then does.
+        auto *line_edit = window.findChild<QLineEdit *>("lineEdit");
+        auto *table = window.findChild<QTableView *>("tableView");
+        auto *button = window.findChild<QPushButton *>();
+        if (!line_edit || !table || !button) {
+            err << "The window lacks a widget of the interact scenario\n";
+            return 2;
+        }
+        repaint = [line_edit, table, button](int index) {
+            line_edit->setText(QString::number(index));
+            table->selectRow(index % 2);
+            button->setDown(index % 2 == 0);
+            QApplication::processEvents();
+        };
     } else if (QWidget *widget = widget_of(scenario, window)) {
         repaint = [widget](int) { widget->repaint(); };
     } else {
@@ -238,8 +257,14 @@ int main(int argc, char *argv[]) {
     if (parser.isSet("backing-store")) {
         // The backing store of the offscreen platform is an image. After the repaints of a part
         // of the window, it must still show what a repaint of the whole window draws.
+        const QString file = parser.value("backing-store");
         if (const auto *image = dynamic_cast<const QImage *>(window.backingStore()->paintDevice())) {
-            image->save(parser.value("backing-store"));
+            image->save(file);
+        }
+        // And what a repaint of the whole window draws for the same state, next to it.
+        window.repaint();
+        if (const auto *image = dynamic_cast<const QImage *>(window.backingStore()->paintDevice())) {
+            image->save(file + ".whole.png");
         }
     }
     if (parser.isSet("screenshot")) {

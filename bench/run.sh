@@ -15,7 +15,7 @@ echo "theme,scale,scenario,repetitions,median_ms,p10_ms,p90_ms,min_ms,geometry_m
 for run in $(seq "$runs"); do
   for scale in 1 2; do
     for theme in none sketch sketch-hachure slate slate-hachure; do
-      for scenario in full resize table line-edit button; do
+      for scenario in full resize interact table line-edit button; do
         QT_SCALE_FACTOR=$scale $pin "$bench" --theme "$theme" --scenario "$scenario" \
           --repetitions "$repetitions" 2>/dev/null
       done
