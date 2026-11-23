@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 
 #include <QAction>
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGraphicsItem>
@@ -26,6 +27,7 @@
 #include <hpq/SlateTheme.h>
 #include <hpq/VelledaTheme.h>
 #include <hpq/WatercolorTheme.h>
+#include <hpq/WindowTheming.h>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
@@ -173,8 +175,11 @@ TEST(MainWindow, StartsWithTheSketchThemeApplied)
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
+// The application installs a WindowTheming, as Main.cpp does.
 TEST(MainWindow, AboutOpensAMessageBoxInTheThemeOfTheWindow)
 {
+    hpq::WindowTheming window_theming;
+    QApplication::instance()->installEventFilter(&window_theming);
     hpq::example::MainWindow w;
     find<QAction>(w, "actionAbout")->trigger();
     auto *about = w.findChild<QMessageBox *>();

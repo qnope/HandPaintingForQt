@@ -14,6 +14,14 @@ HandPaintEffect::HandPaintEffect(Theme theme,
       m_theme(std::move(theme)),
       m_geometry_engine(std::move(geometry_engine)) {}
 
+Theme HandPaintEffect::theme() const {
+    return m_theme;
+}
+
+std::shared_ptr<const GeometryEngine> HandPaintEffect::geometry_engine() const {
+    return m_geometry_engine;
+}
+
 void HandPaintEffect::draw(QPainter *painter) {
     HandPaintDevice device(*painter, m_theme, *m_geometry_engine, &m_cache);
     QPainter hand_painter(&device);

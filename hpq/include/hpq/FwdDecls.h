@@ -15,5 +15,6 @@ class HandPaintDevice;
 class HandPaintEngine;
 class HandPaintEffect;
 class HandPaintStyle;
+class WindowTheming;
 
 } // namespace hpq

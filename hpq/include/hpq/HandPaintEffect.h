@@ -23,6 +23,9 @@ public:
                     std::shared_ptr<const GeometryEngine> geometry_engine,
                     QObject *parent = nullptr);
 
+    Theme theme() const;
+    std::shared_ptr<const GeometryEngine> geometry_engine() const;
+
 protected:
     void draw(QPainter *painter) override;
 

@@ -9,21 +9,18 @@ class QWidget;
 
 namespace hpq {
 
-// Gives `widget` the look of `theme`: its palette and font on the widget, one HandPaintStyle
-// on the widget and its existing descendant widgets, and a HandPaintEffect on the widget.
+// Gives `window` the look of `theme`: its palette and font on the window, one HandPaintStyle
+// on the window and its existing descendant widgets, and a HandPaintEffect on the window.
 // Its existing labels get the marker of the theme, if it has one.
-// The windows that the widget opens get the same look, each with a HandPaintEffect of its own:
-// its menus, its dialogs, its tooltips and the lists of its combo boxes, already open or opened
-// afterwards. A window is opened by its parent widget, and a tooltip without parent (as under
-// Windows) by the widget that asked for it. A window opened inside a descendant given another
-// theme takes the theme of that descendant.
-HPQ_EXPORT void apply_theme(QWidget &widget, const Theme &theme,
+// The lists that its combo boxes open are windows of their own: each gets the palette and a
+// HandPaintEffect too. Its menus, dialogs and tooltips, windows of their own as well, follow
+// its theme if the application installs a WindowTheming.
+HPQ_EXPORT void apply_theme(QWidget &window, const Theme &theme,
                             std::shared_ptr<const GeometryEngine> geometry_engine);
 
-// Removes the HandPaintEffect of `widget` and of the windows it opened, takes the markers away
-// from their labels, and gives back the palettes, fonts and styles they had before the first
-// apply_theme. The windows it opens afterwards are no longer themed. Does nothing on a widget
-// that was never themed.
-HPQ_EXPORT void remove_theme(QWidget &widget);
+// Removes the HandPaintEffect of `window` and of the lists of its combo boxes, takes the
+// markers away from its labels, and gives back the palettes, font and styles they had before
+// the first apply_theme. Does nothing on a window that was never themed.
+HPQ_EXPORT void remove_theme(QWidget &window);
 
 }  // namespace hpq

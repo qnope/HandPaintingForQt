@@ -5,6 +5,7 @@
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
 #include <hpq/Theming.h>
+#include <hpq/WindowTheming.h>
 
 #include <gtest/gtest.h>
 
@@ -15,9 +16,7 @@
 #include <QHelpEvent>
 #include <QImage>
 #include <QLabel>
-#include <QMainWindow>
 #include <QMenu>
-#include <QMenuBar>
 #include <QPushButton>
 #include <QToolTip>
 #include <QVBoxLayout>
@@ -76,6 +75,7 @@ public:
     QPushButton &button() { return *m_button; }
 
     QMenu &open_menu() {
+        m_menu->hide();
         m_menu->popup(m_button->mapToGlobal(QPoint(0, m_button->height())));
         QApplication::processEvents();
         return *m_menu;
@@ -115,34 +115,49 @@ void hide_tool_tip() {
     QApplication::processEvents();
 }
 
+// A WindowTheming installed on the application while the test runs.
+class WindowThemingTest : public testing::Test {
+protected:
+    WindowThemingTest() { QApplication::instance()->installEventFilter(&m_window_theming); }
+    ~WindowThemingTest() override { QApplication::instance()->removeEventFilter(&m_window_theming); }
+
+    hpq::WindowTheming m_window_theming;
+};
+
 }  // namespace
 
-TEST(OpenedWindowThemeTest, MenuOpenedByAWidgetOfTheWidgetTakesItsTheme) {
+// Without a WindowTheming, the application leaves its windows as they are: the menu has only
+// the style that apply_theme gives to every descendant.
+TEST(WithoutWindowThemingTest, MenuHasNeitherThePaletteNorTheEffectOfTheTheme) {
     WindowWithMenu window_with_menu;
-    const hpq::Theme theme = hpq::slate_theme();
+    hpq::apply_theme(window_with_menu.window(), hpq::slate_theme(), rough_geometry_engine());
 
-    hpq::apply_theme(window_with_menu.window(), theme, rough_geometry_engine());
     const QMenu &menu = window_with_menu.open_menu();
 
-    EXPECT_TRUE(has_look_of(menu, theme));
-    EXPECT_NE(menu.style(), window_with_menu.window().style());
+    EXPECT_EQ(menu.graphicsEffect(), nullptr);
+    EXPECT_FALSE(menu.testAttribute(Qt::WA_SetPalette));
+}
+
+TEST_F(WindowThemingTest, MenuTakesTheThemeOfTheWidgetThatOpensIt) {
+    WindowWithMenu window_with_menu;
+    const hpq::Theme theme = hpq::slate_theme();
+    hpq::apply_theme(window_with_menu.window(), theme, rough_geometry_engine());
+
+    EXPECT_TRUE(has_look_of(window_with_menu.open_menu(), theme));
 }
 
 // A menu that is not themed is light; the slate is a dark board.
-TEST(OpenedWindowThemeTest, MenuIsDrawnInTheColorsOfTheTheme) {
+TEST_F(WindowThemingTest, MenuIsDrawnInTheColorsOfTheTheme) {
     constexpr int MaxDarkLightness = 100;
     WindowWithMenu plain;
     WindowWithMenu themed;
     hpq::apply_theme(themed.window(), hpq::slate_theme(), rough_geometry_engine());
 
-    const QColor plain_background = menu_background(plain.open_menu());
-    const QColor themed_background = menu_background(themed.open_menu());
-
-    EXPECT_GT(plain_background.lightness(), MaxDarkLightness);
-    EXPECT_LT(themed_background.lightness(), MaxDarkLightness);
+    EXPECT_GT(menu_background(plain.open_menu()).lightness(), MaxDarkLightness);
+    EXPECT_LT(menu_background(themed.open_menu()).lightness(), MaxDarkLightness);
 }
 
-TEST(OpenedWindowThemeTest, MenuOpenedByAnUnthemedWindowKeepsItsLook) {
+TEST_F(WindowThemingTest, MenuOfAnUnthemedWindowKeepsItsLook) {
     WindowWithMenu themed;
     WindowWithMenu plain;
     hpq::apply_theme(themed.window(), hpq::slate_theme(), rough_geometry_engine());
@@ -150,19 +165,47 @@ TEST(OpenedWindowThemeTest, MenuOpenedByAnUnthemedWindowKeepsItsLook) {
     EXPECT_TRUE(has_no_look(plain.open_menu()));
 }
 
-TEST(OpenedWindowThemeTest, MenuOpenedAfterRemoveThemeKeepsItsLook) {
+TEST_F(WindowThemingTest, MenuShownAgainTakesTheNewThemeOfItsOpener) {
+    WindowWithMenu window_with_menu;
+    hpq::apply_theme(window_with_menu.window(), hpq::sketch_theme(), rough_geometry_engine());
+    window_with_menu.open_menu();
+
+    hpq::apply_theme(window_with_menu.window(), hpq::slate_theme(), rough_geometry_engine());
+
+    EXPECT_TRUE(has_look_of(window_with_menu.open_menu(), hpq::slate_theme()));
+}
+
+TEST_F(WindowThemingTest, MenuShownAgainLosesTheThemeRemovedFromItsOpener) {
     WindowWithMenu window_with_menu;
     hpq::apply_theme(window_with_menu.window(), hpq::slate_theme(), rough_geometry_engine());
+    window_with_menu.open_menu();
 
     hpq::remove_theme(window_with_menu.window());
 
     EXPECT_TRUE(has_no_look(window_with_menu.open_menu()));
 }
 
-TEST(OpenedWindowThemeTest, ToolTipOfAWidgetTakesItsTheme) {
+// The theme a window takes is the one of the nearest widget given a theme: the menu of a
+// panel given its own theme takes the theme of the panel.
+TEST_F(WindowThemingTest, MenuTakesTheThemeOfTheNearestThemedWidget) {
+    WindowWithMenu outer;
+    auto *panel = new QWidget(&outer.window());
+    auto *inner_menu = new QMenu(new QPushButton(panel));
+    inner_menu->addAction("Entry");
+    hpq::apply_theme(outer.window(), hpq::sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(*panel, hpq::slate_theme(), rough_geometry_engine());
+
+    inner_menu->ensurePolished();
+
+    EXPECT_TRUE(has_look_of(*inner_menu, hpq::slate_theme()));
+    EXPECT_TRUE(has_look_of(outer.open_menu(), hpq::sketch_theme()));
+}
+
+// The tooltip is sized with the font of the theme: its whole text is shown.
+TEST_F(WindowThemingTest, ToolTipTakesTheThemeOfTheWidgetThatAsksForIt) {
     WindowWithMenu window_with_menu;
     const hpq::Theme theme = hpq::slate_theme();
-    window_with_menu.button().setToolTip("A tooltip");
+    window_with_menu.button().setToolTip("A tooltip long enough to be cut");
     hpq::apply_theme(window_with_menu.window(), theme, rough_geometry_engine());
 
     ask_for_tool_tip(window_with_menu.button());
@@ -173,6 +216,8 @@ TEST(OpenedWindowThemeTest, ToolTipOfAWidgetTakesItsTheme) {
     EXPECT_NE(qobject_cast<hpq::HandPaintStyle *>(tool_tip->style()), nullptr);
     EXPECT_EQ(tool_tip->palette().color(QPalette::ToolTipBase), theme.palette().color(QPalette::ToolTipBase));
     EXPECT_EQ(tool_tip->font().family(), theme.font().family());
+    EXPECT_GE(tool_tip->width(), tool_tip->sizeHint().width());
+    EXPECT_GE(tool_tip->height(), tool_tip->sizeHint().height());
     hide_tool_tip();
 }
 
@@ -197,7 +242,7 @@ private:
     std::unique_ptr<QLabel> m_tool_tip;
 };
 
-TEST(OpenedWindowThemeTest, ToolTipWithoutParentTakesTheThemeOfTheWidgetThatAskedForIt) {
+TEST_F(WindowThemingTest, ToolTipWithoutParentTakesTheThemeOfTheWidgetThatAskedForIt) {
     QWidget window;
     auto *button = new ButtonWithParentlessToolTip("Button", &window);
     const hpq::Theme theme = hpq::slate_theme();
@@ -209,7 +254,7 @@ TEST(OpenedWindowThemeTest, ToolTipWithoutParentTakesTheThemeOfTheWidgetThatAske
     EXPECT_TRUE(has_look_of(*button->tool_tip(), theme));
 }
 
-TEST(OpenedWindowThemeTest, ToolTipOfAnUnthemedWidgetKeepsItsLook) {
+TEST_F(WindowThemingTest, ToolTipOfAnUnthemedWidgetKeepsItsLook) {
     WindowWithMenu themed;
     WindowWithMenu plain;
     plain.button().setToolTip("A tooltip");
@@ -249,7 +294,8 @@ private:
     QMenu *m_menu;
 };
 
-TEST(OpenedWindowThemeTest, DialogOpenedByTheWidgetTakesItsTheme) {
+// The windows that the dialog opens take its theme in turn.
+TEST_F(WindowThemingTest, DialogTakesTheThemeOfTheWidgetThatOpensIt) {
     QWidget window;
     const hpq::Theme theme = hpq::highlighter_theme();
     hpq::apply_theme(window, theme, rough_geometry_engine());
@@ -261,65 +307,6 @@ TEST(OpenedWindowThemeTest, DialogOpenedByTheWidgetTakesItsTheme) {
     EXPECT_TRUE(has_look_of(dialog, theme));
     EXPECT_EQ(dialog.label().property(hpq::HandPaintStyle::LabelMarkerProperty), QVariant(theme.label_marker()));
     EXPECT_EQ(dialog.list().palette(), theme.palette());
-    EXPECT_TRUE(has_look_of(*dialog.list().window(), theme));
+    EXPECT_TRUE(has_hand_paint_effect(*dialog.list().window()));
     EXPECT_TRUE(has_look_of(dialog.menu(), theme));
-}
-
-// The theme a window takes is the one of the nearest widget given a theme: the menu of a
-// panel given its own theme takes the theme of the panel.
-TEST(OpenedWindowThemeTest, WindowTakesTheThemeOfTheNearestThemedWidget) {
-    WindowWithMenu outer;
-    QWidget panel(&outer.window());
-    auto *inner_menu = new QMenu(new QPushButton(&panel));
-    inner_menu->addAction("Entry");
-    hpq::apply_theme(outer.window(), hpq::sketch_theme(), rough_geometry_engine());
-    hpq::apply_theme(panel, hpq::slate_theme(), rough_geometry_engine());
-
-    inner_menu->ensurePolished();
-
-    EXPECT_TRUE(has_look_of(*inner_menu, hpq::slate_theme()));
-    EXPECT_TRUE(has_look_of(outer.open_menu(), hpq::sketch_theme()));
-}
-
-// The menus of a menu bar and a dialog already open are windows of the main window.
-class MainWindowWithOpenWindows {
-public:
-    MainWindowWithOpenWindows() : m_menu(m_window.menuBar()->addMenu("File")), m_dialog(new QDialog(&m_window)) {
-        m_menu->addAction("Open");
-        new QPushButton("Button", m_dialog);
-        m_window.show();
-        m_dialog->show();
-    }
-
-    QMainWindow &window() { return m_window; }
-    QMenu &menu() { return *m_menu; }
-    QDialog &dialog() { return *m_dialog; }
-
-private:
-    QMainWindow m_window;
-    QMenu *m_menu;
-    QDialog *m_dialog;
-};
-
-TEST(OpenedWindowThemeTest, OpenWindowsTakeAnotherTheme) {
-    MainWindowWithOpenWindows main_window;
-    hpq::apply_theme(main_window.window(), hpq::sketch_theme(), rough_geometry_engine());
-
-    hpq::apply_theme(main_window.window(), hpq::slate_theme(), rough_geometry_engine());
-
-    EXPECT_TRUE(has_look_of(main_window.menu(), hpq::slate_theme()));
-    EXPECT_TRUE(has_look_of(main_window.dialog(), hpq::slate_theme()));
-    EXPECT_EQ(main_window.dialog().findChildren<hpq::HandPaintStyle *>().size(), 1);
-}
-
-TEST(OpenedWindowThemeTest, RemoveThemeTakesTheLookOffTheOpenWindows) {
-    MainWindowWithOpenWindows main_window;
-    hpq::apply_theme(main_window.window(), hpq::slate_theme(), rough_geometry_engine());
-
-    hpq::remove_theme(main_window.window());
-
-    EXPECT_TRUE(has_no_look(main_window.menu()));
-    EXPECT_TRUE(has_no_look(main_window.dialog()));
-    EXPECT_TRUE(main_window.window().findChildren<hpq::HandPaintStyle *>().isEmpty());
-    EXPECT_TRUE(main_window.window().findChildren<hpq::HandPaintEffect *>().isEmpty());
 }

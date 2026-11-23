@@ -3,7 +3,7 @@ target_sources(hpq PRIVATE FillStyle.h Medium.h Theme.h SketchTheme.h SlateTheme
 target_sources(hpq PRIVATE NotebookTheme.h)
 target_sources(hpq PRIVATE BlueprintTheme.h)
 target_sources(hpq PRIVATE HandPaintDevice.h HandPaintEngine.h)
-target_sources(hpq PRIVATE HandPaintEffect.h Theming.h)
+target_sources(hpq PRIVATE HandPaintEffect.h Theming.h WindowTheming.h)
 target_sources(hpq PRIVATE HandPaintStyle.h)
 target_sources(hpq PRIVATE VelledaTheme.h)
 target_sources(hpq PRIVATE ChinaInkTheme.h)
