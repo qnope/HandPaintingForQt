@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hpq/FwdDecls.h>
+#include <hpq/PathCache.h>
 
 #include <QBrush>
 #include <QPaintEngine>
@@ -9,6 +10,7 @@
 #include <QTransform>
 
 #include <cstdint>
+#include <vector>
 
 class QPainter;
 
@@ -18,7 +20,10 @@ namespace hpq {
 // changed by a GeometryEngine and drawn as a Theme says.
 class HandPaintEngine : public QPaintEngine {
 public:
-    HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine);
+    // With a path cache, which must outlive the engine, the rough paths of a shape are made
+    // once and kept: the theme and the geometry engine must then always be the same for that cache.
+    HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
+                    PathCache *path_cache = nullptr);
 
     bool begin(QPaintDevice *device) override;
     bool end() override;
@@ -52,13 +57,21 @@ private:
     void draw_shape(const QPainterPath &shape, ShapeKind kind);
     // Fills `shape` (in device coordinates) on the target with the brush, as the fill style of
     // the theme says.
-    void fill_shape(const QPainterPath &shape, const RoughOptions &options, std::uint32_t shape_seed);
+    void fill_shape(const QPainterPath &shape, const RoughOptions &options);
     // Whether a shape filled with `brush` gets hachures: the theme asks for them, and they
     // would show on the paper without hiding a drawing that `brush` lets through.
     bool is_hatched(const QBrush &brush) const;
-    // Draws one stroke on the target with `pen` and the medium of the theme.
-    // `stroke_seed` gives a chalk stroke its pressure and its gaps.
-    void draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed, StrokeKind kind);
+    // Whether a stroke drawn with `pen` is a chalk ribbon: an area to fill, not a line.
+    bool is_ribbon(const QPen &pen) const;
+    // The path that draws `stroke` with a pen of `width`: itself, or its chalk ribbon, whose
+    // pressure and gaps come from `stroke_seed`.
+    QPainterPath inked(const QPainterPath &stroke, bool as_ribbon, double width, std::uint32_t stroke_seed) const;
+    // Draws on the target, with `pen` and the medium of the theme, a stroke that inked() made.
+    void draw_stroke(const QPainterPath &inked_stroke, const QPen &pen, StrokeKind kind);
+    // The paths of `kind` for `shape` and `parameter`, from the path cache when there is one.
+    template <typename Make>
+    std::vector<QPainterPath> kept_paths(PathCache::Kind kind, const QPainterPath &shape, double parameter,
+                                         Make make);
     // `brush` as the medium of the theme lays it on an area: unchanged by a pencil; with chalk,
     // rubbed on the grain, or the slate itself when it has the color of the slate.
     QBrush seen_through_medium(const QBrush &brush) const;
@@ -83,6 +96,7 @@ private:
     QPainter &m_target;
     const Theme &m_theme;
     const GeometryEngine &m_geometry_engine;
+    PathCache *m_path_cache;
     QPen m_pen;
     QBrush m_brush;
     // The device painter's world transform: shapes are mapped by it to device coordinates

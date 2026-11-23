@@ -9,6 +9,7 @@ class Theme;
 enum class FillStyle;
 enum class Medium;
 enum class ChalkGrain;
+class PathCache;
 class HandPaintDevice;
 class HandPaintEngine;
 class HandPaintEffect;

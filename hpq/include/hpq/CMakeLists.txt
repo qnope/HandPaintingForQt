@@ -1,5 +1,5 @@
 target_sources(hpq PRIVATE Hpq.h FwdDecls.h GeometryEngine.h RoughOptions.h RoughGeometryEngine.h)
 target_sources(hpq PRIVATE FillStyle.h Medium.h Theme.h SketchTheme.h SlateTheme.h)
-target_sources(hpq PRIVATE HandPaintDevice.h HandPaintEngine.h)
+target_sources(hpq PRIVATE HandPaintDevice.h HandPaintEngine.h PathCache.h)
 target_sources(hpq PRIVATE HandPaintEffect.h Theming.h)
 target_sources(hpq PRIVATE HandPaintStyle.h)

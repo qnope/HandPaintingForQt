@@ -14,7 +14,9 @@ namespace hpq {
 // The target painter, the theme and the geometry engine must outlive the device.
 class HandPaintDevice : public QPaintDevice {
 public:
-    HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine);
+    // A path cache, when given, must outlive the device too: see HandPaintEngine.
+    HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
+                    PathCache *path_cache = nullptr);
 
     QPaintEngine *paintEngine() const override;
 
