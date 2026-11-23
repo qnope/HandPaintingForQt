@@ -22,6 +22,11 @@ public:
     // little longer; the line of a disabled label is lighter.
     static constexpr char LabelMarkerProperty[] = "hpq_label_marker";
 
+    // The dynamic property of a window that holds, as an int, how many pixels a hand-drawn
+    // highlight goes past its rectangle. The entries of the menus of its widgets (as the list of
+    // a combo box) are larger by that many pixels on each side, and drawn inside.
+    static constexpr char HighlightOverflowProperty[] = "hpq_highlight_overflow";
+
     HandPaintStyle();
 
     void drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
@@ -32,6 +37,9 @@ public:
 
     void drawComplexControl(ComplexControl control, const QStyleOptionComplex *option, QPainter *painter,
                             const QWidget *widget = nullptr) const override;
+
+    QSize sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &size,
+                           const QWidget *widget = nullptr) const override;
 
     // The grid lines of a table are between the Window and the Mid colors of the palette:
     // lighter than a dark window, where Fusion only darkens the Window color.

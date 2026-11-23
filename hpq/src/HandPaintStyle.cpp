@@ -7,11 +7,13 @@
 #include <QPolygonF>
 #include <QStyleFactory>
 #include <QStyleOption>
+#include <QStyleOptionMenuItem>
 #include <QStyleOptionSlider>
 #include <QStyleOptionSpinBox>
 #include <QStringList>
 #include <QTextDocument>
 #include <QVariant>
+#include <QWidget>
 
 #include <algorithm>
 #include <vector>
@@ -37,6 +39,13 @@ QRectF fitted_handle(const QRect &handle, const QStyleOptionSlider &option) {
         fitted.moveLeft(bounds.center().x() - fitted.width() / 2);
     }
     return fitted;
+}
+
+// How many pixels a hand-drawn highlight goes past its rectangle in the window of `widget`.
+// A view repaints only the rectangles of the entries a highlight leaves and reaches: what went
+// past them would stay on the screen.
+int highlight_overflow(const QWidget *widget) {
+    return widget != nullptr ? widget->window()->property(HandPaintStyle::HighlightOverflowProperty).toInt() : 0;
 }
 
 // How far the grid lines of a table are from the Window color, towards the Mid color.
@@ -208,6 +217,17 @@ void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *opt
         draw_header_section(*option, *painter);
         return;
     }
+    // The entry draws its highlight inside its rectangle, in the room sizeFromContents() left
+    // for what goes past it.
+    if (element == CE_MenuItem) {
+        if (const auto *menu_item = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
+            const int overflow = highlight_overflow(widget);
+            QStyleOptionMenuItem inner = *menu_item;
+            inner.rect.adjust(overflow, overflow, -overflow, -overflow);
+            QProxyStyle::drawControl(element, &inner, painter, widget);
+            return;
+        }
+    }
     // A label draws its frame, then its text: its marker is laid with the frame, under the text.
     if (element == CE_ShapedFrame) {
         if (const auto *label = qobject_cast<const QLabel *>(widget)) {
@@ -255,6 +275,16 @@ void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
         QProxyStyle::drawPrimitive(element, option, painter, widget);
         return;
     }
+}
+
+QSize HandPaintStyle::sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &size,
+                                       const QWidget *widget) const {
+    QSize result = QProxyStyle::sizeFromContents(type, option, size, widget);
+    if (type == CT_MenuItem) {
+        const int overflow = highlight_overflow(widget);
+        result += QSize(2 * overflow, 2 * overflow);
+    }
+    return result;
 }
 
 int HandPaintStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,
