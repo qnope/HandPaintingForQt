@@ -1,13 +1,10 @@
-#include "WatercolorPaint.h"
+#include "WatercolorWash.h"
 
 #include "GrainNoise.h"
 #include "StrokeRibbon.h"
 #include "WatercolorTexture.h"
 
-#include <QCache>
 #include <QImage>
-#include <QMutex>
-#include <QMutexLocker>
 #include <QPaintDevice>
 #include <QPaintEngine>
 #include <QPainter>
@@ -16,7 +13,6 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <vector>
 
 namespace hpq {
@@ -46,19 +42,9 @@ constexpr double EdgeLineDensity = 0.85;
 constexpr double RimDensity = 0.30;
 // Inside, the wash is at most this much thicker or thinner than its brush laid it.
 constexpr double WashSettling = 0.40;
-// Along a line the pigment is at most this much thicker or thinner than its brush laid it.
-constexpr double LineSettling = 0.80;
 // The thickest wash that is told apart from thinner ones.
 constexpr double MaxDensity = 3.0;
 constexpr int DensityLevels = 256;
-
-// The image of a line is cut in squares of this many pixels of the device, and only what the
-// line covers of each square is kept: the frame of a window covers little of its rectangle.
-constexpr int PieceSize = 64;
-
-// What is laid on a window is kept, up to this many bytes: Qt repaints the whole window for
-// a blinking cursor, and each wash or line is the same as long as it stays where it is.
-constexpr int MaxCachedBytes = 48 * 1024 * 1024;
 
 int radius_in_pixels(double radius, double device_pixel_ratio) {
     return std::max(1, static_cast<int>(std::lround(radius * device_pixel_ratio)));
@@ -181,79 +167,6 @@ QRgb with_alpha(QRgb color, int alpha) {
     return qPremultiply(qRgba(qRed(color), qGreen(color), qBlue(color), alpha));
 }
 
-// A part of what a brush laid: an image with the resolution of the device, and where its
-// first pixel is on the device.
-struct Piece {
-    QPoint origin;
-    QImage image;
-};
-
-using Layer = std::vector<Piece>;
-
-enum class LayerKind { Patch, Band, Line };
-
-// What tells a layer from another one.
-struct LayerKey {
-    std::uint64_t area_hash;
-    int element_count;
-    QRgb pigment;
-    LayerKind kind;
-    QRect device_rect;
-    double device_pixel_ratio;
-
-    bool operator==(const LayerKey &other) const {
-        return area_hash == other.area_hash && element_count == other.element_count && pigment == other.pigment &&
-               kind == other.kind && device_rect == other.device_rect &&
-               device_pixel_ratio == other.device_pixel_ratio;
-    }
-};
-
-size_t qHash(const LayerKey &key, size_t seed = 0) {
-    return qHashMulti(seed, key.area_hash, key.element_count, key.pigment, static_cast<int>(key.kind),
-                      key.device_rect.x(), key.device_rect.y(), key.device_rect.width(), key.device_rect.height(),
-                      key.device_pixel_ratio);
-}
-
-// A 64 bit FNV-1a hash of the fill rule and of the elements of `path`.
-std::uint64_t path_hash(const QPainterPath &path) {
-    std::uint64_t hash = 14695981039346656037ull;
-    const auto add = [&hash](const void *data, std::size_t size) {
-        const auto *bytes = static_cast<const unsigned char *>(data);
-        for (std::size_t index = 0; index < size; ++index) {
-            hash = (hash ^ bytes[index]) * 1099511628211ull;
-        }
-    };
-    const int fill_rule = path.fillRule();
-    add(&fill_rule, sizeof fill_rule);
-    for (int index = 0; index < path.elementCount(); ++index) {
-        const QPainterPath::Element element = path.elementAt(index);
-        const int type = element.type;
-        const double coordinates[] = {element.x, element.y};
-        add(&type, sizeof type);
-        add(coordinates, sizeof coordinates);
-    }
-    return hash;
-}
-
-// The layer of `key`, made by `make_layer` the first time it is asked for.
-template <typename MakeLayer>
-Layer cached_layer(const LayerKey &key, MakeLayer make_layer) {
-    static QMutex mutex;
-    static QCache<LayerKey, Layer> layers(MaxCachedBytes);
-    const QMutexLocker locker(&mutex);
-    if (const Layer *found = layers.object(key)) {
-        return *found;
-    }
-    const Layer layer = make_layer();
-    qsizetype bytes = 0;
-    for (const Piece &piece : layer) {
-        bytes += piece.image.sizeInBytes();
-    }
-    // A layer too large for the cache is not kept.
-    layers.insert(key, new Layer(layer), static_cast<int>(std::min<qsizetype>(bytes, MaxCachedBytes + 1)));
-    return layer;
-}
-
 // The area that `painter` can paint, in its logical coordinates; larger when it is not known.
 QRectF paintable_area(const QPainter &painter) {
     const QPaintDevice *device = painter.device();
@@ -263,15 +176,6 @@ QRectF paintable_area(const QPainter &painter) {
     const QRectF device_area(0, 0, device->width() * ratio, device->height() * ratio);
     const QRectF whole = painter.deviceTransform().inverted().mapRect(device_area);
     return painter.hasClipping() ? whole & painter.clipBoundingRect() : whole;
-}
-
-// The pixels of the device that a layer within `reach` logical pixels of `area` changes, among
-// those `painter` can paint and those within `reach` of them.
-QRect layer_rect(const QPainter &painter, const QPainterPath &area, double reach) {
-    const double ratio = painter.device()->devicePixelRatioF();
-    const QRectF touched = area.boundingRect().adjusted(-reach, -reach, reach, reach);
-    const QRectF painted = touched & paintable_area(painter).adjusted(-reach, -reach, reach, reach);
-    return QRectF(painted.topLeft() * ratio, painted.size() * ratio).toAlignedRect();
 }
 
 // The wash of `pigment` on `area`, for the pixels of `device_rect`.
@@ -316,104 +220,29 @@ QImage wash_image(const QPainterPath &area, const QColor &pigment, WashKind kind
     return image;
 }
 
-// The smallest part of `rect` that holds every pixel of `mask` that is not transparent in
-// `rect`: an empty rectangle when there is none.
-QRect covered_part(const QImage &mask, const QRect &rect) {
-    int left = rect.right() + 1;
-    int right = rect.left() - 1;
-    int top = rect.bottom() + 1;
-    int bottom = rect.top() - 1;
-    for (int y = rect.top(); y <= rect.bottom(); ++y) {
-        const auto *line = reinterpret_cast<const QRgb *>(mask.constScanLine(y));
-        for (int x = rect.left(); x <= rect.right(); ++x) {
-            if (line[x] != 0) {
-                left = std::min(left, x);
-                right = std::max(right, x);
-                top = std::min(top, y);
-                bottom = y;
-            }
-        }
-    }
-    return QRect(QPoint(left, top), QPoint(right, bottom));
-}
+// The distance, in logical pixels, over which the edge of an area changes its wash.
+constexpr double WashReach = BlurReach * (SoftEdgeRadius + PoolRadius) + BandOverrun + 1.0;
 
-// The line of `pigment` that fills `ribbon`, for the pixels of `device_rect`: one piece for
-// each square of the device that the line crosses.
-Layer line_pieces(const QPainterPath &ribbon, const QColor &pigment, const QRect &device_rect,
-                  double device_pixel_ratio) {
-    const QImage mask = coverage_mask(ribbon, device_rect, device_pixel_ratio);
-    const QImage settling = pigment_settling(device_pixel_ratio);
-    const std::array<QRgb, DensityLevels> colors = pigment_colors(pigment);
-    const double opacity = pigment.alphaF();
-    Layer pieces;
-    for (int top = 0; top < mask.height(); top += PieceSize) {
-        for (int left = 0; left < mask.width(); left += PieceSize) {
-            const QRect covered = covered_part(mask, QRect(left, top, PieceSize, PieceSize) & mask.rect());
-            if (covered.isEmpty()) {
-                continue;
-            }
-            const QPoint origin = device_rect.topLeft() + covered.topLeft();
-            QImage image(covered.size(), QImage::Format_ARGB32_Premultiplied);
-            for (int y = 0; y < image.height(); ++y) {
-                auto *line = reinterpret_cast<QRgb *>(image.scanLine(y));
-                const QRgb *mask_line =
-                    reinterpret_cast<const QRgb *>(mask.constScanLine(covered.top() + y)) + covered.left();
-                const uchar *settling_line = settling.constScanLine(wrapped(origin.y() + y, settling.height()));
-                for (int x = 0; x < image.width(); ++x) {
-                    const double level = settling_level(settling_line[wrapped(origin.x() + x, settling.width())]);
-                    line[x] = with_alpha(color_at(colors, 1.0 + LineSettling * level),
-                                         static_cast<int>(std::lround(opacity * qAlpha(mask_line[x]))));
-                }
-            }
-            pieces.push_back({origin, image});
-        }
-    }
-    return pieces;
-}
+}  // namespace
 
-// Lays on `painter` the layer of `kind` that `pigment` leaves on `area`, which changes the
-// pixels within `reach` logical pixels of the area.
-void paint_layer(QPainter &painter, const QPainterPath &area, const QColor &pigment, LayerKind kind, double reach) {
+void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind) {
     const double ratio = painter.device()->devicePixelRatioF();
-    const QRect device_rect = layer_rect(painter, area, reach);
+    // The pixels of the device that the wash changes, among those the painter can paint and
+    // those close enough to change them.
+    const QRectF touched = area.boundingRect().adjusted(-WashReach, -WashReach, WashReach, WashReach);
+    const QRectF painted = touched & paintable_area(painter).adjusted(-WashReach, -WashReach, WashReach, WashReach);
+    const QRect device_rect = QRectF(painted.topLeft() * ratio, painted.size() * ratio).toAlignedRect();
     if (device_rect.isEmpty()) {
         return;
     }
-    const LayerKey key{path_hash(area), area.elementCount(), pigment.rgba(), kind, device_rect, ratio};
-    const Layer layer = cached_layer(key, [&] {
-        Layer pieces = kind == LayerKind::Line
-                           ? line_pieces(area, pigment, device_rect, ratio)
-                           : Layer{{device_rect.topLeft(),
-                                    wash_image(area, pigment, kind == LayerKind::Band ? WashKind::Band : WashKind::Patch,
-                                               device_rect, ratio)}};
-        for (Piece &piece : pieces) {
-            piece.image.setDevicePixelRatio(ratio);
-        }
-        return pieces;
-    });
+    QImage wash = wash_image(area, pigment, kind, device_rect, ratio);
+    wash.setDevicePixelRatio(ratio);
     // A glaze: it darkens the paper and what was laid under it. Laid twice at the same place,
     // as Qt does for the selected row of a view, it does not darken itself.
     if (painter.paintEngine()->hasFeature(QPaintEngine::BlendModes)) {
         painter.setCompositionMode(QPainter::CompositionMode_Darken);
     }
-    for (const Piece &piece : layer) {
-        painter.drawImage(QPointF(piece.origin) / ratio, piece.image);
-    }
-}
-
-// The distance, in logical pixels, over which the edge of an area changes its wash.
-constexpr double WashReach = BlurReach * (SoftEdgeRadius + PoolRadius) + BandOverrun + 1.0;
-// A line changes the pixels its smooth edge touches.
-constexpr double LineReach = 1.0;
-
-}  // namespace
-
-void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind) {
-    paint_layer(painter, area, pigment, kind == WashKind::Band ? LayerKind::Band : LayerKind::Patch, WashReach);
-}
-
-void paint_line(QPainter &painter, const QPainterPath &ribbon, const QColor &pigment) {
-    paint_layer(painter, ribbon, pigment, LayerKind::Line, LineReach);
+    painter.drawImage(QPointF(device_rect.topLeft()) / ratio, wash);
 }
 
 }  // namespace hpq

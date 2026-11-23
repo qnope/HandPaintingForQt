@@ -9,7 +9,7 @@
 namespace hpq {
 
 // What the image of a tile brush shows.
-enum class TileKind { ChalkStroke, ChalkText, ChalkFill, Slate, WatercolorPaper };
+enum class TileKind { ChalkStroke, ChalkText, ChalkFill, Slate, WatercolorPaper, WatercolorPigment };
 
 // `tile`, an image that tiles, with `size` pixels on each side instead of its own, smoothed.
 // It still tiles: it is scaled with its own repetitions around it.

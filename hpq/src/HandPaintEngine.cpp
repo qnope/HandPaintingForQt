@@ -8,8 +8,8 @@
 #include "BrushStroke.h"
 #include "ChalkStroke.h"
 #include "ChalkTexture.h"
-#include "WatercolorPaint.h"
 #include "WatercolorTexture.h"
+#include "WatercolorWash.h"
 
 #include <QPaintDevice>
 #include <QPainter>
@@ -277,9 +277,8 @@ void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, s
     const int system_clip_margin =
         is_outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
     if (is_brush && is_watercolor) {
-        save_target_in_device_coordinates(system_clip_margin);
-        paint_line(m_target, brush_ribbon(stroke, width, stroke_seed), pen.color());
-        m_target.restore();
+        glaze_on_target(brush_ribbon(stroke, width, stroke_seed), pigment_brush(pen.color(), target_pixel_ratio()),
+                        system_clip_margin);
     } else if (is_brush) {
         draw_on_target(brush_ribbon(stroke, width, stroke_seed), Qt::NoPen, pen.brush(), system_clip_margin);
     } else if (!is_chalk) {
@@ -337,6 +336,18 @@ void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, 
     m_target.setPen(pen);
     m_target.setBrush(brush);
     m_target.drawPath(path);
+    m_target.restore();
+}
+
+void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin) {
+    save_target_in_device_coordinates(system_clip_margin);
+    m_target.setRenderHint(QPainter::Antialiasing);
+    if (m_target.paintEngine()->hasFeature(QPaintEngine::BlendModes)) {
+        m_target.setCompositionMode(QPainter::CompositionMode_Darken);
+    }
+    m_target.setPen(Qt::NoPen);
+    m_target.setBrush(brush);
+    m_target.drawPath(area);
     m_target.restore();
 }
 

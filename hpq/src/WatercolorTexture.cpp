@@ -77,6 +77,24 @@ QImage paper_image(const QColor &color) {
     return image;
 }
 
+// Side, in logical pixels, of the image of a pigment brush: a line is too thin to show that
+// it repeats, and a window draws lines of many colors.
+constexpr int LineSize = 128;
+// Along a line the pigment is at most this much thicker or thinner than its brush laid it.
+constexpr double LineSettling = 0.80;
+
+QImage pigment_image(const QColor &color) {
+    QImage image(LineSize, LineSize, QImage::Format_ARGB32_Premultiplied);
+    for (int y = 0; y < LineSize; ++y) {
+        auto *line = reinterpret_cast<QRgb *>(image.scanLine(y));
+        for (int x = 0; x < LineSize; ++x) {
+            const QRgb pixel = laid_pigment(color, 1.0 + LineSettling * settling_at(x, y, LineSize));
+            line[x] = qPremultiply(qRgba(qRed(pixel), qGreen(pixel), qBlue(pixel), color.alpha()));
+        }
+    }
+    return image;
+}
+
 int laid_channel(int channel, double density) {
     return static_cast<int>(std::lround(255.0 * std::pow(channel / 255.0, density)));
 }
@@ -107,6 +125,10 @@ QRgb laid_pigment(const QColor &pigment, double density) {
 
 QBrush paper_brush(const QColor &color, double device_pixel_ratio) {
     return tile_brush(TileKind::WatercolorPaper, color, device_pixel_ratio, [&] { return paper_image(color); });
+}
+
+QBrush pigment_brush(const QColor &color, double device_pixel_ratio) {
+    return tile_brush(TileKind::WatercolorPigment, color, device_pixel_ratio, [&] { return pigment_image(color); });
 }
 
 }  // namespace hpq

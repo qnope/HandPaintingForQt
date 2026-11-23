@@ -10,8 +10,8 @@
 #include <QImage>
 #include <QPainter>
 
+#include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <functional>
 
 namespace {
@@ -159,16 +159,15 @@ QRect left_edge() {
 
 }  // namespace
 
-// A line is laid as the pieces of an image: what the brush covers of each square of the device.
-TEST(WatercolorMedium, LineIsLaidInPiecesThatFollowItFromEndToEnd) {
+// A line is the ribbon of a paint brush, filled with the pigment of its pen.
+TEST(WatercolorMedium, LineIsABrushRibbonFilledWithPigment) {
     const std::vector<DrawCall> calls = watercolor_calls(draw_line);
 
-    ASSERT_GE(calls.size(), 2u);
-    QRectF bounds;
-    for (const DrawCall &call : calls) {
-        ASSERT_EQ(call.kind, DrawCall::Kind::Pixmap);
-        bounds |= call.rect;
-    }
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_TRUE(calls[0].is_fill());
+    EXPECT_EQ(calls[0].brush.style(), Qt::TexturePattern);
+    EXPECT_EQ(calls[0].brush.color(), PenColor);
+    const QRectF bounds = calls[0].path.boundingRect();
     EXPECT_LE(bounds.left(), Line.x1());
     EXPECT_GE(bounds.right(), Line.x2());
     EXPECT_GT(bounds.height(), PenWidth / 2.0);
@@ -194,30 +193,29 @@ TEST(WatercolorMedium, PigmentOfALineIsUneven) {
 
 // The edge of a line is smooth: some of its pixels are between the pigment and the paper.
 TEST(WatercolorMedium, EdgeOfALineIsSmooth) {
-    const std::vector<DrawCall> calls = watercolor_calls(draw_line);
+    const QImage sheet = painted_on_paper(draw_line);
 
-    int half_covered = 0;
-    for (const DrawCall &call : calls) {
-        const QImage piece = call.image.convertToFormat(QImage::Format_ARGB32);
-        for (int y = 0; y < piece.height(); ++y) {
-            for (int x = 0; x < piece.width(); ++x) {
-                const int alpha = qAlpha(piece.pixel(x, y));
-                half_covered += alpha > 0 && alpha < 255 ? 1 : 0;
-            }
-        }
+    const int paper_gray = qGray(paper_color().rgb());
+    const int x = static_cast<int>(Line.center().x());
+    int darkest = paper_gray;
+    for (int y = 0; y < sheet.height(); ++y) {
+        darkest = std::min(darkest, qGray(sheet.pixel(x, y)));
     }
-    EXPECT_GT(half_covered, 20);
+    int half_covered = 0;
+    for (int y = 0; y < sheet.height(); ++y) {
+        const int gray = qGray(sheet.pixel(x, y));
+        half_covered += gray > darkest + 15 && gray < paper_gray - 15 ? 1 : 0;
+    }
+    EXPECT_GE(half_covered, 1);
 }
 
-TEST(WatercolorMedium, SameLineGivesTheSamePieces) {
+TEST(WatercolorMedium, SameLineGivesTheSameRibbon) {
     const std::vector<DrawCall> first = watercolor_calls(draw_line);
     const std::vector<DrawCall> second = watercolor_calls(draw_line);
 
-    ASSERT_EQ(first.size(), second.size());
-    for (std::size_t index = 0; index < first.size(); ++index) {
-        EXPECT_EQ(first[index].rect, second[index].rect);
-        EXPECT_EQ(first[index].image, second[index].image);
-    }
+    ASSERT_EQ(first.size(), 1u);
+    ASSERT_EQ(second.size(), 1u);
+    EXPECT_EQ(first[0].path, second[0].path);
 }
 
 // A line only darkens what is under it: it does not show on a darker line.
@@ -326,10 +324,12 @@ TEST(WatercolorMedium, WashIsNotFlat) {
 TEST(WatercolorMedium, PigmentGathersAllAlongTheEdgeOfAShape) {
     const std::vector<DrawCall> calls = watercolor_calls(draw_rectangle(WashColor));
 
-    // The wash, then the pieces of the outline.
-    ASSERT_GE(calls.size(), 2u);
+    // The wash, then the outline.
+    ASSERT_EQ(calls.size(), 2u);
     ASSERT_EQ(calls[0].kind, DrawCall::Kind::Pixmap);
     EXPECT_TRUE(calls[0].rect.contains(Rectangle));
+    EXPECT_TRUE(calls[1].is_fill());
+    EXPECT_EQ(calls[1].brush.color(), PenColor);
     const Wash wash = wash_of(calls[0]);
     const double inside_lightness = lightness(wash, inside());
     EXPECT_LT(lightness(wash, top_edge()), inside_lightness - 10.0);
@@ -425,18 +425,18 @@ TEST(WatercolorMedium, HatchedFillIsThePaperUnderBrushLines) {
 
     const std::vector<DrawCall> calls = calls_of(theme, DiagonalHachureEngine(), fill_rectangle(WashColor));
 
-    ASSERT_GE(calls.size(), 2u);
+    ASSERT_EQ(calls.size(), 2u);
     // The paper under the hachures.
     EXPECT_TRUE(calls[0].is_fill());
     EXPECT_EQ(calls[0].brush.style(), Qt::TexturePattern);
     EXPECT_EQ(calls[0].brush.color(), paper_color());
-    // The hachures: pieces of lines of pigment, inside the rectangle.
-    for (std::size_t index = 1; index < calls.size(); ++index) {
-        ASSERT_EQ(calls[index].kind, DrawCall::Kind::Pixmap);
-        EXPECT_TRUE(QRectF(Rectangle)
-                        .adjusted(-WidestBrushLine, -WidestBrushLine, WidestBrushLine, WidestBrushLine)
-                        .contains(calls[index].rect));
-    }
+    // The hachures: lines of the pigment of the brush, inside the rectangle.
+    EXPECT_TRUE(calls[1].is_fill());
+    EXPECT_EQ(calls[1].brush.style(), Qt::TexturePattern);
+    EXPECT_EQ(calls[1].brush.color(), WashColor);
+    EXPECT_TRUE(QRectF(Rectangle)
+                    .adjusted(-WidestBrushLine, -WidestBrushLine, WidestBrushLine, WidestBrushLine)
+                    .contains(calls[1].path.boundingRect()));
 }
 
 // The hachures of a hatched fill are lines in the color of its brush, and leave the paper bare

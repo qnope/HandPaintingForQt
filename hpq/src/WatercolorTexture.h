@@ -26,4 +26,9 @@ QRgb laid_pigment(const QColor &pigment, double density);
 // It is anchored to the origin of the painter: the grain stays at the same places of the paper.
 QBrush paper_brush(const QColor &color, double device_pixel_ratio);
 
+// A brush that paints the line of a paint brush loaded with `color`: the pigment settles
+// unevenly along the line, darker here and paler there. It has `color` as its color, and is
+// anchored to the origin of the painter.
+QBrush pigment_brush(const QColor &color, double device_pixel_ratio);
+
 }  // namespace hpq

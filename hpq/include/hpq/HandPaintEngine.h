@@ -80,6 +80,9 @@ private:
     // The system clip is grown by `system_clip_margin`.
     void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
                         int system_clip_margin = 0);
+    // Fills `area` on the target with `brush` as a paint brush leaves watercolor: with a smooth
+    // edge, and as a glaze that darkens what is under it, when the target can do that.
+    void glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin);
     std::uint32_t seed(const QPainterPath &shape) const;
     // Saves the target state, then intersects the target clip with the system clip and the
     // device painter's clip.
