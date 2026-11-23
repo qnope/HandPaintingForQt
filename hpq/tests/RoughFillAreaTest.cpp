@@ -43,9 +43,20 @@ QPointF element_point(const QPainterPath &path, int index)
     return {element.x, element.y};
 }
 
+// True when every subpath of `path` ends where it starts.
 bool is_closed(const QPainterPath &path)
 {
-    return path.elementCount() > 2 && element_point(path, 0) == element_point(path, path.elementCount() - 1);
+    if (path.elementCount() <= 2)
+        return false;
+    int start = 0;
+    for (int i = 1; i <= path.elementCount(); ++i) {
+        if (i < path.elementCount() && !path.elementAt(i).isMoveTo())
+            continue;
+        if (element_point(path, start) != element_point(path, i - 1))
+            return false;
+        start = i;
+    }
+    return true;
 }
 
 bool same_elements(const QPainterPath &a, const QPainterPath &b)

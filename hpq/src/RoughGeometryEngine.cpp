@@ -175,6 +175,61 @@ std::vector<Span> spans_inside(const QList<QPolygonF> &polygons, double y, Qt::F
     return spans;
 }
 
+// -1, 0 or +1.
+int sign_of(double value)
+{
+    return (value > 0.0) - (value < 0.0);
+}
+
+// True when `polygon` is convex: it always turns the same way, and goes once around.
+// A convex polygon does not cross itself, so the two fill rules fill the same area.
+bool is_convex(const QPolygonF &polygon)
+{
+    const int count = polygon.isClosed() ? polygon.size() - 1 : polygon.size();
+    if (count < 3)
+        return false;
+    int turn = 0;
+    int x_direction = 0;
+    int y_direction = 0;
+    int x_changes = 0;
+    int y_changes = 0;
+    // The sides from the last one, so that every corner is seen, the first one twice.
+    for (int i = 0; i <= count; ++i) {
+        const QPointF from = polygon[(i + count - 1) % count];
+        const QPointF at = polygon[i % count];
+        const QPointF to = polygon[(i + 1) % count];
+        const QPointF incoming = at - from;
+        const QPointF outgoing = to - at;
+        const int side_turn = sign_of(incoming.x() * outgoing.y() - incoming.y() * outgoing.x());
+        if (side_turn != 0) {
+            if (turn != 0 && side_turn != turn)
+                return false;
+            turn = side_turn;
+        }
+        // A polygon that goes once around changes its direction twice along each axis.
+        const int x = sign_of(outgoing.x());
+        if (x != 0) {
+            x_changes += x_direction != 0 && x != x_direction;
+            x_direction = x;
+        }
+        const int y = sign_of(outgoing.y());
+        if (y != 0) {
+            y_changes += y_direction != 0 && y != y_direction;
+            y_direction = y;
+        }
+    }
+    return turn != 0 && x_changes <= 2 && y_changes <= 2;
+}
+
+// True when the winding rule fills, for the subpaths of `shape` and other subpaths that go
+// the same way around about the same areas, all that either of them covers.
+bool united_by_winding(const QPainterPath &shape, const QList<QPolygonF> &polygons)
+{
+    if (shape.fillRule() == Qt::WindingFill)
+        return true;
+    return polygons.size() == 1 && is_convex(polygons.first());
+}
+
 }  // namespace
 
 RoughGeometryEngine::RoughGeometryEngine() : RoughGeometryEngine(std::random_device()()) {}
@@ -206,9 +261,10 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     std::mt19937 generator = shape_generator(m_base_seed, seed);
     const double amplitude = wobble_amplitude(options);
 
+    const QList<QPolygonF> polygons = flattened_subpaths(shape);
     QPainterPath area;
     area.setFillRule(shape.fillRule());
-    for (const QPolygonF &polygon : flattened_subpaths(shape)) {
+    for (const QPolygonF &polygon : polygons) {
         if (polygon.isEmpty())
             continue;
         QPainterPath boundary = rough_stroke(polygon, amplitude, generator);
@@ -217,6 +273,13 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     }
     // The area wobbles outward only: it always covers the whole shape, so that adjacent fills
     // (for example the rectangles of a widget background region) leave no unpainted seam.
+    // Each rough boundary goes the same way around as its subpath: where the winding rule
+    // unites them, the shape is only added to the area. Uniting two paths is far slower.
+    if (united_by_winding(shape, polygons)) {
+        area.setFillRule(Qt::WindingFill);
+        area.addPath(shape);
+        return area;
+    }
     return area.united(shape);
 }
 
