@@ -269,7 +269,9 @@ std::vector<QPainterPath> HandPaintEngine::kept_paths(PaintCache::PathKind kind,
     // The values of the cap styles and of the join styles are bits of their own, above the ribbons.
     const int tool_number = static_cast<int>(tool.ribbon) | static_cast<int>(tool.cap_style) |
                             static_cast<int>(tool.join_style);
-    return m_cache->paths(kind, shape, tool_number, tool.width, make);
+    // Without a ribbon the paths are the strokes themselves, whatever the width of their pen.
+    const double width = tool.ribbon == Ribbon::None ? 0.0 : tool.width;
+    return m_cache->paths(kind, shape, tool_number, width, make);
 }
 
 void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
