@@ -10,6 +10,7 @@
 #include <QTransform>
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 class QPainter;
@@ -93,7 +94,16 @@ private:
     // so that what is drawn next is in the device painter's logical coordinates.
     void save_target_in_logical_coordinates();
 
+    // Whether nothing drawn within `margin` of `bounds` (in device coordinates) can show:
+    // it is out of what the target can paint, or of the area of the widget being rendered.
+    bool is_out_of_sight(const QRectF &bounds, double margin) const;
+    // The farthest from a shape that its outline, drawn with the current pen, puts ink.
+    double outline_overflow() const;
+
     QPainter &m_target;
+    // The bounds of what the target painter can paint (its clips), in its coordinates; none
+    // when nothing limits it.
+    std::optional<QRectF> m_target_sight;
     const Theme &m_theme;
     const GeometryEngine &m_geometry_engine;
     PathCache *m_path_cache;

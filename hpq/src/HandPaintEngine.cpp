@@ -91,7 +91,50 @@ HandPaintEngine::HandPaintEngine(QPainter &target, const Theme &theme, const Geo
       m_geometry_engine(geometry_engine),
       m_path_cache(path_cache) {}
 
-bool HandPaintEngine::begin(QPaintDevice *) { return true; }
+namespace {
+
+// The bounds of what `painter` can paint, in its coordinates: its clip and the system clip
+// of its device (the area that Qt repaints). None when nothing limits it.
+std::optional<QRectF> sight_of(const QPainter &painter) {
+    std::optional<QRectF> sight;
+    const QRegion system_clip = painter.paintEngine()->systemClip();
+    const QTransform to_device = painter.deviceTransform();
+    if (!system_clip.isEmpty() && to_device.isInvertible()) {
+        sight = to_device.inverted().mapRect(QRectF(system_clip.boundingRect()));
+    }
+    if (painter.hasClipping()) {
+        const QRectF clip = painter.clipBoundingRect();
+        sight = sight ? sight->intersected(clip) : clip;
+    }
+    return sight;
+}
+
+}  // namespace
+
+bool HandPaintEngine::begin(QPaintDevice *) {
+    m_target_sight = sight_of(m_target);
+    return true;
+}
+
+bool HandPaintEngine::is_out_of_sight(const QRectF &bounds, double margin) const {
+    const QRectF reach = bounds.adjusted(-margin, -margin, margin, margin);
+    // QRectF::intersects() is false for an empty rectangle: a line has an empty bounding rectangle.
+    const auto misses = [&reach](const QRectF &area) {
+        return reach.right() < area.left() || reach.left() > area.right() || reach.bottom() < area.top() ||
+               reach.top() > area.bottom();
+    };
+    if (m_target_sight && misses(*m_target_sight)) {
+        return true;
+    }
+    const QRegion system_clip = systemClip();
+    return !system_clip.isEmpty() && misses(QRectF(system_clip.boundingRect()));
+}
+
+double HandPaintEngine::outline_overflow() const {
+    const bool is_chalk = m_theme.medium() == Medium::Chalk;
+    const double widest = is_chalk ? chalk_width(m_pen) * ChalkWidestPressure : m_pen.widthF();
+    return std::ceil(m_theme.rough_options().max_offset + widest) + 1.0;
+}
 
 bool HandPaintEngine::end() { return true; }
 
@@ -159,6 +202,9 @@ void HandPaintEngine::drawPolygon(const QPointF *points, int count, PolygonDrawM
 
 // Images reach the target unchanged.
 void HandPaintEngine::drawPixmap(const QRectF &rect, const QPixmap &pixmap, const QRectF &source_rect) {
+    if (is_out_of_sight(m_transform.mapRect(rect), 1.0)) {
+        return;
+    }
     save_target_in_logical_coordinates();
     m_target.drawPixmap(rect, pixmap, source_rect);
     m_target.restore();
@@ -166,12 +212,18 @@ void HandPaintEngine::drawPixmap(const QRectF &rect, const QPixmap &pixmap, cons
 
 void HandPaintEngine::drawImage(const QRectF &rect, const QImage &image, const QRectF &source_rect,
                                 Qt::ImageConversionFlags flags) {
+    if (is_out_of_sight(m_transform.mapRect(rect), 1.0)) {
+        return;
+    }
     save_target_in_logical_coordinates();
     m_target.drawImage(rect, image, source_rect, flags);
     m_target.restore();
 }
 
 void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap, const QPointF &offset) {
+    if (is_out_of_sight(m_transform.mapRect(rect), 1.0)) {
+        return;
+    }
     save_target_in_logical_coordinates();
     m_target.drawTiledPixmap(rect, pixmap, offset);
     m_target.restore();
@@ -187,6 +239,10 @@ std::vector<QPainterPath> HandPaintEngine::kept_paths(PathCache::Kind kind, cons
 
 void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
     const QPainterPath shape = m_transform.map(logical_shape);
+    // What cannot show is not drawn: its rough paths are not even made.
+    if (is_out_of_sight(shape.controlPointRect(), outline_overflow())) {
+        return;
+    }
     const RoughOptions options = m_theme.rough_options();
     const bool filled = m_brush.style() != Qt::NoBrush;
     if (kind != ShapeKind::Open && filled) {
@@ -348,6 +404,11 @@ std::uint32_t HandPaintEngine::seed(const QPainterPath &shape) const { return pa
 namespace {
 
 constexpr double PointsPerInch = 72.0;
+// No character is drawn wider than this many pixel sizes of its font, nor farther than these
+// above and below its base line.
+constexpr double MaxCharacterWidths = 2.0;
+constexpr double MaxLineHeightsAbove = 2.0;
+constexpr double MaxLineHeightsBelow = 1.0;
 
 // Pixel size of `font` on `device`: its pixel size, or its point size converted with the device DPI.
 int pixel_size(const QFont &font, const QPaintDevice &device) {
@@ -362,6 +423,15 @@ int pixel_size(const QFont &font, const QPaintDevice &device) {
 void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &text_item) {
     QFont font = m_theme.font();
     font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
+    // The exact bounds of the text in the theme font would cost its layout, as much as drawing
+    // it: these are generous ones, from the size of the font and the number of characters.
+    const double size = font.pixelSize();
+    const QRectF generous_bounds(position.x() - size, position.y() - MaxLineHeightsAbove * size,
+                                 (MaxCharacterWidths * static_cast<double>(text_item.text().size()) + 2.0) * size,
+                                 (MaxLineHeightsAbove + MaxLineHeightsBelow) * size);
+    if (is_out_of_sight(m_transform.mapRect(generous_bounds), 1.0)) {
+        return;
+    }
     save_target_in_logical_coordinates();
     m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text) : m_pen);
     m_target.setFont(font);
