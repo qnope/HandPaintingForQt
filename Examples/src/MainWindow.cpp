@@ -4,6 +4,7 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
+#include <hpq/NotebookTheme.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
@@ -22,6 +23,7 @@
 #include <QPen>
 #include <QPolygonF>
 #include <QStandardItemModel>
+
 #include <optional>
 
 namespace hpq::example {
@@ -29,7 +31,25 @@ namespace hpq::example {
 namespace {
 constexpr int SketchIndex = 0;
 constexpr int BlackSlateIndex = 2;
-constexpr int VelledaIndex = 3;
+constexpr int SchoolNotebookIndex = 3;
+constexpr int VelledaIndex = 4;
+
+// The theme of an entry of the combo box; nothing for an entry whose theme does not exist yet.
+std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
+{
+    switch (index) {
+    case SketchIndex:
+        return hpq::sketch_theme(fill_style);
+    case BlackSlateIndex:
+        return hpq::slate_theme(fill_style);
+    case SchoolNotebookIndex:
+        return hpq::notebook_theme(fill_style);
+    case VelledaIndex:
+        return hpq::velleda_theme(fill_style);
+    default:
+        return std::nullopt;
+    }
+}
 
 QGraphicsScene *create_shapes_scene(QObject *parent)
 {
@@ -69,21 +89,6 @@ QGraphicsScene *create_shapes_scene(QObject *parent)
     text->setPos(370, 270);
     return scene;
 }
-
-// The theme of an entry of the combo box, or nothing for an entry that has no theme yet.
-std::optional<hpq::Theme> theme_at(int index, hpq::FillStyle fill_style)
-{
-    switch (index) {
-    case SketchIndex:
-        return hpq::sketch_theme(fill_style);
-    case BlackSlateIndex:
-        return hpq::slate_theme(fill_style);
-    case VelledaIndex:
-        return hpq::velleda_theme(fill_style);
-    default:
-        return std::nullopt;
-    }
-}
 } // namespace
 
 MainWindow::MainWindow(QWidget *parent)
@@ -91,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_ui(std::make_unique<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
-    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk"});
+    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk", "School notebook"});
     m_ui->comboBox->addItem("Velleda");
 
     auto table_model = create_table_model();
@@ -113,10 +118,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::update_theme()
 {
-    const int index = m_ui->comboBox->currentIndex();
     const hpq::FillStyle fill_style =
         m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
-    const std::optional<hpq::Theme> theme = theme_at(index, fill_style);
+    const std::optional<hpq::Theme> theme = theme_for(m_ui->comboBox->currentIndex(), fill_style);
     if (!theme) {
         hpq::remove_theme(*this);
         return;

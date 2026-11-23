@@ -1,5 +1,6 @@
 target_sources(hpq PRIVATE Hpq.cpp RoughGeometryEngine.cpp)
 target_sources(hpq PRIVATE Theme.cpp SketchTheme.cpp SlateTheme.cpp HandFont.cpp HandFont.h)
+target_sources(hpq PRIVATE NotebookTheme.cpp SchoolFont.cpp SchoolFont.h SeyesPaper.cpp SeyesPaper.h)
 target_sources(hpq PRIVATE HandPaintDevice.cpp HandPaintEngine.cpp)
 target_sources(hpq PRIVATE HandPaintEffect.cpp Theming.cpp)
 target_sources(hpq PRIVATE HandPaintStyle.cpp)

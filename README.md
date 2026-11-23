@@ -29,4 +29,6 @@ cmake --build build/wasm
 
 The example is linked with asyncify (`-sASYNCIFY -Os`, in `Examples/CMakeLists.txt`), so that calls reentering the event loop, such as `QDialog::exec()` or `QMenu::exec()`, return as they do on the desktop. It makes the `.wasm` file larger; `open()` and `show()` need no asyncify.
 
-The `Pages` workflow (`.github/workflows/pages.yml`) does this build, checks with `.github/scripts/WasmSmokeTest.cjs` that the application starts in a browser and, on `main`, deploys the site to GitHub Pages. The repository setting Pages > Build and deployment > Source must be "GitHub Actions".
+On a phone, Qt opens the virtual keyboard by giving the focus to a text field it keeps hidden in the page. `index.html` keeps the browser from moving this focus after a tap, which closed the keyboard at once in Safari on iOS, and switches off the corrections of the keyboard in this field, which Qt does not follow.
+
+The `Pages` workflow (`.github/workflows/pages.yml`) does this build, checks with `.github/scripts/WasmSmokeTest.cjs` that the application starts in a browser, with `.github/scripts/WasmMobileInputTest.cjs` that text can be typed in the line edit in a browser emulating a phone and, on `main`, deploys the site to GitHub Pages. The repository setting Pages > Build and deployment > Source must be "GitHub Actions".
