@@ -12,7 +12,7 @@ namespace {
 
 // The color HandPaintStyle gives to the grid lines of a table that has `palette`.
 QColor grid_line_color(const QPalette &palette) {
-    const hpq::HandPaintStyle style;
+    const hpq::HandPaintStyle style(hpq::sketch_theme());
     QStyleOptionViewItem option;
     option.palette = palette;
     return QColor::fromRgba(static_cast<QRgb>(style.styleHint(QStyle::SH_Table_GridLineColor, &option)));

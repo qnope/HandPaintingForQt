@@ -19,7 +19,7 @@ using hpq::test::DrawCall;
 const QRect PanelRect(10, 10, 80, 30);
 
 std::vector<DrawCall> draw_button_panel(QStyle::State state) {
-    hpq::HandPaintStyle style;
+    hpq::HandPaintStyle style(hpq::sketch_theme());
     QStyleOptionButton option;
     option.rect = PanelRect;
     option.palette = hpq::sketch_theme().palette();

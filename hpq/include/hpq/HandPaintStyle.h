@@ -23,8 +23,6 @@ public:
     // little longer; the line of a disabled label is lighter.
     static constexpr char LabelMarkerProperty[] = "hpq_label_marker";
 
-    // The style of the Sketch theme.
-    HandPaintStyle();
     // The entries of a menu (as the list of a combo box) leave room for the hand-drawn
     // highlight of `theme`, which goes past its rectangle.
     explicit HandPaintStyle(Theme theme);

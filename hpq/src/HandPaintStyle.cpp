@@ -1,5 +1,4 @@
 #include <hpq/HandPaintStyle.h>
-#include <hpq/SketchTheme.h>
 
 #include <QAbstractSpinBox>
 #include <QFontMetrics>
@@ -205,8 +204,6 @@ QBrush lighter_marker(QBrush marker) {
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
-HandPaintStyle::HandPaintStyle() : HandPaintStyle(sketch_theme()) {}
-
 HandPaintStyle::HandPaintStyle(Theme theme)
     : QProxyStyle(QStyleFactory::create(BaseStyleName)), m_theme(std::move(theme)) {}
 

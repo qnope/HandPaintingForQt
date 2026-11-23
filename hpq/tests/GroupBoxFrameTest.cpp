@@ -23,7 +23,7 @@ using hpq::test::DrawCall;
 const QRect FrameRect(20, 30, 120, 80);
 
 std::vector<DrawCall> draw_group_box_frame(const QPalette &palette) {
-    hpq::HandPaintStyle style;
+    hpq::HandPaintStyle style(hpq::sketch_theme());
     QStyleOptionFrame option;
     option.rect = FrameRect;
     option.palette = palette;
