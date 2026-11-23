@@ -13,9 +13,11 @@ bench/run.sh build/release/bench/HpqRepaintBench > results.csv
 - Themes: `none` (plain Fusion, as a floor), `sketch`, `sketch-hachure`, `slate`, `slate-hachure`.
 - Scale: `QT_SCALE_FACTOR=1` or `2` (the device pixel ratio of the window).
 - Scenarios: `full` repaints the whole window as it is; `resize` gives it a new size before
-  each repaint; `table`, `line-edit` and `button` repaint one widget, as a scroll, a key press
-  or a hover do; `rectangles` repaints small parts of the window, to check with
-  `--backing-store` that they leave it as a repaint of the whole draws it.
+  each repaint; `interact` types in the line edit, selects a row of the table and presses a
+  button; `table`, `line-edit` and `button` repaint one widget, as a scroll, a key press or a
+  hover do; `rectangles` repaints small parts of the window.
+- `--backing-store` saves what the repaints left on the window, and what a repaint of the
+  whole window then draws: the two images must be the same.
 - The geometry engine has a fixed base seed: every run draws the same window, and
   `--screenshot` or `--backing-store` save it to compare two versions pixel by pixel.
 
