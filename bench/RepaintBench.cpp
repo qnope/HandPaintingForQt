@@ -11,12 +11,16 @@
 
 #include <hpq/GeometryEngine.h>
 #include <hpq/RoughGeometryEngine.h>
+#include <hpq/BlueprintTheme.h>
+#include <hpq/ChinaInkTheme.h>
+#include <hpq/HighlighterTheme.h>
+#include <hpq/InvisibleInkTheme.h>
+#include <hpq/NotebookTheme.h>
 #include <hpq/SketchTheme.h>
-#include <hpq/Theming.h>
-#if __has_include(<hpq/SlateTheme.h>)
 #include <hpq/SlateTheme.h>
-#define HPQ_BENCH_HAS_SLATE 1
-#endif
+#include <hpq/Theming.h>
+#include <hpq/VelledaTheme.h>
+#include <hpq/WatercolorTheme.h>
 
 #include <QApplication>
 #include <QBackingStore>
@@ -25,6 +29,7 @@
 #include <QImage>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QTableView>
 #include <QTextStream>
 
@@ -40,6 +45,8 @@ namespace {
 // Every run draws the same wobble.
 constexpr std::uint32_t BaseSeed = 20261122;
 constexpr double NanosecondsPerMillisecond = 1e6;
+// How far, in pixels, the scroll scenario moves the table at each repaint.
+constexpr int ScrollStep = 7;
 
 // A geometry engine that adds up the time spent in another one.
 class TimedGeometryEngine : public hpq::GeometryEngine {
@@ -93,21 +100,41 @@ private:
     mutable int m_calls = 0;
 };
 
-std::optional<hpq::Theme> theme_named(const QString &name) {
+// The theme called `name`, with a solid fill; with hachures when `name` ends with -hachure.
+std::optional<hpq::Theme> theme_named(QString name) {
+    const QString hachure_suffix = "-hachure";
+    const bool is_hatched = name.endsWith(hachure_suffix);
+    if (is_hatched) {
+        name.chop(hachure_suffix.size());
+    }
+    const hpq::FillStyle fill_style = is_hatched ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
     if (name == "sketch") {
-        return hpq::sketch_theme(hpq::FillStyle::Solid);
+        return hpq::sketch_theme(fill_style);
     }
-    if (name == "sketch-hachure") {
-        return hpq::sketch_theme(hpq::FillStyle::Hachure);
+    if (name == "china-ink") {
+        return hpq::china_ink_theme(fill_style);
     }
-#ifdef HPQ_BENCH_HAS_SLATE
     if (name == "slate") {
-        return hpq::slate_theme(hpq::FillStyle::Solid);
+        return hpq::slate_theme(fill_style);
     }
-    if (name == "slate-hachure") {
-        return hpq::slate_theme(hpq::FillStyle::Hachure);
+    if (name == "notebook") {
+        return hpq::notebook_theme(fill_style);
     }
-#endif
+    if (name == "velleda") {
+        return hpq::velleda_theme(fill_style);
+    }
+    if (name == "watercolor") {
+        return hpq::watercolor_theme(fill_style);
+    }
+    if (name == "blueprint") {
+        return hpq::blueprint_theme(fill_style);
+    }
+    if (name == "invisible-ink") {
+        return hpq::invisible_ink_theme(fill_style);
+    }
+    if (name == "highlighter") {
+        return hpq::highlighter_theme(fill_style);
+    }
     return std::nullopt;
 }
 
@@ -141,8 +168,11 @@ int main(int argc, char *argv[]) {
     hpq::example::apply_default_font();
 
     QCommandLineParser parser;
-    parser.addOptions({{"theme", "none, sketch, sketch-hachure, slate or slate-hachure.", "theme", "sketch"},
-                       {"scenario", "full, resize, interact, table, line-edit, button or rectangles.", "scenario", "full"},
+    parser.addOptions({{"theme",
+                        "none, or sketch, china-ink, slate, notebook, velleda, watercolor, blueprint, invisible-ink "
+                        "or highlighter, followed by -hachure for a hatched fill.",
+                        "theme", "sketch"},
+                       {"scenario", "full, resize, interact, scroll, table, line-edit, button or rectangles.", "scenario", "full"},
                        {"size", "Size of the window, as WIDTHxHEIGHT.", "size"},
                        {"repetitions", "Measured repaints.", "count", "200"},
                        {"warmup", "Repaints before the measure.", "count", "20"},
@@ -221,6 +251,23 @@ int main(int argc, char *argv[]) {
             line_edit->setText(QString::number(index));
             table->selectRow(index % 2);
             button->setDown(index % 2 == 0);
+            QApplication::processEvents();
+        };
+    } else if (scenario == "scroll") {
+        // The table scrolls down then back up, a few pixels at a time: the same rows come back
+        // where they were.
+        auto *table = window.findChild<QTableView *>("tableView");
+        if (!table || table->verticalScrollBar()->maximum() <= 0) {
+            err << "The window has no table that scrolls\n";
+            return 2;
+        }
+        table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+        QApplication::processEvents();
+        repaint = [table](int index) {
+            QScrollBar *bar = table->verticalScrollBar();
+            const int steps = std::max(1, bar->maximum() / ScrollStep);
+            const int place = index % (2 * steps);
+            bar->setValue(ScrollStep * (place < steps ? place : 2 * steps - place));
             QApplication::processEvents();
         };
     } else if (QWidget *widget = widget_of(scenario, window)) {

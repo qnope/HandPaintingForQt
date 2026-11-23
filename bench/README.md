@@ -10,11 +10,13 @@ cmake --build build/release
 bench/run.sh build/release/bench/HpqRepaintBench > results.csv
 ```
 
-- Themes: `none` (plain Fusion, as a floor), `sketch`, `sketch-hachure`, `slate`, `slate-hachure`.
+- Themes: `none` (plain Fusion, as a floor), or `sketch`, `china-ink`, `slate`, `notebook`,
+  `velleda`, `watercolor`, `blueprint`, `invisible-ink` or `highlighter`, followed by `-hachure`
+  for a hatched fill (`sketch-hachure`).
 - Scale: `QT_SCALE_FACTOR=1` or `2` (the device pixel ratio of the window).
 - Scenarios: `full` repaints the whole window as it is; `resize` gives it a new size before
   each repaint; `interact` types in the line edit, selects a row of the table and presses a
-  button; `table`, `line-edit` and `button` repaint one widget, as a scroll, a key press or a
+  button; `scroll` scrolls the table down then back up, a few pixels at a time; `table`, `line-edit` and `button` repaint one widget, as a scroll, a key press or a
   hover do; `rectangles` repaints small parts of the window.
 - `--backing-store` saves what the repaints left on the window, and what a repaint of the
   whole window then draws: the two images must be the same.
