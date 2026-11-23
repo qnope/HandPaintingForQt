@@ -128,6 +128,41 @@
               document.querySelector('#status-text').textContent = message;
       }
 
+      // Phones. To open the virtual keyboard, Qt gives the focus to a text field it keeps hidden
+      // in the page, when a text widget is tapped. Qt reads the tap from the pointer events; the
+      // browser then makes mouse events of the same tap, and Safari on iOS takes the focus away
+      // with them: the keyboard closes as soon as it opens. Cancelling the end of the touch tells
+      // the browser to make no mouse event; the pointer events are not affected.
+      // Only for the contents of the windows: their title bars need the click.
+      function keep_focus_after_tap(screen_element)
+      {
+          screen_element.addEventListener('touchend', event => {
+              const in_window_contents = event.composedPath().some(
+                  element => element.classList?.contains('qt-window-contents'));
+              if (in_window_contents && event.cancelable)
+                  event.preventDefault();
+          }, { capture: true, passive: false });
+      }
+
+      // The hidden text field of Qt is added to <body> when the application starts. Qt inserts
+      // what is typed in it but does not follow a word replaced as a whole: the corrections of
+      // the keyboard are switched off. 16px keeps Safari on iOS from zooming on the field.
+      function configure_text_field_of_qt()
+      {
+          new MutationObserver(mutations => {
+              for (const mutation of mutations) {
+                  for (const node of mutation.addedNodes) {
+                      if (node.tagName !== 'INPUT')
+                          continue;
+                      node.setAttribute('autocorrect', 'off');
+                      node.setAttribute('autocomplete', 'off');
+                      node.setAttribute('spellcheck', 'false');
+                      node.style.fontSize = '16px';
+                  }
+              }
+          }).observe(document.body, { childList: true });
+      }
+
       async function start_application()
       {
           const entry_function = window.HandPaintingExample_entry;
@@ -140,6 +175,8 @@
               return;
           }
 
+          keep_focus_after_tap(document.querySelector('#screen'));
+          configure_text_field_of_qt();
           try {
               await qtLoad({
                   qt: {
