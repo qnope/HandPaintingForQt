@@ -50,12 +50,6 @@ QRegion grown(const QRegion &region, int margin) {
     return result;
 }
 
-// `outline` kept out of `frame`: it follows the edge of `frame` where it would enter it.
-QPainterPath kept_outside(QPainterPath outline, const QPainterPath &frame) {
-    outline.setFillRule(frame.fillRule());
-    return outline.united(frame);
-}
-
 std::uint32_t rounded(double coordinate) {
     return static_cast<std::uint32_t>(static_cast<std::int64_t>(std::llround(coordinate * SeedPrecision)));
 }
@@ -334,9 +328,12 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
             is_frame ? PaintCache::PathKind::FrameOutline : PaintCache::PathKind::Outline, shape, tool, [&] {
                 std::vector<QPainterPath> made;
                 std::uint32_t stroke_seed = shape_seed.value();
-                for (const QPainterPath &outline : m_geometry_engine.outline(shape, options, shape_seed.value())) {
+                const std::vector<QPainterPath> strokes =
+                    is_frame ? m_geometry_engine.frame_outline(shape, options, shape_seed.value())
+                             : m_geometry_engine.outline(shape, options, shape_seed.value());
+                for (const QPainterPath &outline : strokes) {
                     // Each stroke of the outline gets its own seed: with chalk, its own pressure and gaps.
-                    made.push_back(marked(is_frame ? kept_outside(outline, shape) : outline, tool, ++stroke_seed));
+                    made.push_back(marked(outline, tool, ++stroke_seed));
                 }
                 return made;
             });

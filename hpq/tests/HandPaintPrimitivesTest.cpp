@@ -32,6 +32,12 @@ public:
         return {shape};
     }
 
+    std::vector<QPainterPath> frame_outline(const QPainterPath &frame, const hpq::RoughOptions &,
+                                            std::uint32_t) const override {
+        m_frame_shapes.push_back(frame);
+        return {frame};
+    }
+
     QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
         return shape;
     }
@@ -41,9 +47,11 @@ public:
     }
 
     const std::vector<QPainterPath> &outline_shapes() const { return m_outline_shapes; }
+    const std::vector<QPainterPath> &frame_shapes() const { return m_frame_shapes; }
 
 private:
     mutable std::vector<QPainterPath> m_outline_shapes;
+    mutable std::vector<QPainterPath> m_frame_shapes;
 };
 
 const QPolygonF Triangle({QPointF(10, 10), QPointF(90, 20), QPointF(40, 70)});
@@ -91,6 +99,17 @@ TEST_F(HandPaintPrimitivesTest, IntegerLineGoesThroughGeometryEngine) {
 TEST_F(HandPaintPrimitivesTest, RectangleGoesThroughGeometryEngine) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawRect(QRectF(10, 20, 80, 40)); },
                                  QRectF(10, 20, 80, 40));
+}
+
+// A rectangle that fills nothing frames what is inside it: its outline is kept out of it.
+TEST_F(HandPaintPrimitivesTest, UnfilledRectangleIsAFrame) {
+    draw([](QPainter &painter) {
+        painter.setBrush(Qt::NoBrush);
+        painter.drawRect(QRectF(10, 20, 80, 40));
+    });
+    EXPECT_TRUE(m_spy.outline_shapes().empty());
+    ASSERT_EQ(m_spy.frame_shapes().size(), 1u);
+    EXPECT_EQ(m_spy.frame_shapes()[0].boundingRect(), QRectF(10, 20, 80, 40));
 }
 
 TEST_F(HandPaintPrimitivesTest, EllipseGoesThroughGeometryEngine) {

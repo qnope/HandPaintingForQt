@@ -59,6 +59,12 @@ public:
         ++m_calls;
         return m_engine->outline(shape, options, seed);
     }
+    std::vector<QPainterPath> frame_outline(const QPainterPath &frame, const hpq::RoughOptions &options,
+                                            std::uint32_t seed) const override {
+        const Stopwatch stopwatch(m_nanoseconds);
+        ++m_calls;
+        return m_engine->frame_outline(frame, options, seed);
+    }
     QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &options,
                            std::uint32_t seed) const override {
         const Stopwatch stopwatch(m_nanoseconds);

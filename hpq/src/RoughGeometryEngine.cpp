@@ -243,13 +243,62 @@ std::optional<QPolygonF> united_with_rectangle(const QPolygonF &boundary, const 
         entry_side = -1;
         outline << exit << to;
     }
+    // QPainterPath::united starts where the boundary first comes out of the rectangle: so does
+    // this outline. A stroke of chalk or of a brush along it then gets the same pressure.
+    if (start > 0) {
+        outline.prepend(outline[outline.size() - 2]);
+        outline.removeLast();
+    }
     return outline;
+}
+
+// Adds a line to `point` as QPainterPath::united does: when the last point is in line with
+// the one before it and `point`, `point` takes its place. A stroke of chalk or of a brush along
+// the path then gets the same pressure as along the one that united makes.
+void add_line_to(QPainterPath &path, const QPointF &point)
+{
+    const int count = path.elementCount();
+    if (count >= 2 && path.elementAt(count - 1).isLineTo()) {
+        const QPointF first = path.elementAt(count - 2);
+        const QPointF last = path.elementAt(count - 1);
+        const QPointF to_point = point - first;
+        const QPointF to_last = last - first;
+        if (qFuzzyIsNull(QPointF::dotProduct(QPointF(-to_point.y(), to_point.x()), to_last))) {
+            path.setElementPositionAt(count - 1, point.x(), point.y());
+            return;
+        }
+    }
+    path.lineTo(point);
 }
 
 // Largest random move of a stroke point, from the roughness and max_offset options.
 double wobble_amplitude(const RoughOptions &options)
 {
     return std::min(options.roughness * options.max_offset, options.max_offset);
+}
+
+// What `boundary`, a rough stroke around `shape` whose subpaths are `polygons`, covers with
+// `shape`. Uniting two paths is slow. The rough boundary of a rectangle higher and wider than
+// twice the wobble never crosses itself and goes around the rectangle the same way: a
+// rectangle, the most common shape, is united with it by a faster way of its own.
+QPainterPath united_with_shape(const QPainterPath &boundary, const QPainterPath &shape,
+                               const QList<QPolygonF> &polygons, double amplitude)
+{
+    const QRectF bounds = shape.boundingRect();
+    if (polygons.size() == 1 && is_upright_rectangle(polygons.front()) &&
+        std::min(bounds.width(), bounds.height()) > 2.0 * amplitude) {
+        // A rough stroke ends where it starts, give or take a rounding.
+        QPainterPath closed = boundary;
+        closed.closeSubpath();
+        if (const std::optional<QPolygonF> outline =
+                united_with_rectangle(closed.toSubpathPolygons().front(), polygons.front())) {
+            QPainterPath united(outline->front());
+            for (int i = 1; i < outline->size(); ++i)
+                add_line_to(united, (*outline)[i]);
+            return united;
+        }
+    }
+    return boundary.united(shape);
 }
 
 // Where a horizontal line crosses a side of a polygon, and whether the side goes down (+1) or up (-1).
@@ -326,6 +375,21 @@ std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape
     return strokes;
 }
 
+std::vector<QPainterPath> RoughGeometryEngine::frame_outline(const QPainterPath &frame, const RoughOptions &options,
+                                                             std::uint32_t seed) const
+{
+    // The outline of this engine, even when a derived engine draws another one: the way of
+    // its own to unite a rectangle relies on how this one wobbles.
+    std::vector<QPainterPath> strokes = RoughGeometryEngine::outline(frame, options, seed);
+    const QList<QPolygonF> polygons = flattened_subpaths(frame);
+    const double amplitude = wobble_amplitude(options);
+    for (QPainterPath &stroke : strokes) {
+        stroke.setFillRule(frame.fillRule());
+        stroke = united_with_shape(stroke, frame, polygons, amplitude);
+    }
+    return strokes;
+}
+
 QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const RoughOptions &options,
                                             std::uint32_t seed) const
 {
@@ -344,21 +408,7 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     }
     // The area wobbles outward only: it always covers the whole shape, so that adjacent fills
     // (for example the rectangles of a widget background region) leave no unpainted seam.
-    // Uniting two paths is slow. The rough boundary of a rectangle higher and wider than twice
-    // the wobble never crosses itself and goes around the rectangle the same way: a rectangle,
-    // the most common shape, is united with it by a faster way of its own.
-    const QRectF bounds = shape.boundingRect();
-    if (polygons.size() == 1 && is_upright_rectangle(polygons.front()) &&
-        std::min(bounds.width(), bounds.height()) > 2.0 * amplitude) {
-        if (const std::optional<QPolygonF> outline =
-                united_with_rectangle(area.toSubpathPolygons().front(), polygons.front())) {
-            QPainterPath united;
-            united.addPolygon(*outline);
-            united.closeSubpath();
-            return united;
-        }
-    }
-    return area.united(shape);
+    return united_with_shape(area, shape, polygons, amplitude);
 }
 
 QPainterPath RoughGeometryEngine::hachure(const QPainterPath &shape, const RoughOptions &options,

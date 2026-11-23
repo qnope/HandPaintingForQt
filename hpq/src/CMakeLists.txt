@@ -1,4 +1,4 @@
-target_sources(hpq PRIVATE Hpq.cpp RoughGeometryEngine.cpp)
+target_sources(hpq PRIVATE Hpq.cpp GeometryEngine.cpp RoughGeometryEngine.cpp)
 target_sources(hpq PRIVATE Theme.cpp SketchTheme.cpp SlateTheme.cpp HandFont.cpp HandFont.h)
 target_sources(hpq PRIVATE NotebookTheme.cpp SchoolFont.cpp SchoolFont.h SeyesPaper.cpp SeyesPaper.h)
 target_sources(hpq PRIVATE BlueprintTheme.cpp)
