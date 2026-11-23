@@ -4,7 +4,6 @@
 #include <hpq/Theming.h>
 
 #include <QAbstractItemView>
-#include <QApplication>
 #include <QComboBox>
 #include <QFont>
 #include <QLabel>
@@ -14,7 +13,6 @@
 #include <QVariant>
 #include <QWidget>
 
-#include <cmath>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -22,14 +20,25 @@
 namespace hpq {
 namespace {
 
-// One HandPaintStyle for all themed widgets, alive as long as the application.
-QStyle *hand_paint_style() {
-    static QPointer<QStyle> style;
-    if (!style) {
-        style = new HandPaintStyle;
-        style->setParent(qApp);
+// The HandPaintStyles that `window` owns: the one of its theme, if it has one.
+std::vector<HandPaintStyle *> owned_styles(QWidget &window) {
+    const QList<HandPaintStyle *> styles = window.findChildren<HandPaintStyle *>(QString(), Qt::FindDirectChildrenOnly);
+    return std::vector<HandPaintStyle *>(styles.begin(), styles.end());
+}
+
+// Gives `window` and its descendants a HandPaintStyle of `theme`, owned by `window`. The style
+// of a theme given before is deleted once no widget uses it.
+void set_hand_paint_style(QWidget &window, const Theme &theme) {
+    const std::vector<HandPaintStyle *> previous_styles = owned_styles(window);
+    auto *style = new HandPaintStyle(theme);
+    style->setParent(&window);
+    window.setStyle(style);
+    for (QWidget *descendant : window.findChildren<QWidget *>()) {
+        descendant->setStyle(style);
     }
-    return style;
+    for (HandPaintStyle *previous_style : previous_styles) {
+        delete previous_style;
+    }
 }
 
 // Gives the labels of `window` the marker HandPaintStyle lays under their text, or takes it
@@ -40,12 +49,6 @@ void set_label_markers(QWidget &window, const QBrush &marker) {
         label->setProperty(HandPaintStyle::LabelMarkerProperty, property);
         label->update();
     }
-}
-
-// How many pixels a hand-drawn highlight of `theme` goes past its rectangle: its rough edge
-// wobbles out by up to the largest offset of the theme, and the line around it is about as wide.
-int highlight_overflow(const Theme &theme) {
-    return static_cast<int>(std::ceil(2.0 * theme.rough_options().max_offset));
 }
 
 // The lists that the combo boxes of `window` open. Each list is in a window of its own, made
@@ -137,13 +140,8 @@ void apply_theme(QWidget &window, const Theme &theme,
     }
     window.setPalette(theme.palette());
     window.setFont(theme.font());
-    QStyle *style = hand_paint_style();
-    window.setStyle(style);
-    for (QWidget *descendant : window.findChildren<QWidget *>()) {
-        descendant->setStyle(style);
-    }
+    set_hand_paint_style(window, theme);
     set_label_markers(window, theme.label_marker());
-    window.setProperty(HandPaintStyle::HighlightOverflowProperty, highlight_overflow(theme));
     for (QAbstractItemView *list : lists) {
         // The list of a combo box is a window of its own: the effect of `window` does not draw
         // it. And where the style shows it as a menu, its items take from the application
@@ -163,9 +161,11 @@ void remove_theme(QWidget &window) {
     }
     window.setGraphicsEffect(nullptr);
     set_label_markers(window, Qt::NoBrush);
-    window.setProperty(HandPaintStyle::HighlightOverflowProperty, QVariant());
     saved_look->restore(window);
     delete saved_look;
+    for (HandPaintStyle *style : owned_styles(window)) {
+        delete style;
+    }
 }
 
 }  // namespace hpq

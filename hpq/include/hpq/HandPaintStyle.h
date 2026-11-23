@@ -2,6 +2,7 @@
 
 #include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
+#include <hpq/Theme.h>
 
 #include <QProxyStyle>
 
@@ -22,12 +23,11 @@ public:
     // little longer; the line of a disabled label is lighter.
     static constexpr char LabelMarkerProperty[] = "hpq_label_marker";
 
-    // The dynamic property of a window that holds, as an int, how many pixels a hand-drawn
-    // highlight goes past its rectangle. The entries of the menus of its widgets (as the list of
-    // a combo box) are larger by that many pixels on each side, and drawn inside.
-    static constexpr char HighlightOverflowProperty[] = "hpq_highlight_overflow";
-
+    // The style of the Sketch theme.
     HandPaintStyle();
+    // The entries of a menu (as the list of a combo box) leave room for the hand-drawn
+    // highlight of `theme`, which goes past its rectangle.
+    explicit HandPaintStyle(Theme theme);
 
     void drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
                      const QWidget *widget = nullptr) const override;
@@ -38,6 +38,7 @@ public:
     void drawComplexControl(ComplexControl control, const QStyleOptionComplex *option, QPainter *painter,
                             const QWidget *widget = nullptr) const override;
 
+    // An entry of a menu is larger by the highlight overflow of the theme on each side.
     QSize sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &size,
                            const QWidget *widget = nullptr) const override;
 
@@ -47,12 +48,15 @@ public:
                   QStyleHintReturn *return_data = nullptr) const override;
 
 private:
+    int highlight_overflow() const;
     void draw_label_marker(const QLabel &label, QPainter &painter) const;
     void draw_slider(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
     void draw_combo_box(const QStyleOptionComboBox &option, QPainter &painter, const QWidget *widget) const;
     void draw_scroll_bar(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
     void draw_scroll_bar_line_button(const QStyleOptionSlider &option, SubControl button, PrimitiveElement arrow,
                                      QPainter &painter, const QWidget *widget) const;
+
+    Theme m_theme;
 };
 
 }  // namespace hpq

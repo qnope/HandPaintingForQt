@@ -1,4 +1,5 @@
 #include <hpq/HandPaintStyle.h>
+#include <hpq/SketchTheme.h>
 
 #include <QAbstractSpinBox>
 #include <QFontMetrics>
@@ -16,6 +17,8 @@
 #include <QWidget>
 
 #include <algorithm>
+#include <cmath>
+#include <utility>
 #include <vector>
 
 namespace hpq {
@@ -39,13 +42,6 @@ QRectF fitted_handle(const QRect &handle, const QStyleOptionSlider &option) {
         fitted.moveLeft(bounds.center().x() - fitted.width() / 2);
     }
     return fitted;
-}
-
-// How many pixels a hand-drawn highlight goes past its rectangle in the window of `widget`.
-// A view repaints only the rectangles of the entries a highlight leaves and reaches: what went
-// past them would stay on the screen.
-int highlight_overflow(const QWidget *widget) {
-    return widget != nullptr ? widget->window()->property(HandPaintStyle::HighlightOverflowProperty).toInt() : 0;
 }
 
 // How far the grid lines of a table are from the Window color, towards the Mid color.
@@ -209,7 +205,18 @@ QBrush lighter_marker(QBrush marker) {
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
-HandPaintStyle::HandPaintStyle() : QProxyStyle(QStyleFactory::create(BaseStyleName)) {}
+HandPaintStyle::HandPaintStyle() : HandPaintStyle(sketch_theme()) {}
+
+HandPaintStyle::HandPaintStyle(Theme theme)
+    : QProxyStyle(QStyleFactory::create(BaseStyleName)), m_theme(std::move(theme)) {}
+
+// How many pixels a hand-drawn highlight goes past its rectangle: its rough edge wobbles out by
+// up to the largest offset of the theme, and the line around it is about as wide. A view
+// repaints only the rectangles of the entries a highlight leaves and reaches: what went past
+// them would stay on the screen.
+int HandPaintStyle::highlight_overflow() const {
+    return static_cast<int>(std::ceil(2.0 * m_theme.rough_options().max_offset));
+}
 
 void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
                                  const QWidget *widget) const {
@@ -221,7 +228,7 @@ void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *opt
     // for what goes past it.
     if (element == CE_MenuItem) {
         if (const auto *menu_item = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
-            const int overflow = highlight_overflow(widget);
+            const int overflow = highlight_overflow();
             QStyleOptionMenuItem inner = *menu_item;
             inner.rect.adjust(overflow, overflow, -overflow, -overflow);
             QProxyStyle::drawControl(element, &inner, painter, widget);
@@ -281,7 +288,7 @@ QSize HandPaintStyle::sizeFromContents(ContentsType type, const QStyleOption *op
                                        const QWidget *widget) const {
     QSize result = QProxyStyle::sizeFromContents(type, option, size, widget);
     if (type == CT_MenuItem) {
-        const int overflow = highlight_overflow(widget);
+        const int overflow = highlight_overflow();
         result += QSize(2 * overflow, 2 * overflow);
     }
     return result;
