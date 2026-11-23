@@ -4,12 +4,14 @@
 
 namespace hpq {
 
-Theme::Theme(QPalette palette, QFont font, RoughOptions rough_options, FillStyle fill_style, Medium medium)
+Theme::Theme(QPalette palette, QFont font, RoughOptions rough_options, FillStyle fill_style, Medium medium,
+             TextInk text_ink)
     : m_palette(std::move(palette)),
       m_font(std::move(font)),
       m_rough_options(rough_options),
       m_fill_style(fill_style),
-      m_medium(medium) {}
+      m_medium(medium),
+      m_text_ink(text_ink) {}
 
 QPalette Theme::palette() const {
     return m_palette;
@@ -29,6 +31,10 @@ FillStyle Theme::fill_style() const {
 
 Medium Theme::medium() const {
     return m_medium;
+}
+
+TextInk Theme::text_ink() const {
+    return m_text_ink;
 }
 
 }  // namespace hpq

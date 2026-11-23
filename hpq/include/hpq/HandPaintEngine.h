@@ -38,6 +38,7 @@ public:
     void drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap, const QPointF &offset) override;
     Type type() const override;
     // Draws the text on the target in the theme font, at the same pixel size, in the pen color.
+    // With TextInk::Invisible, draws nothing unless the pen has a HighlightedText color of the theme.
     void drawTextItem(const QPointF &position, const QTextItem &text_item) override;
 
 private:
@@ -71,6 +72,9 @@ private:
     // rubbed on the grain, or the slate itself when it has the color of the slate; with
     // watercolor, the grainy paper when it has the color of the paper.
     QBrush seen_through_medium(const QBrush &brush) const;
+    // Whether the ink of the theme shows a text written in `color`: any text with a visible
+    // ink; with an invisible ink, only the text of a selection.
+    bool shows_text(const QColor &color) const;
     // Whether `color` is the one of what the theme draws on: its slate or its paper.
     bool is_ground(const QColor &color) const;
     // `pen`, drawing through the grain of the slate instead of its plain color.

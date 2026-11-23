@@ -8,6 +8,7 @@ struct RoughOptions;
 class Theme;
 enum class FillStyle;
 enum class Medium;
+enum class TextInk;
 enum class ChalkGrain;
 class HandPaintDevice;
 class HandPaintEngine;
