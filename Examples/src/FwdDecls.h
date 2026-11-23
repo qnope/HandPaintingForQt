@@ -1,6 +1,7 @@
 #pragma once
 
 // Qt and uic types live in the global namespace.
+class QAbstractItemView;
 class QStandardItemModel;
 
 namespace Ui {

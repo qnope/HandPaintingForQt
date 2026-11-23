@@ -125,5 +125,5 @@ TEST(ChinaInkTheme, EmbedsFontAndItsLicenseAsResources) {
     const hpq::Theme theme = hpq::china_ink_theme();
 
     EXPECT_TRUE(QFile::exists(":/hpq/fonts/KaushanScript-Regular.ttf"));
-    EXPECT_TRUE(QFile::exists(":/hpq/fonts/KaushanScript-OFL.txt"));
+    EXPECT_TRUE(QFile::exists(":/hpq/fonts/OFL-KaushanScript.txt"));
 }
