@@ -1,4 +1,5 @@
 #include <hpq/HandPaintStyle.h>
+#include <hpq/SketchTheme.h>
 
 #include <gtest/gtest.h>
 
@@ -12,7 +13,7 @@ const QString FusionStyleName("fusion");
 }  // namespace
 
 TEST(HandPaintStyleTest, IsAProxyOverTheFusionStyle) {
-    hpq::HandPaintStyle style;
+    hpq::HandPaintStyle style(hpq::sketch_theme());
 
     const QProxyStyle *proxy = qobject_cast<const QProxyStyle *>(&style);
     ASSERT_NE(proxy, nullptr);

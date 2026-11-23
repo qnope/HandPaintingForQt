@@ -7,13 +7,17 @@
 #include <QPolygonF>
 #include <QStyleFactory>
 #include <QStyleOption>
+#include <QStyleOptionMenuItem>
 #include <QStyleOptionSlider>
 #include <QStyleOptionSpinBox>
 #include <QStringList>
 #include <QTextDocument>
 #include <QVariant>
+#include <QWidget>
 
 #include <algorithm>
+#include <cmath>
+#include <utility>
 #include <vector>
 
 namespace hpq {
@@ -200,13 +204,33 @@ QBrush lighter_marker(QBrush marker) {
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
-HandPaintStyle::HandPaintStyle() : QProxyStyle(QStyleFactory::create(BaseStyleName)) {}
+HandPaintStyle::HandPaintStyle(Theme theme)
+    : QProxyStyle(QStyleFactory::create(BaseStyleName)), m_theme(std::move(theme)) {}
+
+// How many pixels a hand-drawn highlight goes past its rectangle: its rough edge wobbles out by
+// up to the largest offset of the theme, and the line around it is about as wide. A view
+// repaints only the rectangles of the entries a highlight leaves and reaches: what went past
+// them would stay on the screen.
+int HandPaintStyle::highlight_overflow() const {
+    return static_cast<int>(std::ceil(2.0 * m_theme.rough_options().max_offset));
+}
 
 void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
                                  const QWidget *widget) const {
     if (element == CE_HeaderSection) {
         draw_header_section(*option, *painter);
         return;
+    }
+    // The entry draws its highlight inside its rectangle, in the room sizeFromContents() left
+    // for what goes past it.
+    if (element == CE_MenuItem) {
+        if (const auto *menu_item = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
+            const int overflow = highlight_overflow();
+            QStyleOptionMenuItem inner = *menu_item;
+            inner.rect.adjust(overflow, overflow, -overflow, -overflow);
+            QProxyStyle::drawControl(element, &inner, painter, widget);
+            return;
+        }
     }
     // A label draws its frame, then its text: its marker is laid with the frame, under the text.
     if (element == CE_ShapedFrame) {
@@ -255,6 +279,16 @@ void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
         QProxyStyle::drawPrimitive(element, option, painter, widget);
         return;
     }
+}
+
+QSize HandPaintStyle::sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &size,
+                                       const QWidget *widget) const {
+    QSize result = QProxyStyle::sizeFromContents(type, option, size, widget);
+    if (type == CT_MenuItem) {
+        const int overflow = highlight_overflow();
+        result += QSize(2 * overflow, 2 * overflow);
+    }
+    return result;
 }
 
 int HandPaintStyle::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *widget,

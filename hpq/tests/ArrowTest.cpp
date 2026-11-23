@@ -22,7 +22,7 @@ using hpq::test::DrawCall;
 const QRect ArrowRect(10, 10, 20, 20);
 
 std::vector<DrawCall> draw_arrow(QStyle::PrimitiveElement arrow) {
-    hpq::HandPaintStyle style;
+    hpq::HandPaintStyle style(hpq::sketch_theme());
     QStyleOption option;
     option.rect = ArrowRect;
     option.palette = hpq::sketch_theme().palette();
