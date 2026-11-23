@@ -60,24 +60,56 @@ function install_probes()
         window.addEventListener(type, () => window.hpq_probes.mouse_events.push(type), true);
 }
 
-// The vertical position of the line edit at the horizontal position x. Moving the mouse changes
-// nothing in the application, and Qt gives the page the cursor of the widget under the mouse:
-// going down the form, the line edit is the first widget with the cursor of a text.
-async function find_line_edit(page, x, height)
+// The widgets with the cursor of a text at the horizontal position x, from the top: for each, its
+// first and last vertical positions. Moving the mouse changes nothing in the application, and Qt
+// gives the page the cursor of the widget under the mouse. Down the form, the first is the line
+// edit and the second the editable font combo box.
+async function find_text_widgets(page, x, height)
 {
     const StepPx = 3;
-    let first, last;
-    for (let y = 0; y < height && (first === undefined || last === y - StepPx); y += StepPx) {
+    const widgets = [];
+    for (let y = 0; y < height; y += StepPx) {
         await page.mouse.move(x, y);
         await page.waitForTimeout(20);
-        if (await page.evaluate(() => window.hpq_probes.cursor()) === 'text') {
-            first ??= y;
-            last = y;
-        }
+        if (await page.evaluate(() => window.hpq_probes.cursor()) !== 'text')
+            continue;
+        const last_widget = widgets[widgets.length - 1];
+        if (last_widget && last_widget.last === y - StepPx)
+            last_widget.last = y;
+        else
+            widgets.push({ first: y, last: y });
     }
-    // The mouse leaves the line edit: the taps come next.
+    // The mouse leaves the widgets: the taps come next.
     await page.mouse.move(x, 0);
-    return first === undefined ? undefined : Math.round((first + last) / 2);
+    return widgets;
+}
+
+// True when a text editor is under the point: the mouse gets the cursor of a text there.
+async function has_text_editor_at(page, x, y)
+{
+    await page.mouse.move(x, y);
+    await page.waitForTimeout(50);
+    const cursor = await page.evaluate(() => window.hpq_probes.cursor());
+    await page.mouse.move(x, 0);
+    return cursor === 'text';
+}
+
+// Double taps down the table, below the form, until a cell opens its editor. Returns the vertical
+// position of the editor, undefined when no cell opened one.
+async function open_cell_editor(page, x, from_y, to_y)
+{
+    const StepPx = 16;
+    // Longer than the interval of a double click: the taps of two attempts must not add up.
+    const BetweenAttemptsMs = 700;
+    for (let y = from_y; y < to_y; y += StepPx) {
+        await page.touchscreen.tap(x, y);
+        await page.touchscreen.tap(x, y);
+        await page.waitForTimeout(SettleMs);
+        if (await has_text_editor_at(page, x, y))
+            return y;
+        await page.waitForTimeout(BetweenAttemptsMs);
+    }
+    return undefined;
 }
 
 async function main()
@@ -110,12 +142,14 @@ async function main()
 
         const viewport = page.viewportSize();
         const x = Math.round(viewport.width * 0.6);
-        const y = await find_line_edit(page, x, viewport.height);
-        console.log(`${Phone}, ${viewport.width} x ${viewport.height}: line edit at (${x}, ${y})`);
-        if (y === undefined) {
-            errors.push('The line edit was not found.');
+        const text_widgets = await find_text_widgets(page, x, Math.round(viewport.height * 0.6));
+        if (text_widgets.length < 2) {
+            errors.push(`The line edit and the font combo box were not found: ${JSON.stringify(text_widgets)}.`);
             return 1;
         }
+        const [line_edit, font_combo_box] = text_widgets;
+        const y = Math.round((line_edit.first + line_edit.last) / 2);
+        console.log(`${Phone}, ${viewport.width} x ${viewport.height}: line edit at (${x}, ${y})`);
         const tap = async () => {
             await probe('take_mouse_events');
             await page.touchscreen.tap(x, y);
@@ -150,6 +184,25 @@ async function main()
         expect(text === TextTyped + TextComposed,
                `The text typed and composed reaches the line edit: "${text}", expected "${TextTyped + TextComposed}".`);
         expect(await probe('text_field_has_focus'), 'The text field of Qt has the focus after a tap on the focused line edit.');
+
+        // A cell of the table, on the left below the form: a double tap opens its editor. The
+        // editor gets the focus without being tapped itself.
+        const cell_x = Math.round(viewport.width * 0.25);
+        const cell_y = await open_cell_editor(page, cell_x, font_combo_box.last + 40, font_combo_box.last + 300);
+        console.log(`Editor of a cell at (${cell_x}, ${cell_y})`);
+        if (cell_y === undefined) {
+            errors.push('No cell of the table opened its editor on a double tap.');
+            return 1;
+        }
+        expect(await probe('text_field_has_focus'),
+               'A double tap on a cell gives the focus to the text field of Qt, with the editor of the cell.');
+        const cell_text = await probe('text_field_value');
+        expect(typeof cell_text === 'string' && cell_text.length > 0,
+               `The text field of Qt holds the text of the cell: "${cell_text}".`);
+        // DIAGNOSTIC (temporary): what one more tap in the open editor does.
+        await page.touchscreen.tap(cell_x, cell_y);
+        await page.waitForTimeout(SettleMs);
+        console.log(`After one more tap in the editor: focus=${await probe('text_field_has_focus')} value="${await probe('text_field_value')}"`);
     } finally {
         await browser.close();
         server.close();
