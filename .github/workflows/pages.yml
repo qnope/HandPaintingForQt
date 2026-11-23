@@ -103,8 +103,10 @@ jobs:
       # DIAGNOSTIC (temporary)
       - name: Diagnose the input of text on a phone
         run: |
-          NODE_PATH="$RUNNER_TEMP/smoke-test/node_modules" \
-            node .github/scripts/WasmMobileInputTest.cjs _site "Pixel 7"
+          export NODE_PATH="$RUNNER_TEMP/smoke-test/node_modules"
+          node .github/scripts/WasmMobileInputTest.cjs _site chromium "Pixel 7"
+          "$NODE_PATH/.bin/playwright" install --with-deps webkit > /dev/null
+          node .github/scripts/WasmMobileInputTest.cjs _site webkit "iPhone 14"
 
       - name: Upload the screenshot of the application
         if: always()
