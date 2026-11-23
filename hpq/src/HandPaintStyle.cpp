@@ -1,14 +1,20 @@
 #include <hpq/HandPaintStyle.h>
 
 #include <QAbstractSpinBox>
+#include <QFontMetrics>
+#include <QLabel>
 #include <QPainter>
 #include <QPolygonF>
 #include <QStyleFactory>
 #include <QStyleOption>
 #include <QStyleOptionSlider>
 #include <QStyleOptionSpinBox>
+#include <QStringList>
+#include <QTextDocument>
+#include <QVariant>
 
 #include <algorithm>
+#include <vector>
 
 namespace hpq {
 
@@ -127,6 +133,70 @@ void draw_spin_box(const QStyle &style, const QStyleOptionSpinBox &option, QPain
     style.drawPrimitive(QStyle::PE_IndicatorArrowDown, &arrow, &painter, widget);
 }
 
+// The tip of a marker covers this part of the height of a line of text.
+constexpr double MarkerHeightPerLine = 0.78;
+// The middle of the tip is under the middle of a line by this part of its height: the small
+// letters, which make most of a text, are in the lower part of the line.
+constexpr double MarkerDropPerLine = 0.04;
+// A marker starts before the text and stops after it, by this part of the height of a line.
+constexpr double MarkerOvershootPerLine = 0.18;
+// The marker of a disabled label keeps this part of its opacity.
+constexpr double DisabledMarkerOpacity = 0.4;
+
+// The brush of the marker of `label`, or Qt::NoBrush when it has none.
+QBrush label_marker(const QLabel &label) {
+    const QVariant marker = label.property(HandPaintStyle::LabelMarkerProperty);
+    return marker.canConvert<QBrush>() ? marker.value<QBrush>() : QBrush(Qt::NoBrush);
+}
+
+bool has_plain_text(const QLabel &label) {
+    const Qt::TextFormat format = label.textFormat();
+    return format == Qt::PlainText || (format == Qt::AutoText && !Qt::mightBeRichText(label.text()));
+}
+
+// The rectangle of each line of the text of `label`, in the coordinates of the label.
+// The lines of a plain text that is not wrapped are as wide as their text; the other texts
+// are laid out by QLabel: their lines are as wide as the whole text.
+std::vector<QRectF> label_text_lines(const QLabel &label) {
+    const QRect contents = label.contentsRect();
+    const QSize wanted_size =
+        label.wordWrap() ? QSize(contents.width(), label.heightForWidth(label.width())) : label.sizeHint();
+    const QRect text_rect = QStyle::alignedRect(label.layoutDirection(), label.alignment(),
+                                                wanted_size.boundedTo(contents.size()), contents);
+    const QFontMetrics metrics = label.fontMetrics();
+    const int line_count = std::max(1, qRound(static_cast<double>(text_rect.height()) / metrics.lineSpacing()));
+    const double line_height = static_cast<double>(text_rect.height()) / line_count;
+    const QStringList plain_lines =
+        has_plain_text(label) && !label.wordWrap() ? label.text().split(QLatin1Char('\n')) : QStringList();
+    const int text_flags = label.buddy() ? Qt::TextShowMnemonic : 0;
+    const Qt::Alignment horizontal_alignment = label.alignment() & Qt::AlignHorizontal_Mask;
+
+    std::vector<QRectF> lines;
+    for (int index = 0; index < line_count; ++index) {
+        int width = text_rect.width();
+        if (plain_lines.size() == line_count) {
+            width = std::min(width, metrics.size(text_flags, plain_lines[index]).width());
+        }
+        if (width <= 0) {
+            continue;
+        }
+        const QRect row(text_rect.left(), 0, text_rect.width(), 1);
+        const QRect span = QStyle::alignedRect(label.layoutDirection(), horizontal_alignment, QSize(width, 1), row);
+        lines.push_back(QRectF(span.left(), text_rect.top() + index * line_height, span.width(), line_height));
+    }
+    return lines;
+}
+
+// `marker` as it is laid on a disabled label: a plain color keeps a part of its opacity.
+QBrush lighter_marker(QBrush marker) {
+    if (marker.style() == Qt::SolidPattern) {
+        QColor color = marker.color();
+        color.setAlphaF(color.alphaF() * DisabledMarkerOpacity);
+        marker.setColor(color);
+    }
+    return marker;
+}
+
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
@@ -138,7 +208,32 @@ void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *opt
         draw_header_section(*option, *painter);
         return;
     }
+    // A label draws its frame, then its text: its marker is laid with the frame, under the text.
+    if (element == CE_ShapedFrame) {
+        if (const auto *label = qobject_cast<const QLabel *>(widget)) {
+            draw_label_marker(*label, *painter);
+        }
+    }
     QProxyStyle::drawControl(element, option, painter, widget);
+}
+
+// One line of the marker along each line of text, drawn with the flat tip of a highlighter.
+// It is a line and not a fill: a HandPaintEngine draws it by hand, lets it go past the label
+// and does not hatch it.
+void HandPaintStyle::draw_label_marker(const QLabel &label, QPainter &painter) const {
+    const QBrush marker = label_marker(label);
+    if (marker.style() == Qt::NoBrush || label.text().isEmpty()) {
+        return;
+    }
+    painter.save();
+    for (const QRectF &line : label_text_lines(label)) {
+        const double overshoot = MarkerOvershootPerLine * line.height();
+        const double y = line.center().y() + MarkerDropPerLine * line.height();
+        painter.setPen(QPen(label.isEnabled() ? marker : lighter_marker(marker), MarkerHeightPerLine * line.height(),
+                            Qt::SolidLine, Qt::FlatCap));
+        painter.drawLine(QPointF(line.left() - overshoot, y), QPointF(line.right() + overshoot, y));
+    }
+    painter.restore();
 }
 
 void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,

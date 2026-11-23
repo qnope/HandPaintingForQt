@@ -42,6 +42,7 @@ constexpr QColor PaleBlue(0xb4, 0xee, 0xff);
 // How opaque a highlighter is, out of 255: a second pass over the first one is more vivid,
 // and a light pass only tints the paper.
 constexpr int LightPass = 0x40;
+constexpr int StrokePass = 0x80;
 constexpr int OnePass = 0xb4;
 constexpr int TwoPasses = 0xee;
 
@@ -136,10 +137,17 @@ QPalette highlighter_palette(FillStyle fill_style) {
 // make one line, more vivid where they overlap. Its hachures lean less than those of a pencil.
 constexpr RoughOptions HighlighterRoughOptions{1.0, 3, 1.2, 4.0, -30.0};
 
+// The text of a label is marked with the yellow highlighter. Each of the strokes of its line
+// is a light pass: together they are as vivid as the selection.
+QBrush label_marker() {
+    return passed(Yellow, StrokePass);
+}
+
 }  // namespace
 
 Theme highlighter_theme(FillStyle fill_style) {
-    return Theme(highlighter_palette(fill_style), QFont(hand_font_family()), HighlighterRoughOptions, fill_style);
+    return Theme(highlighter_palette(fill_style), QFont(hand_font_family()), HighlighterRoughOptions, fill_style,
+                 Medium::Pencil, label_marker());
 }
 
 }  // namespace hpq

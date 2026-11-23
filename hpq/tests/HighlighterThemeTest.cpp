@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QFont>
 #include <QImage>
+#include <QLabel>
 #include <QPalette>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -269,4 +270,55 @@ TEST(HighlighterTheme, ThemedButtonIsHighlightedOnThePaper) {
     EXPECT_NEAR(inside.green(), expected.green(), 2);
     EXPECT_NEAR(inside.blue(), expected.blue(), 2);
     EXPECT_GT(inside.green(), std::max(inside.red(), inside.blue()) + 50);
+}
+
+// The text of a label is marked with the yellow highlighter, whose line is not a fill: it is
+// the same with hachures.
+TEST(HighlighterTheme, LabelMarkerIsATranslucentYellowHighlighter) {
+    const QBrush marker = hpq::highlighter_theme().label_marker();
+
+    ASSERT_EQ(marker.style(), Qt::SolidPattern);
+    const QColor color = marker.color();
+    EXPECT_TRUE(is_fluorescent(color));
+    EXPECT_GT(std::min(color.red(), color.green()), color.blue() + 100);
+    EXPECT_LT(color.alpha(), 255);
+    EXPECT_EQ(hpq::highlighter_theme(hpq::FillStyle::Hachure).label_marker(), marker);
+}
+
+TEST(HighlighterTheme, LabelTextIsReadableOnItsMarker) {
+    const hpq::Theme theme = hpq::highlighter_theme();
+    const QColor paper = theme.palette().color(QPalette::Active, QPalette::Window);
+    // Where every stroke of the line overlaps, the marker is the most vivid.
+    QColor marked = paper;
+    for (int stroke = 0; stroke < theme.rough_options().stroke_count; ++stroke) {
+        marked = laid_on(theme.label_marker().color(), marked);
+    }
+
+    EXPECT_GE(contrast_ratio(theme.palette().color(QPalette::Active, QPalette::WindowText), marked), 4.5);
+    EXPECT_GT(contrast_ratio(marked, paper), 1.1);
+}
+
+// The label of a themed window is marked in yellow on the paper.
+TEST(HighlighterTheme, ThemedLabelIsMarkedInYellow) {
+    QWidget window;
+    auto *layout = new QVBoxLayout(&window);
+    layout->setContentsMargins(40, 40, 40, 40);
+    auto *label = new QLabel("A label");
+    layout->addWidget(label, 0, Qt::AlignLeft | Qt::AlignTop);
+    window.resize(240, 140);
+
+    hpq::apply_theme(window, hpq::highlighter_theme(), std::make_shared<const hpq::RoughGeometryEngine>());
+    const QImage grab = window.grab().toImage();
+
+    const QRect area = label->geometry();
+    int yellow_count = 0;
+    for (int y = area.top(); y <= area.bottom(); ++y) {
+        for (int x = area.left(); x <= area.right(); ++x) {
+            const QColor pixel = grab.pixelColor(x, y);
+            if (pixel.red() > 200 && pixel.green() > 200 && pixel.blue() < 160) {
+                ++yellow_count;
+            }
+        }
+    }
+    EXPECT_GT(yellow_count, area.width() * area.height() / 3);
 }
