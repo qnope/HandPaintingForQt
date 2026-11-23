@@ -2,12 +2,16 @@
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/Theming.h>
+#include <hpq/WatercolorTheme.h>
 
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QHeaderView>
 #include <QImage>
+#include <QPen>
 #include <QScrollBar>
 #include <QStandardItemModel>
 #include <QTableView>
@@ -214,4 +218,40 @@ TEST(ScrolledViewTest, GridLineAlongTheScrollStaysTheSame) {
     const QImage after = themed.viewport_image();
 
     EXPECT_EQ(before, after);
+}
+
+// A view cuts what it shows at the edges of its viewport: the brush line of a shape scrolled
+// past its top does not show over the window above the view.
+TEST(ScrolledViewTest, AShapeScrolledOutOfTheViewportDoesNotShowAboveIt) {
+    constexpr int SpaceAboveView = 20;
+    QWidget window;
+    auto *layout = new QVBoxLayout(&window);
+    layout->setContentsMargins(SpaceAboveView, SpaceAboveView, SpaceAboveView, SpaceAboveView);
+    QGraphicsScene scene(0, 0, 200, 600);
+    // Its sides cross the top of the viewport once the view scrolls.
+    scene.addRect(20, 20, 160, 100, QPen(Qt::red, 4));
+    auto *view = new QGraphicsView(&scene);
+    view->setFrameShape(QFrame::NoFrame);
+    view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    layout->addWidget(view);
+    window.resize(260, 220);
+    hpq::apply_theme(window, hpq::watercolor_theme(hpq::FillStyle::Solid),
+                     std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+    window.show();
+    QCoreApplication::processEvents();
+
+    view->verticalScrollBar()->setValue(60);
+    QCoreApplication::processEvents();
+    const QPoint viewport_corner = view->viewport()->mapTo(&window, QPoint(0, 0));
+    const QImage above_view = window.grab().toImage().copy(
+        viewport_corner.x(), viewport_corner.y() - SpaceAboveView, view->viewport()->width(), SpaceAboveView);
+
+    int red_pixels = 0;
+    for (int y = 0; y < above_view.height(); ++y) {
+        for (int x = 0; x < above_view.width(); ++x) {
+            const QColor color = above_view.pixelColor(x, y);
+            red_pixels += color.red() - color.green() > 60 ? 1 : 0;
+        }
+    }
+    EXPECT_EQ(red_pixels, 0);
 }
