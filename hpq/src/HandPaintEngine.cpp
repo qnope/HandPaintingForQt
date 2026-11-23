@@ -28,7 +28,7 @@ namespace {
 
 // Width, in device pixels, of the lines of a hatched fill.
 constexpr double HachureWidth = 1.0;
-// Coordinates are rounded to this fraction of a device pixel before they make the seed.
+// Coordinates are rounded to this fraction of a pixel before they make the seed.
 constexpr double SeedPrecision = 100.0;
 
 // `region` with each of its rectangles grown by `margin` on every side.
@@ -96,6 +96,12 @@ constexpr double WatercolorHachureExtraWidth = 1.0;
 
 // A wash does not follow the outline of its shape: it gets another seed than the outline.
 constexpr std::uint32_t WashSeedMask = 0x5bd1e995u;
+
+// `brush` with its image moved by `offset`: the image follows what is drawn there.
+QBrush moved(QBrush brush, const QPointF &offset) {
+    brush.setTransform(brush.transform() * QTransform::fromTranslate(offset.x(), offset.y()));
+    return brush;
+}
 
 // True when `pen` draws a plain line of one color, which chalk or a brush can follow with
 // uneven pressure.
@@ -197,9 +203,13 @@ void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap,
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }
 
 void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
-    const QPainterPath shape = m_transform.map(logical_shape);
+    const QPainterPath device_shape = m_transform.map(logical_shape);
+    // The shape is made rough with its corner at the origin, then drawn at its place: wherever
+    // it is on the device, it gets the same seed, and so the same rough paths.
+    m_place = device_shape.boundingRect().topLeft();
+    const QPainterPath shape = device_shape.translated(-m_place);
     const RoughOptions options = m_theme.rough_options();
-    const std::uint32_t shape_seed = seed(shape);
+    const std::uint32_t shape_seed = path_seed(shape);
     const bool filled = m_brush.style() != Qt::NoBrush;
     if (kind != ShapeKind::Open && filled) {
         fill_shape(shape, kind, options, shape_seed);
@@ -237,7 +247,11 @@ void HandPaintEngine::lay_on_target(const QPainterPath &area, const QBrush &brus
         return;
     }
     save_target_in_device_coordinates();
-    paint_wash(m_target, area, brush.color(), is_band ? WashKind::Band : WashKind::Patch);
+    // The wash settles from the origin of the painter: moved to the place of the shape, by
+    // whole pixels, it follows the shape.
+    const QPointF origin = m_place.toPoint();
+    m_target.translate(origin);
+    paint_wash(m_target, area.translated(m_place - origin), brush.color(), is_band ? WashKind::Band : WashKind::Patch);
     m_target.restore();
 }
 
@@ -277,18 +291,19 @@ void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, s
     const int system_clip_margin =
         is_outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
     if (is_brush && is_watercolor) {
-        glaze_on_target(brush_ribbon(stroke, width, stroke_seed), pigment_brush(pen.color(), target_pixel_ratio()),
-                        system_clip_margin);
+        glaze_on_target(brush_ribbon(stroke, width, stroke_seed),
+                        moved(pigment_brush(pen.color(), target_pixel_ratio()), m_place), system_clip_margin);
     } else if (is_brush) {
         draw_on_target(brush_ribbon(stroke, width, stroke_seed), Qt::NoPen, pen.brush(), system_clip_margin);
     } else if (!is_chalk) {
         draw_on_target(stroke, pen, Qt::NoBrush, system_clip_margin);
     } else if (is_plain_line(pen)) {
         draw_on_target(chalk_ribbon(stroke, width, stroke_seed), Qt::NoPen,
-                       chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()), system_clip_margin);
+                       moved(chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()), m_place),
+                       system_clip_margin);
     } else {
         // A dashed line keeps its dashes: it only gets the grain.
-        QPen grainy_pen = chalk_pen(pen, ChalkGrain::Stroke);
+        QPen grainy_pen = chalk_pen(pen, ChalkGrain::Stroke, m_place);
         grainy_pen.setWidthF(width);
         draw_on_target(stroke, grainy_pen, Qt::NoBrush, system_clip_margin);
     }
@@ -301,8 +316,9 @@ QBrush HandPaintEngine::seen_through_medium(const QBrush &brush) const {
     const QColor color = brush.color();
     switch (m_theme.medium()) {
     case Medium::Chalk:
+        // The slate stays where it is; the chalk rubbed on a shape follows the shape.
         return is_ground(color) ? slate_brush(color, target_pixel_ratio())
-                                : chalk_brush(color, ChalkGrain::Fill, target_pixel_ratio());
+                                : moved(chalk_brush(color, ChalkGrain::Fill, target_pixel_ratio()), m_place);
     case Medium::Watercolor:
         return is_ground(color) ? paper_brush(color, target_pixel_ratio()) : brush;
     default:
@@ -319,9 +335,9 @@ bool HandPaintEngine::is_ground(const QColor &color) const {
 }
 
 // A pen that already draws a pattern or a gradient is returned unchanged.
-QPen HandPaintEngine::chalk_pen(QPen pen, ChalkGrain grain) const {
+QPen HandPaintEngine::chalk_pen(QPen pen, ChalkGrain grain, const QPointF &place) const {
     if (pen.brush().style() == Qt::SolidPattern) {
-        pen.setBrush(chalk_brush(pen.color(), grain, target_pixel_ratio()));
+        pen.setBrush(moved(chalk_brush(pen.color(), grain, target_pixel_ratio()), place));
     }
     return pen;
 }
@@ -335,7 +351,7 @@ void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, 
     save_target_in_device_coordinates(system_clip_margin);
     m_target.setPen(pen);
     m_target.setBrush(brush);
-    m_target.drawPath(path);
+    m_target.drawPath(path.translated(m_place));
     m_target.restore();
 }
 
@@ -347,7 +363,7 @@ void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &br
     }
     m_target.setPen(Qt::NoPen);
     m_target.setBrush(brush);
-    m_target.drawPath(area);
+    m_target.drawPath(area.translated(m_place));
     m_target.restore();
 }
 
@@ -370,10 +386,6 @@ void HandPaintEngine::save_target_in_logical_coordinates() {
     // Combine keeps the transform the target painter already has.
     m_target.setTransform(m_transform, true);
 }
-
-// `shape` is already in device coordinates: the same primitive drawn at the same place on the
-// device gets the same seed, and so the same rough paths.
-std::uint32_t HandPaintEngine::seed(const QPainterPath &shape) const { return path_seed(shape); }
 
 namespace {
 
@@ -407,7 +419,7 @@ void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &tex
     QFont font = m_theme.font();
     font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
     save_target_in_logical_coordinates();
-    m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text) : m_pen);
+    m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text, position) : m_pen);
     m_target.setFont(font);
     m_target.drawText(position, text_item.text());
     m_target.restore();

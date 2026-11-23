@@ -237,7 +237,7 @@ QPainterPath RoughGeometryEngine::hachure(const QPainterPath &shape, const Rough
     const QList<QPolygonF> polygons = turned_shape.toSubpathPolygons();
     const QRectF extent = turned_shape.boundingRect();
 
-    // The lines are on a grid that starts at the origin of the device, not at the shape.
+    // The lines are on a grid that starts at the origin of the coordinates, not at the shape.
     for (double row = std::floor(extent.top() / gap);; ++row) {
         const double y = (row + 0.5) * gap;
         if (y >= extent.bottom())

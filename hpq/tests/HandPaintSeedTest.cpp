@@ -127,15 +127,41 @@ TEST(HandPaintSeedTest, SeedUsesDeviceCoordinatesOnce) {
     expect_same_paths(moved, transformed);
 }
 
-TEST(HandPaintSeedTest, DifferentRectanglesGiveDifferentPaths) {
+// A view that scrolls moves what it shows: the drawing must not change.
+TEST(HandPaintSeedTest, MovedRectangleKeepsItsRoughPaths) {
     const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     const QPointF offset(20, 30);
 
     const std::vector<QPainterPath> first = paths_of(draw_rectangle(Rectangle, geometry_engine));
     const std::vector<QPainterPath> second = paths_of(draw_rectangle(Rectangle.translated(offset), geometry_engine));
 
-    // Moved back onto the first rectangle, the rough paths still differ: they come from another seed.
-    EXPECT_NE(first, translated(second, -offset));
+    expect_same_paths(translated(first, offset), second);
+}
+
+TEST(HandPaintSeedTest, RectangleMovedByATransformKeepsItsRoughPaths) {
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
+    const QPointF offset(-7, 13);
+
+    const std::vector<QPainterPath> first = paths_of(draw_rectangle(Rectangle, geometry_engine));
+    const std::vector<QPainterPath> second =
+        paths_of(draw_rectangle(Rectangle, geometry_engine, QTransform::fromTranslate(offset.x(), offset.y())));
+
+    expect_same_paths(translated(first, offset), second);
+}
+
+TEST(HandPaintSeedTest, RectanglesOfDifferentSizesGiveDifferentPaths) {
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
+    const QRectF wider = Rectangle.adjusted(0, 0, 20, 0);
+
+    const std::vector<QPainterPath> first = paths_of(draw_rectangle(Rectangle, geometry_engine));
+    const std::vector<QPainterPath> second = paths_of(draw_rectangle(wider, geometry_engine));
+
+    // The left side of both rectangles is the same segment: its rough paths still differ,
+    // because they come from another seed.
+    EXPECT_NE(first, second);
+    ASSERT_FALSE(first.empty());
+    ASSERT_FALSE(second.empty());
+    EXPECT_NE(first.back().elementAt(1).y, second.back().elementAt(1).y);
 }
 
 }  // namespace

@@ -22,7 +22,7 @@ int device_size(int logical_size, double device_pixel_ratio);
 // made by `make_tile`, which tiles, and has `color` as its color. The image is made the first
 // time the brush is asked for, and kept. It keeps its size in logical pixels and has the
 // resolution of the device, so that it is drawn as it is.
-// The brush is anchored to the origin of the painter, not to what is drawn.
+// The brush is anchored to the origin of the painter: its transform moves it elsewhere.
 QBrush tile_brush(TileKind kind, const QColor &color, double device_pixel_ratio,
                   const std::function<QImage()> &make_tile);
 

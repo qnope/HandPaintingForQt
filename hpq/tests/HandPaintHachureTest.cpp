@@ -29,6 +29,7 @@ class OneHachureGeometryEngine : public hpq::GeometryEngine {
 public:
     explicit OneHachureGeometryEngine(bool hatches = true) : m_hatches(hatches) {}
 
+    // The line on the target: a diagonal of Rectangle.
     static QPainterPath hachure_line() {
         QPainterPath line(Rectangle.bottomLeft());
         line.lineTo(Rectangle.topRight());
@@ -44,8 +45,9 @@ public:
         return shape;
     }
 
+    // The engine gets its shape moved to the origin: the line it gives is counted from there.
     QPainterPath hachure(const QPainterPath &, const hpq::RoughOptions &, std::uint32_t) const override {
-        return m_hatches ? hachure_line() : QPainterPath();
+        return m_hatches ? hachure_line().translated(-Rectangle.topLeft()) : QPainterPath();
     }
 
 private:

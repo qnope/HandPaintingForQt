@@ -3,7 +3,24 @@
 #include <QPixmap>
 #include <QTextItem>
 
+#include <cmath>
+
 namespace hpq::test {
+
+bool are_close(const QPainterPath &first, const QPainterPath &second) {
+    constexpr double Tolerance = 0.001;
+    if (first.elementCount() != second.elementCount()) {
+        return false;
+    }
+    for (int index = 0; index < first.elementCount(); ++index) {
+        const QPainterPath::Element a = first.elementAt(index);
+        const QPainterPath::Element b = second.elementAt(index);
+        if (a.type != b.type || std::abs(a.x - b.x) > Tolerance || std::abs(a.y - b.y) > Tolerance) {
+            return false;
+        }
+    }
+    return true;
+}
 
 RecordingPaintEngine::RecordingPaintEngine() : QPaintEngine(QPaintEngine::AllFeatures) {}
 
