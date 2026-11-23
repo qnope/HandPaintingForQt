@@ -4,7 +4,7 @@ target_sources(hpq PRIVATE NotebookTheme.cpp SchoolFont.cpp SchoolFont.h SeyesPa
 target_sources(hpq PRIVATE BlueprintTheme.cpp)
 target_sources(hpq PRIVATE InvisibleInkTheme.cpp)
 target_sources(hpq PRIVATE HandPaintDevice.cpp HandPaintEngine.cpp PaintCache.cpp PathTiles.cpp PathTiles.h)
-target_sources(hpq PRIVATE HandPaintEffect.cpp Theming.cpp)
+target_sources(hpq PRIVATE HandPaintEffect.cpp Theming.cpp WindowTheming.cpp)
 target_sources(hpq PRIVATE HandPaintStyle.cpp)
 target_sources(hpq PRIVATE ChalkTexture.cpp ChalkTexture.h ChalkStroke.cpp ChalkStroke.h)
 target_sources(hpq PRIVATE VelledaTheme.cpp)

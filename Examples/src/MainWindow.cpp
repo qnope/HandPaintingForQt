@@ -17,6 +17,8 @@
 #include <hpq/VelledaTheme.h>
 #include <hpq/WatercolorTheme.h>
 
+#include <QAction>
+#include <QApplication>
 #include <QBrush>
 #include <QCheckBox>
 #include <QComboBox>
@@ -25,6 +27,7 @@
 #include <QFont>
 #include <QGraphicsScene>
 #include <QGraphicsSimpleTextItem>
+#include <QMessageBox>
 #include <QPainterPath>
 #include <QPen>
 #include <QPolygonF>
@@ -142,6 +145,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->comboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &MainWindow::update_theme);
     connect(m_ui->checkBox, &QCheckBox::toggled, this, &MainWindow::update_theme);
+    connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::show_about);
     update_theme();
 }
 
@@ -151,10 +155,24 @@ void MainWindow::update_theme()
         m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
     const std::optional<hpq::Theme> theme = theme_for(m_ui->comboBox->currentIndex(), fill_style);
     if (!theme) {
+        m_window_theming.reset();
         hpq::remove_theme(*this);
         return;
     }
-    hpq::apply_theme(*this, *theme, std::make_shared<const hpq::RoughGeometryEngine>());
+    const auto geometry_engine = std::make_shared<const hpq::RoughGeometryEngine>();
+    hpq::apply_theme(*this, *theme, geometry_engine);
+    m_window_theming.emplace(*theme, geometry_engine);
+    QApplication::instance()->installEventFilter(&*m_window_theming);
+}
+
+void MainWindow::show_about()
+{
+    auto *about = new QMessageBox(QMessageBox::Information, "About Hand Painting for Qt",
+                                  "Hand Painting for Qt draws the widgets of Qt by hand, à la Rough.js.",
+                                  QMessageBox::Ok, this);
+    about->setAttribute(Qt::WA_DeleteOnClose);
+    // open() and not exec(): the message box does not wait in an event loop of its own.
+    about->open();
 }
 
 MainWindow::~MainWindow() = default;

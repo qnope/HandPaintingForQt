@@ -13,7 +13,8 @@ namespace hpq {
 // on the window and its existing descendant widgets, and a HandPaintEffect on the window.
 // Its existing labels get the marker of the theme, if it has one.
 // The lists that its combo boxes open are windows of their own: each gets the palette and a
-// HandPaintEffect too.
+// HandPaintEffect too. Menus, dialogs and tooltips, windows of their own as well, get a theme
+// from a WindowTheming that the application installs.
 HPQ_EXPORT void apply_theme(QWidget &window, const Theme &theme,
                             std::shared_ptr<const GeometryEngine> geometry_engine);
 

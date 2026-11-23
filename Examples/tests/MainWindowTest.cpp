@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 
+#include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGraphicsItem>
@@ -9,6 +10,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QMessageBox>
 #include <QStandardItemModel>
 #include <QStatusBar>
 #include <QTableView>
@@ -53,6 +55,24 @@ TEST(MainWindow, WidgetsOfTheUiExist)
     EXPECT_EQ(edit->title(), "Edit");
     EXPECT_TRUE(file->actions().isEmpty());
     EXPECT_TRUE(edit->actions().isEmpty());
+}
+
+TEST(MainWindow, HelpMenuHoldsAbout)
+{
+    hpq::example::MainWindow w;
+    auto *help = find<QMenu>(w, "menuHelp");
+    ASSERT_NE(help, nullptr);
+    EXPECT_EQ(help->title(), "Help");
+    ASSERT_EQ(help->actions().size(), 1);
+    EXPECT_EQ(help->actions().first(), find<QAction>(w, "actionAbout"));
+    EXPECT_EQ(help->actions().first()->text(), "About Hand Painting for Qt");
+}
+
+TEST(MainWindow, ThemeControlsHaveToolTips)
+{
+    hpq::example::MainWindow w;
+    EXPECT_FALSE(find<QComboBox>(w, "comboBox")->toolTip().isEmpty());
+    EXPECT_FALSE(find<QCheckBox>(w, "checkBox")->toolTip().isEmpty());
 }
 
 // A label that is its own buddy is told of its own destruction, after its QLabel part is
@@ -151,6 +171,30 @@ TEST(MainWindow, StartsWithTheSketchThemeApplied)
     EXPECT_TRUE(has_hand_paint_effect(w));
     EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
     EXPECT_EQ(w.font().family(), "Architects Daughter");
+}
+
+TEST(MainWindow, AboutOpensAMessageBoxInTheThemeOfTheWindow)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(BlackSlateIndex);
+    find<QAction>(w, "actionAbout")->trigger();
+    auto *about = w.findChild<QMessageBox *>();
+    ASSERT_NE(about, nullptr);
+    EXPECT_TRUE(about->isVisible());
+    EXPECT_TRUE(has_hand_paint_effect(*about));
+    EXPECT_EQ(about->palette(), hpq::slate_theme().palette());
+    about->close();
+}
+
+TEST(MainWindow, WithoutThemeAboutOpensAPlainMessageBox)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
+    find<QAction>(w, "actionAbout")->trigger();
+    auto *about = w.findChild<QMessageBox *>();
+    ASSERT_NE(about, nullptr);
+    EXPECT_EQ(about->graphicsEffect(), nullptr);
+    about->close();
 }
 
 TEST(MainWindow, HachuresCheckBoxStartsUnchecked)
