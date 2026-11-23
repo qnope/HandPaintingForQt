@@ -12,10 +12,13 @@ namespace hpq {
 
 // Paint device that gives a hand-painted look to what is drawn on it: each primitive goes
 // through a HandPaintEngine, which draws it on the target painter.
-// The target painter, the theme and the geometry engine must outlive the device.
+// The target painter, the theme, the geometry engine and the cache must outlive the device.
+// With a cache, what is made to draw a shape is kept there and taken back when the same shape
+// is drawn again, by this device or by a later one with the same theme and geometry engine.
 class HPQ_EXPORT HandPaintDevice : public QPaintDevice {
 public:
-    HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine);
+    HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
+                    PaintCache *cache = nullptr);
 
     QPaintEngine *paintEngine() const override;
 

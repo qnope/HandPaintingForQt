@@ -32,3 +32,9 @@ endfunction()
 
 add_subdirectory(hpq)
 add_subdirectory(Examples)
+
+# The repaint benchmark of the example window: off by default, it is a tool for a developer.
+option(HPQ_BUILD_BENCH "Build the repaint benchmark" OFF)
+if(HPQ_BUILD_BENCH)
+  add_subdirectory(bench)
+endif()

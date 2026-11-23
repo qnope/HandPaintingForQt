@@ -4,6 +4,8 @@
 #include "StrokeRibbon.h"
 #include "WatercolorTexture.h"
 
+#include <hpq/PaintCache.h>
+
 #include <QImage>
 #include <QPaintDevice>
 #include <QPaintEngine>
@@ -223,19 +225,39 @@ QImage wash_image(const QPainterPath &area, const QColor &pigment, WashKind kind
 // The distance, in logical pixels, over which the edge of an area changes its wash.
 constexpr double WashReach = BlurReach * (SoftEdgeRadius + PoolRadius) + BandOverrun + 1.0;
 
+// The pixels of the device, counted from the origin of the painter, that hold `area`.
+QRect device_rect_of(const QRectF &area, double device_pixel_ratio) {
+    return QRectF(area.topLeft() * device_pixel_ratio, area.size() * device_pixel_ratio).toAlignedRect();
+}
+
+constexpr std::size_t BytesPerPixel = 4;
+
+std::size_t byte_count_of(const QRect &device_rect) {
+    return BytesPerPixel * static_cast<std::size_t>(device_rect.width()) * static_cast<std::size_t>(device_rect.height());
+}
+
 }  // namespace
 
-void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind) {
+void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind,
+                PaintCache *cache) {
     const double ratio = painter.device()->devicePixelRatioF();
-    // The pixels of the device that the wash changes, among those the painter can paint and
-    // those close enough to change them.
+    // The pixels of the device that the wash changes.
     const QRectF touched = area.boundingRect().adjusted(-WashReach, -WashReach, WashReach, WashReach);
-    const QRectF painted = touched & paintable_area(painter).adjusted(-WashReach, -WashReach, WashReach, WashReach);
-    const QRect device_rect = QRectF(painted.topLeft() * ratio, painted.size() * ratio).toAlignedRect();
-    if (device_rect.isEmpty()) {
-        return;
+    QRect device_rect = device_rect_of(touched, ratio);
+    QImage wash;
+    if (cache != nullptr && byte_count_of(device_rect) <= PaintCache::largest_kept_wash()) {
+        // The whole wash, made once: the painter cuts what it cannot paint.
+        wash = cache->wash(area, pigment.rgba64(), static_cast<int>(kind), ratio,
+                           [&] { return wash_image(area, pigment, kind, device_rect, ratio); });
+    } else {
+        // Only the pixels that the painter can paint, and those close enough to change them.
+        const QRectF painted = touched & paintable_area(painter).adjusted(-WashReach, -WashReach, WashReach, WashReach);
+        device_rect = device_rect_of(painted, ratio);
+        if (device_rect.isEmpty()) {
+            return;
+        }
+        wash = wash_image(area, pigment, kind, device_rect, ratio);
     }
-    QImage wash = wash_image(area, pigment, kind, device_rect, ratio);
     wash.setDevicePixelRatio(ratio);
     // A glaze: it darkens the paper and what was laid under it. Laid twice at the same place,
     // as Qt does for the selected row of a view, it does not darken itself.

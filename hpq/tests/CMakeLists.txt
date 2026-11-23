@@ -37,5 +37,6 @@ target_sources(HpqTests PRIVATE WatercolorThemeTest.cpp WatercolorMediumTest.cpp
 target_sources(HpqTests PRIVATE BlueprintThemeTest.cpp)
 target_sources(HpqTests PRIVATE InvisibleInkThemeTest.cpp InvisibleTextInkTest.cpp)
 target_sources(HpqTests PRIVATE ScrolledViewTest.cpp)
+target_sources(HpqTests PRIVATE PaintCacheTest.cpp HandPaintCacheTest.cpp)
 target_sources(HpqTests PRIVATE HighlighterThemeTest.cpp)
 target_sources(HpqTests PRIVATE LabelMarkerTest.cpp LabelMarkerThemeTest.cpp)
