@@ -29,8 +29,6 @@ QStyle *hand_paint_style() {
     return style;
 }
 
-const QString SavedLookName("hpq_saved_look");
-
 // The lists that the combo boxes of `window` open. Each list is in a window of its own, made
 // by its combo box the first time the list is asked for: it is a descendant of `window` from
 // then on.
@@ -44,10 +42,12 @@ std::vector<QAbstractItemView *> combo_box_lists(QWidget &window) {
 
 // The palette, font and styles a window had before its first apply_theme, kept as a child
 // of the window. An empty optional or a null style means the value was not set on the widget.
+// It is a type of its own for the meta-object system: the window finds it again by its type.
 class SavedLook : public QObject {
+    Q_OBJECT
+
 public:
     explicit SavedLook(QWidget &window) : QObject(&window) {
-        setObjectName(SavedLookName);
         if (window.testAttribute(Qt::WA_SetPalette)) {
             m_palette = window.palette();
         }
@@ -104,8 +104,7 @@ private:
 };
 
 SavedLook *find_saved_look(QWidget &window) {
-    return dynamic_cast<SavedLook *>(
-        window.findChild<QObject *>(SavedLookName, Qt::FindDirectChildrenOnly));
+    return window.findChild<SavedLook *>(QString(), Qt::FindDirectChildrenOnly);
 }
 
 }  // namespace
@@ -147,3 +146,6 @@ void remove_theme(QWidget &window) {
 }
 
 }  // namespace hpq
+
+// SavedLook is declared in this file: its meta-object code is made from it.
+#include "Theming.moc"
