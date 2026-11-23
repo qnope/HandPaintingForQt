@@ -15,6 +15,7 @@
 #include <QAbstractScrollArea>
 #include <QPaintDevice>
 #include <QPainter>
+#include <QPainterPathStroker>
 #include <QRegion>
 #include <QScrollBar>
 #include <QTextItem>
@@ -98,6 +99,9 @@ double brush_width(const QPen &pen, bool is_outline) {
 // A hachure of watercolor is one stroke of a small flat brush: it is this much wider, in
 // pixels, than the pen it stands for.
 constexpr double WatercolorHachureExtraWidth = 1.0;
+
+// The miter limit of a pen that was given none.
+constexpr double DefaultMiterLimit = 2.0;
 
 // A wash does not follow the outline of its shape: it gets another seed than the outline.
 constexpr std::uint32_t WashSeedMask = 0x5bd1e995u;
@@ -262,7 +266,10 @@ std::vector<QPainterPath> HandPaintEngine::kept_paths(PaintCache::PathKind kind,
     if (m_cache == nullptr) {
         return make();
     }
-    return m_cache->paths(kind, shape, static_cast<int>(tool.ribbon), tool.width, make);
+    // The values of the cap styles and of the join styles are bits of their own, above the ribbons.
+    const int tool_number = static_cast<int>(tool.ribbon) | static_cast<int>(tool.cap_style) |
+                            static_cast<int>(tool.join_style);
+    return m_cache->paths(kind, shape, tool_number, tool.width, make);
 }
 
 void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
@@ -366,7 +373,18 @@ HandPaintEngine::Tool HandPaintEngine::tool_of(const QPen &pen, StrokeKind kind)
     // A brush follows a plain line; a dashed line is drawn by its pen, as a pencil draws it.
     const bool is_brush = (medium == Medium::Ink || is_watercolor) && is_plain_line(pen);
     Tool tool;
-    tool.ribbon = is_brush ? Ribbon::Brush : is_chalk && is_plain_line(pen) ? Ribbon::Chalk : Ribbon::None;
+    if (is_brush) {
+        tool.ribbon = Ribbon::Brush;
+    } else if (is_chalk && is_plain_line(pen)) {
+        tool.ribbon = Ribbon::Chalk;
+    } else if (!is_chalk && m_cache != nullptr && is_plain_line(pen) && !is_thin(pen) &&
+               (pen.joinStyle() != Qt::MiterJoin || pen.miterLimit() == DefaultMiterLimit)) {
+        // The target turns a wide line into an area each time it strokes it: here the area is
+        // made once, and kept with the stroke.
+        tool.ribbon = Ribbon::Pen;
+        tool.cap_style = pen.capStyle();
+        tool.join_style = pen.joinStyle();
+    }
     tool.width = is_chalk   ? chalk_width(pen)
                  : is_brush ? brush_width(pen, is_outline) +
                                   (is_watercolor && !is_outline ? WatercolorHachureExtraWidth : 0.0)
@@ -380,8 +398,24 @@ HandPaintEngine::Tool HandPaintEngine::tool_of(const QPen &pen, StrokeKind kind)
     return tool;
 }
 
+bool HandPaintEngine::is_thin(const QPen &pen) const {
+    if (pen.isCosmetic()) {
+        return true;
+    }
+    const QTransform to_device = m_target.deviceTransform();
+    return pen.widthF() * std::hypot(to_device.m11(), to_device.m12()) <= 1.0;
+}
+
 QPainterPath HandPaintEngine::marked(const QPainterPath &stroke, const Tool &tool, std::uint32_t stroke_seed) const {
     switch (tool.ribbon) {
+    case Ribbon::Pen: {
+        QPainterPathStroker stroker;
+        stroker.setWidth(tool.width);
+        stroker.setCapStyle(tool.cap_style);
+        stroker.setJoinStyle(tool.join_style);
+        stroker.setMiterLimit(DefaultMiterLimit);
+        return stroker.createStroke(stroke);
+    }
     case Ribbon::Chalk:
         return chalk_ribbon(stroke, tool.width, stroke_seed);
     case Ribbon::Brush:
@@ -397,7 +431,7 @@ void HandPaintEngine::draw_marked(const QPainterPath &marked_stroke, const QPen 
     if (tool.ribbon == Ribbon::Brush && medium == Medium::Watercolor) {
         glaze_on_target(marked_stroke, moved(pigment_brush(pen.color(), target_pixel_ratio()), m_origin),
                         tool.system_clip_margin);
-    } else if (tool.ribbon == Ribbon::Brush) {
+    } else if (tool.ribbon == Ribbon::Brush || tool.ribbon == Ribbon::Pen) {
         draw_on_target(marked_stroke, Qt::NoPen, pen.brush(), tool.system_clip_margin);
     } else if (tool.ribbon == Ribbon::Chalk) {
         draw_on_target(marked_stroke, Qt::NoPen,

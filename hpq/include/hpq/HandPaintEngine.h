@@ -52,13 +52,17 @@ private:
     enum class ShapeKind { Open, Closed, Rectangle };
     // What a stroke draws: the outline of a shape, or the lines of a hatched fill.
     enum class StrokeKind { Outline, Hachure };
-    // The area that the tool of a medium marks along a stroke, filled instead of stroking it.
-    enum class Ribbon { None, Chalk, Brush };
+    // The area that a tool marks along a stroke, filled instead of stroking it: the uneven
+    // one of chalk or of a brush, or the even one of a pen wider than a pixel of the target.
+    enum class Ribbon { None, Chalk, Brush, Pen };
     // How a pen draws a stroke with the medium of the theme.
     struct Tool {
         Ribbon ribbon = Ribbon::None;
         // The width, in pixels, of the line that the tool draws.
         double width = 0.0;
+        // How the ribbon of a pen ends and turns.
+        Qt::PenCapStyle cap_style = Qt::FlatCap;
+        Qt::PenJoinStyle join_style = Qt::MiterJoin;
         // How far past the area of the widget being rendered the tool may draw.
         int system_clip_margin = 0;
     };
@@ -92,6 +96,8 @@ private:
     bool is_hatched(const QBrush &brush) const;
     // How `pen` draws a stroke of `kind` with the medium of the theme.
     Tool tool_of(const QPen &pen, StrokeKind kind) const;
+    // Whether the target strokes a line of `pen` in one pass: the line is at most one of its pixels wide.
+    bool is_thin(const QPen &pen) const;
     // What `tool` marks along `stroke`: its ribbon, or the stroke itself when it has none.
     // `stroke_seed` gives a chalk stroke its pressure and its gaps, and a brush stroke its pressure.
     QPainterPath marked(const QPainterPath &stroke, const Tool &tool, std::uint32_t stroke_seed) const;
