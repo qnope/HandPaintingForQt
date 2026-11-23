@@ -21,6 +21,7 @@
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
 #include <hpq/VelledaTheme.h>
+#include <hpq/WatercolorTheme.h>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
@@ -67,13 +68,14 @@ TEST(MainWindow, ComboBoxHoldsTheThemes)
     hpq::example::MainWindow w;
     auto *combo = find<QComboBox>(w, "comboBox");
     ASSERT_NE(combo, nullptr);
-    ASSERT_EQ(combo->count(), 6);
+    ASSERT_EQ(combo->count(), 7);
     EXPECT_EQ(combo->itemText(0), "Sketch");
     EXPECT_EQ(combo->itemText(1), "China Ink");
     EXPECT_EQ(combo->itemText(2), "Black slate and chalk");
     EXPECT_EQ(combo->itemText(3), "School notebook");
     EXPECT_EQ(combo->itemText(4), "Velleda");
-    EXPECT_EQ(combo->itemText(5), "Blueprint");
+    EXPECT_EQ(combo->itemText(5), "Watercolor");
+    EXPECT_EQ(combo->itemText(6), "Blueprint");
 }
 
 TEST(MainWindow, TableViewUsesTheTableModel)
@@ -127,7 +129,8 @@ constexpr int ChinaInkIndex = 1;
 constexpr int BlackSlateIndex = 2;
 constexpr int SchoolNotebookIndex = 3;
 constexpr int VelledaIndex = 4;
-constexpr int BlueprintIndex = 5;
+constexpr int WatercolorIndex = 5;
+constexpr int BlueprintIndex = 6;
 // The index of a combo box without a current entry.
 constexpr int NoEntryIndex = -1;
 } // namespace
@@ -262,6 +265,24 @@ TEST(MainWindow, CheckingHachuresUnderVelledaAppliesTheHatchedVelledaTheme)
     EXPECT_EQ(w.palette(), hpq::velleda_theme(hpq::FillStyle::Hachure).palette());
 }
 
+TEST(MainWindow, SelectingWatercolorAppliesTheWatercolorTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(WatercolorIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::watercolor_theme().palette());
+    EXPECT_EQ(w.font().family(), "Architects Daughter");
+}
+
+TEST(MainWindow, CheckingHachuresUnderWatercolorAppliesTheHatchedWatercolorTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(WatercolorIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::watercolor_theme(hpq::FillStyle::Hachure).palette());
+}
+
 TEST(MainWindow, SelectingBlueprintAppliesTheBlueprintTheme)
 {
     hpq::example::MainWindow w;
@@ -297,4 +318,4 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
 
 INSTANTIATE_TEST_SUITE_P(NoEntryAndEveryOtherTheme, MainWindowOtherTheme,
                          ::testing::Values(NoEntryIndex, ChinaInkIndex, BlackSlateIndex, SchoolNotebookIndex,
-                                           VelledaIndex, BlueprintIndex));
+                                           VelledaIndex, WatercolorIndex, BlueprintIndex));

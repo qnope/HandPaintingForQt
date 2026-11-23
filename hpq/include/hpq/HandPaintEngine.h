@@ -52,17 +52,27 @@ private:
     void draw_shape(const QPainterPath &shape, ShapeKind kind);
     // Fills `shape` (in device coordinates) on the target with the brush, as the fill style of
     // the theme says.
-    void fill_shape(const QPainterPath &shape, const RoughOptions &options, std::uint32_t shape_seed);
+    void fill_shape(const QPainterPath &shape, ShapeKind kind, const RoughOptions &options,
+                    std::uint32_t shape_seed);
+    // Lays `brush` on `area` as the medium of the theme does. `is_band` tells that the area
+    // is a rectangle without outline, which watercolor paints in one stroke of a flat brush.
+    void lay_on_target(const QPainterPath &area, const QBrush &brush, bool is_band);
+    // Whether the medium of the theme lays `brush` as a wash of watercolor: a plain color
+    // that is not the one of the paper.
+    bool is_wash(const QBrush &brush) const;
     // Whether a shape filled with `brush` gets hachures: the theme asks for them, and they
     // would show on the paper without hiding a drawing that `brush` lets through.
     bool is_hatched(const QBrush &brush) const;
     // Draws one stroke on the target with `pen` and the medium of the theme.
     // `stroke_seed` gives a chalk stroke its pressure and its gaps, and a brush stroke its pressure.
+    // A watercolor stroke has a smooth edge, and only darkens what is under it.
     void draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed, StrokeKind kind);
     // `brush` as the medium of the theme lays it on an area: unchanged by a pencil; with chalk,
-    // rubbed on the grain, or the slate itself when it has the color of the slate.
+    // rubbed on the grain, or the slate itself when it has the color of the slate; with
+    // watercolor, the grainy paper when it has the color of the paper.
     QBrush seen_through_medium(const QBrush &brush) const;
-    bool is_slate(const QColor &color) const;
+    // Whether `color` is the one of what the theme draws on: its slate or its paper.
+    bool is_ground(const QColor &color) const;
     // `pen`, drawing through the grain of the slate instead of its plain color.
     QPen chalk_pen(QPen pen, ChalkGrain grain) const;
     double target_pixel_ratio() const;
@@ -70,6 +80,9 @@ private:
     // The system clip is grown by `system_clip_margin`.
     void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
                         int system_clip_margin = 0);
+    // Fills `area` on the target with `brush` as a paint brush leaves watercolor: with a smooth
+    // edge, and as a glaze that darkens what is under it, when the target can do that.
+    void glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin);
     std::uint32_t seed(const QPainterPath &shape) const;
     // Saves the target state, then intersects the target clip with the system clip and the
     // device painter's clip.

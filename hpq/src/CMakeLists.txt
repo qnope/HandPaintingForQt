@@ -9,3 +9,5 @@ target_sources(hpq PRIVATE ChalkTexture.cpp ChalkTexture.h ChalkStroke.cpp Chalk
 target_sources(hpq PRIVATE VelledaTheme.cpp)
 target_sources(hpq PRIVATE ChinaInkTheme.cpp)
 target_sources(hpq PRIVATE StrokeRibbon.cpp StrokeRibbon.h BrushStroke.cpp BrushStroke.h)
+target_sources(hpq PRIVATE GrainNoise.cpp GrainNoise.h TileBrush.cpp TileBrush.h)
+target_sources(hpq PRIVATE WatercolorTheme.cpp WatercolorTexture.cpp WatercolorTexture.h WatercolorWash.cpp WatercolorWash.h)
