@@ -49,13 +49,14 @@ private:
 
     // Draws `shape` on the target: its fill when it is not open and the brush is set,
     // then its rough outline strokes when the pen is set.
-    // The drawing depends on the shape and not on where it is: a shape that moves, as when a
-    // view scrolls, keeps its rough paths and its grain.
+    // The drawing depends on the shape and on its place in the content of the widget being
+    // painted, not on where that content is: a view that scrolls keeps its drawing.
     // A rectangle without fill is a frame: its strokes stay out of it, because what it frames
     // (the viewport of a list) is painted after it, over anything inside the rectangle.
     void draw_shape(const QPainterPath &shape, ShapeKind kind);
     // Fills `shape` on the target with the brush, as the fill style of the theme says.
-    // Here and below, a shape, an area or a stroke is in device coordinates, counted from m_place.
+    // Here and below, a shape, an area or a stroke is in the coordinates of the content: in
+    // device pixels, counted from m_origin.
     void fill_shape(const QPainterPath &shape, ShapeKind kind, const RoughOptions &options,
                     std::uint32_t shape_seed);
     // Lays `brush` on `area` as the medium of the theme does. `is_band` tells that the area
@@ -81,8 +82,20 @@ private:
     // Whether `color` is the one of what the theme draws on: its slate or its paper.
     bool is_ground(const QColor &color) const;
     // `pen`, drawing through the grain of the slate instead of its plain color. The grain is
-    // moved to `place`, where the pen draws: it follows what is drawn.
-    QPen chalk_pen(QPen pen, ChalkGrain grain, const QPointF &place) const;
+    // moved to `origin`, the origin of the content: it scrolls with the content.
+    QPen chalk_pen(QPen pen, ChalkGrain grain, const QPointF &origin) const;
+    // Where the origin of the widget being painted is on the device; the origin of the device
+    // when the painter does not paint a widget.
+    QPointF widget_origin() const;
+    // Where the origin of the content of the widget being painted is on the device: the origin
+    // of the widget, moved back by how far it scrolled its content when it is the viewport of a
+    // scroll area.
+    QPointF content_origin() const;
+    // The origin of `logical_line`: the one of the content, but along a horizontal or vertical
+    // line that crosses the whole widget. A view draws the lines of its grid across what it
+    // shows, not across its whole content: placed along its length in the widget, such a line
+    // does not change when the view scrolls.
+    QPointF line_origin(const QPainterPath &logical_line) const;
     double target_pixel_ratio() const;
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
     // The system clip is grown by `system_clip_margin`.
@@ -108,8 +121,8 @@ private:
     // The device painter's world transform: shapes are mapped by it to device coordinates
     // before the geometry engine deforms them, so that max_offset stays in device pixels.
     QTransform m_transform;
-    // Where the shape being drawn is on the device: the top left corner of its bounding rectangle.
-    QPointF m_place;
+    // The content_origin() of the shape being drawn.
+    QPointF m_origin;
     // The device painter's clip, in device coordinates; used only when m_clipping is true.
     QPainterPath m_clip;
     bool m_clipping = false;

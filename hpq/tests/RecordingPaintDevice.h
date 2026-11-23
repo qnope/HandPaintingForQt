@@ -40,9 +40,6 @@ struct DrawCall {
     bool is_stroke() const { return kind == Kind::Path && pen.style() != Qt::NoPen && brush.style() == Qt::NoBrush; }
 };
 
-// Whether the two paths have the same elements, less than a thousandth of a pixel apart.
-bool are_close(const QPainterPath &first, const QPainterPath &second);
-
 // Paint engine that does not draw: it records each draw call it receives.
 // Every primitive becomes a Kind::Path call, so tests compare paths only.
 class RecordingPaintEngine : public QPaintEngine {

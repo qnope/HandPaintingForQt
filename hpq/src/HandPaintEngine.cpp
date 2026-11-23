@@ -11,10 +11,14 @@
 #include "WatercolorTexture.h"
 #include "WatercolorWash.h"
 
+#include <QAbstractItemView>
+#include <QAbstractScrollArea>
 #include <QPaintDevice>
 #include <QPainter>
 #include <QRegion>
+#include <QScrollBar>
 #include <QTextItem>
+#include <QWidget>
 
 #include <algorithm>
 #include <cmath>
@@ -101,6 +105,33 @@ constexpr std::uint32_t WashSeedMask = 0x5bd1e995u;
 QBrush moved(QBrush brush, const QPointF &offset) {
     brush.setTransform(brush.transform() * QTransform::fromTranslate(offset.x(), offset.y()));
     return brush;
+}
+
+// Reads the scroll offsets of a view of items, which QAbstractItemView keeps protected: a
+// pointer to a member, taken through a derived class, calls them on any view. They are in
+// pixels, also when the view scrolls by items.
+class ItemViewOffsets : public QAbstractItemView {
+public:
+    static QPointF of(const QAbstractItemView &view) {
+        return QPointF((view.*&ItemViewOffsets::horizontalOffset)(), (view.*&ItemViewOffsets::verticalOffset)());
+    }
+};
+
+// How far the content shown by `device` is scrolled: none, unless it is the viewport of a
+// scroll area.
+QPointF scroll_offset(const QPaintDevice *device) {
+    if (device == nullptr || device->devType() != QInternal::Widget) {
+        return QPointF();
+    }
+    const auto *widget = static_cast<const QWidget *>(device);
+    const auto *area = qobject_cast<const QAbstractScrollArea *>(widget->parentWidget());
+    if (area == nullptr || area->viewport() != widget) {
+        return QPointF();
+    }
+    if (const auto *view = qobject_cast<const QAbstractItemView *>(area)) {
+        return ItemViewOffsets::of(*view);
+    }
+    return QPointF(area->horizontalScrollBar()->value(), area->verticalScrollBar()->value());
 }
 
 // True when `pen` draws a plain line of one color, which chalk or a brush can follow with
@@ -203,11 +234,11 @@ void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap,
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }
 
 void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
-    const QPainterPath device_shape = m_transform.map(logical_shape);
-    // The shape is made rough with its corner at the origin, then drawn at its place: wherever
-    // it is on the device, it gets the same seed, and so the same rough paths.
-    m_place = device_shape.boundingRect().topLeft();
-    const QPainterPath shape = device_shape.translated(-m_place);
+    // The shape is made rough in the coordinates of the content, then drawn where the content
+    // is on the device: a shape keeps its rough paths when its view scrolls, and two shapes at
+    // two places of the content get two seeds.
+    m_origin = kind == ShapeKind::Open ? line_origin(logical_shape) : content_origin();
+    const QPainterPath shape = m_transform.map(logical_shape).translated(-m_origin);
     const RoughOptions options = m_theme.rough_options();
     const std::uint32_t shape_seed = path_seed(shape);
     const bool filled = m_brush.style() != Qt::NoBrush;
@@ -247,11 +278,11 @@ void HandPaintEngine::lay_on_target(const QPainterPath &area, const QBrush &brus
         return;
     }
     save_target_in_device_coordinates();
-    // The wash settles from the origin of the painter: moved to the place of the shape, by
-    // whole pixels, it follows the shape.
-    const QPointF origin = m_place.toPoint();
+    // The wash settles from the origin of the painter: moved to the origin of the content, by
+    // whole pixels, it scrolls with the content.
+    const QPointF origin = m_origin.toPoint();
     m_target.translate(origin);
-    paint_wash(m_target, area.translated(m_place - origin), brush.color(), is_band ? WashKind::Band : WashKind::Patch);
+    paint_wash(m_target, area.translated(m_origin - origin), brush.color(), is_band ? WashKind::Band : WashKind::Patch);
     m_target.restore();
 }
 
@@ -292,18 +323,18 @@ void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, s
         is_outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
     if (is_brush && is_watercolor) {
         glaze_on_target(brush_ribbon(stroke, width, stroke_seed),
-                        moved(pigment_brush(pen.color(), target_pixel_ratio()), m_place), system_clip_margin);
+                        moved(pigment_brush(pen.color(), target_pixel_ratio()), m_origin), system_clip_margin);
     } else if (is_brush) {
         draw_on_target(brush_ribbon(stroke, width, stroke_seed), Qt::NoPen, pen.brush(), system_clip_margin);
     } else if (!is_chalk) {
         draw_on_target(stroke, pen, Qt::NoBrush, system_clip_margin);
     } else if (is_plain_line(pen)) {
         draw_on_target(chalk_ribbon(stroke, width, stroke_seed), Qt::NoPen,
-                       moved(chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()), m_place),
+                       moved(chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()), m_origin),
                        system_clip_margin);
     } else {
         // A dashed line keeps its dashes: it only gets the grain.
-        QPen grainy_pen = chalk_pen(pen, ChalkGrain::Stroke, m_place);
+        QPen grainy_pen = chalk_pen(pen, ChalkGrain::Stroke, m_origin);
         grainy_pen.setWidthF(width);
         draw_on_target(stroke, grainy_pen, Qt::NoBrush, system_clip_margin);
     }
@@ -316,9 +347,9 @@ QBrush HandPaintEngine::seen_through_medium(const QBrush &brush) const {
     const QColor color = brush.color();
     switch (m_theme.medium()) {
     case Medium::Chalk:
-        // The slate stays where it is; the chalk rubbed on a shape follows the shape.
+        // The slate stays where it is; the chalk rubbed on a shape scrolls with the content.
         return is_ground(color) ? slate_brush(color, target_pixel_ratio())
-                                : moved(chalk_brush(color, ChalkGrain::Fill, target_pixel_ratio()), m_place);
+                                : moved(chalk_brush(color, ChalkGrain::Fill, target_pixel_ratio()), m_origin);
     case Medium::Watercolor:
         return is_ground(color) ? paper_brush(color, target_pixel_ratio()) : brush;
     default:
@@ -335,11 +366,36 @@ bool HandPaintEngine::is_ground(const QColor &color) const {
 }
 
 // A pen that already draws a pattern or a gradient is returned unchanged.
-QPen HandPaintEngine::chalk_pen(QPen pen, ChalkGrain grain, const QPointF &place) const {
+QPen HandPaintEngine::chalk_pen(QPen pen, ChalkGrain grain, const QPointF &origin) const {
     if (pen.brush().style() == Qt::SolidPattern) {
-        pen.setBrush(moved(chalk_brush(pen.color(), grain, target_pixel_ratio()), place));
+        pen.setBrush(moved(chalk_brush(pen.color(), grain, target_pixel_ratio()), origin));
     }
     return pen;
+}
+
+// The state of the device painter maps its logical coordinates to the device. Its combined
+// transform maps them to the widget being painted: the two differ by where that widget is on
+// the device.
+QPointF HandPaintEngine::widget_origin() const {
+    return m_transform.map(QPointF()) - painter()->combinedTransform().map(QPointF());
+}
+
+QPointF HandPaintEngine::content_origin() const {
+    return widget_origin() - scroll_offset(painter()->device());
+}
+
+QPointF HandPaintEngine::line_origin(const QPainterPath &logical_line) const {
+    const QPaintDevice *widget = painter()->device();
+    const QRectF line = painter()->combinedTransform().map(logical_line).boundingRect();
+    QPointF origin = content_origin();
+    // A pen of one pixel draws through the middle of the pixels: half a pixel from the edges.
+    if (line.height() == 0.0 && line.left() <= 1.0 && line.right() >= widget->width() - 1.0) {
+        origin.setX(widget_origin().x());
+    }
+    if (line.width() == 0.0 && line.top() <= 1.0 && line.bottom() >= widget->height() - 1.0) {
+        origin.setY(widget_origin().y());
+    }
+    return origin;
 }
 
 double HandPaintEngine::target_pixel_ratio() const {
@@ -351,7 +407,7 @@ void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, 
     save_target_in_device_coordinates(system_clip_margin);
     m_target.setPen(pen);
     m_target.setBrush(brush);
-    m_target.drawPath(path.translated(m_place));
+    m_target.drawPath(path.translated(m_origin));
     m_target.restore();
 }
 
@@ -363,7 +419,7 @@ void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &br
     }
     m_target.setPen(Qt::NoPen);
     m_target.setBrush(brush);
-    m_target.drawPath(area.translated(m_place));
+    m_target.drawPath(area.translated(m_origin));
     m_target.restore();
 }
 
@@ -419,7 +475,7 @@ void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &tex
     QFont font = m_theme.font();
     font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
     save_target_in_logical_coordinates();
-    m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text, position) : m_pen);
+    m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text, content_origin()) : m_pen);
     m_target.setFont(font);
     m_target.drawText(position, text_item.text());
     m_target.restore();

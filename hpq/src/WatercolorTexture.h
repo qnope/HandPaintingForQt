@@ -28,7 +28,8 @@ QBrush paper_brush(const QColor &color, double device_pixel_ratio);
 
 // A brush that paints the line of a paint brush loaded with `color`: the pigment settles
 // unevenly along the line, darker here and paler there. It has `color` as its color, and is
-// anchored to the origin of the painter: who draws a line with it moves it to the line.
+// anchored to the origin of the painter: who draws with it moves it to the origin of what is
+// drawn.
 QBrush pigment_brush(const QColor &color, double device_pixel_ratio);
 
 }  // namespace hpq
