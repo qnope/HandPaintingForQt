@@ -14,6 +14,7 @@
 #include <QTableView>
 #include <QTreeView>
 #include <gtest/gtest.h>
+#include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintEffect.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
@@ -118,6 +119,8 @@ bool has_hand_paint_effect(const QWidget &widget)
 constexpr int SketchIndex = 0;
 constexpr int ChinaInkIndex = 1;
 constexpr int BlackSlateIndex = 2;
+// The index of a combo box without a current entry.
+constexpr int NoEntryIndex = -1;
 } // namespace
 
 TEST(MainWindow, StartsWithTheSketchThemeApplied)
@@ -160,12 +163,22 @@ TEST(MainWindow, UncheckingHachuresAppliesTheSolidSketchThemeAgain)
     EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
 }
 
-TEST(MainWindow, CheckingHachuresUnderAnotherThemeKeepsTheThemeRemoved)
+TEST(MainWindow, CheckingHachuresWithoutCurrentEntryKeepsTheThemeRemoved)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_EQ(w.graphicsEffect(), nullptr);
+}
+
+TEST(MainWindow, CheckingHachuresUnderChinaInkAppliesTheHatchedChinaInkTheme)
 {
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
-    EXPECT_EQ(w.graphicsEffect(), nullptr);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_NE(w.palette(), hpq::china_ink_theme().palette());
 }
 
 TEST(MainWindow, CheckingHachuresUnderBlackSlateAppliesTheHatchedSlateTheme)
@@ -177,12 +190,21 @@ TEST(MainWindow, CheckingHachuresUnderBlackSlateAppliesTheHatchedSlateTheme)
     EXPECT_EQ(w.palette(), hpq::slate_theme(hpq::FillStyle::Hachure).palette());
 }
 
-TEST(MainWindow, SelectingChinaInkRemovesTheSketchTheme)
+TEST(MainWindow, SelectingNoEntryRemovesTheSketchTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
+    EXPECT_EQ(w.graphicsEffect(), nullptr);
+    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
+}
+
+TEST(MainWindow, SelectingChinaInkAppliesTheChinaInkTheme)
 {
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
-    EXPECT_EQ(w.graphicsEffect(), nullptr);
-    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme().palette());
+    EXPECT_EQ(w.font().family(), "Kaushan Script");
 }
 
 TEST(MainWindow, SelectingBlackSlateAppliesTheSlateTheme)
@@ -208,5 +230,5 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
     EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
 }
 
-INSTANTIATE_TEST_SUITE_P(ChinaInkAndBlackSlate, MainWindowOtherTheme,
-                         ::testing::Values(ChinaInkIndex, BlackSlateIndex));
+INSTANTIATE_TEST_SUITE_P(NoEntryChinaInkAndBlackSlate, MainWindowOtherTheme,
+                         ::testing::Values(NoEntryIndex, ChinaInkIndex, BlackSlateIndex));

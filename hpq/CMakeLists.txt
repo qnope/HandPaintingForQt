@@ -12,6 +12,12 @@ qt_add_resources(hpq "hpq_fonts"
     BASE resources
     FILES resources/fonts/ArchitectsDaughter-Regular.ttf resources/fonts/OFL.txt)
 
+# Kaushan Script font (SIL OFL 1.1) and its license, for the China ink theme.
+qt_add_resources(hpq "hpq_china_ink_fonts"
+    PREFIX "/hpq"
+    BASE resources
+    FILES resources/fonts/KaushanScript-Regular.ttf resources/fonts/KaushanScript-OFL.txt)
+
 # C++ standard and warnings: PUBLIC, so everything that links hpq gets them.
 target_compile_features(hpq PUBLIC cxx_std_17)
 target_compile_options(hpq PUBLIC $<IF:$<CXX_COMPILER_ID:MSVC>,/W4,-Wall;-Wextra>)

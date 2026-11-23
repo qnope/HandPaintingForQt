@@ -4,6 +4,7 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
+#include <hpq/ChinaInkTheme.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
@@ -21,12 +22,29 @@
 #include <QPen>
 #include <QPolygonF>
 #include <QStandardItemModel>
+#include <optional>
 
 namespace hpq::example {
 
 namespace {
 constexpr int SketchIndex = 0;
+constexpr int ChinaInkIndex = 1;
 constexpr int BlackSlateIndex = 2;
+
+// The theme of an entry of the combo box, or nothing when `index` is not one of its entries.
+std::optional<hpq::Theme> theme_of_entry(int index, hpq::FillStyle fill_style)
+{
+    switch (index) {
+    case SketchIndex:
+        return hpq::sketch_theme(fill_style);
+    case ChinaInkIndex:
+        return hpq::china_ink_theme(fill_style);
+    case BlackSlateIndex:
+        return hpq::slate_theme(fill_style);
+    default:
+        return std::nullopt;
+    }
+}
 
 QGraphicsScene *create_shapes_scene(QObject *parent)
 {
@@ -94,16 +112,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::update_theme()
 {
-    const int index = m_ui->comboBox->currentIndex();
-    if (index != SketchIndex && index != BlackSlateIndex) {
+    const hpq::FillStyle fill_style =
+        m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
+    const std::optional<hpq::Theme> theme = theme_of_entry(m_ui->comboBox->currentIndex(), fill_style);
+    if (!theme) {
         hpq::remove_theme(*this);
         return;
     }
-    const hpq::FillStyle fill_style =
-        m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
-    const hpq::Theme theme =
-        index == SketchIndex ? hpq::sketch_theme(fill_style) : hpq::slate_theme(fill_style);
-    hpq::apply_theme(*this, theme, std::make_shared<const hpq::RoughGeometryEngine>());
+    hpq::apply_theme(*this, *theme, std::make_shared<const hpq::RoughGeometryEngine>());
 }
 
 MainWindow::~MainWindow() = default;
