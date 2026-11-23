@@ -7,9 +7,11 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QFont>
+#include <QLabel>
 #include <QPalette>
 #include <QPointer>
 #include <QStyle>
+#include <QVariant>
 #include <QWidget>
 
 #include <optional>
@@ -27,6 +29,16 @@ QStyle *hand_paint_style() {
         style->setParent(qApp);
     }
     return style;
+}
+
+// Gives the labels of `window` the marker HandPaintStyle lays under their text, or takes it
+// away from them when `marker` is Qt::NoBrush.
+void set_label_markers(QWidget &window, const QBrush &marker) {
+    const QVariant property = marker.style() == Qt::NoBrush ? QVariant() : QVariant(marker);
+    for (QLabel *label : window.findChildren<QLabel *>()) {
+        label->setProperty(HandPaintStyle::LabelMarkerProperty, property);
+        label->update();
+    }
 }
 
 // The lists that the combo boxes of `window` open. Each list is in a window of its own, made
@@ -123,6 +135,7 @@ void apply_theme(QWidget &window, const Theme &theme,
     for (QWidget *descendant : window.findChildren<QWidget *>()) {
         descendant->setStyle(style);
     }
+    set_label_markers(window, theme.label_marker());
     for (QAbstractItemView *list : lists) {
         // The list of a combo box is a window of its own: the effect of `window` does not draw
         // it. And where the style shows it as a menu, its items take from the application
@@ -141,6 +154,7 @@ void remove_theme(QWidget &window) {
         return;
     }
     window.setGraphicsEffect(nullptr);
+    set_label_markers(window, Qt::NoBrush);
     saved_look->restore(window);
     delete saved_look;
 }

@@ -4,6 +4,7 @@
 
 #include <QProxyStyle>
 
+class QLabel;
 class QStyleOptionComboBox;
 class QStyleOptionSlider;
 
@@ -15,6 +16,11 @@ class HandPaintStyle : public QProxyStyle {
     Q_OBJECT
 
 public:
+    // The dynamic property of a QLabel that holds the QBrush of its marker. A label that has
+    // it gets one line of that brush under each line of its text, as high as the text and a
+    // little longer; the line of a disabled label is lighter.
+    static constexpr char LabelMarkerProperty[] = "hpq_label_marker";
+
     HandPaintStyle();
 
     void drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
@@ -32,6 +38,7 @@ public:
                   QStyleHintReturn *return_data = nullptr) const override;
 
 private:
+    void draw_label_marker(const QLabel &label, QPainter &painter) const;
     void draw_slider(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
     void draw_combo_box(const QStyleOptionComboBox &option, QPainter &painter, const QWidget *widget) const;
     void draw_scroll_bar(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;

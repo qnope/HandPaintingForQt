@@ -4,10 +4,13 @@
 
 #include <gtest/gtest.h>
 
+#include <QColor>
+#include <QGradient>
 #include <QPalette>
 #include <QPolygonF>
 #include <QScrollBar>
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 #include <optional>
@@ -81,7 +84,57 @@ std::map<Direction, int> render_scroll_bar(Qt::Orientation orientation, bool &dr
     return arrow_counts(calls, hpq::sketch_theme().palette());
 }
 
+// A color no theme has but for its buttons.
+const QColor ButtonGreen(0x20, 0xe0, 0x20);
+
+bool is_green(const QColor &color) {
+    return color.green() > std::max(color.red(), color.blue()) + 40;
+}
+
+// True when the pen or the brush of `call` draws in a green: a plain color, or a stop of a gradient.
+bool draws_in_green(const DrawCall &call) {
+    if (call.kind != DrawCall::Kind::Path) {
+        return false;
+    }
+    if (call.pen.style() != Qt::NoPen && is_green(call.pen.color())) {
+        return true;
+    }
+    if (const QGradient *gradient = call.brush.gradient()) {
+        const QGradientStops stops = gradient->stops();
+        return std::any_of(stops.begin(), stops.end(),
+                           [](const QGradientStop &stop) { return is_green(stop.second); });
+    }
+    return call.brush.style() != Qt::NoBrush && is_green(call.brush.color());
+}
+
 }  // namespace
+
+// The groove and the handle are not buttons: only the 2 line buttons take the Button color.
+TEST(ScrollBarTest, OnlyTheLineButtonsAreInTheButtonColor) {
+    QPalette palette = hpq::sketch_theme().palette();
+    palette.setColor(QPalette::Button, ButtonGreen);
+    for (const Qt::Orientation orientation : {Qt::Horizontal, Qt::Vertical}) {
+        QScrollBar scroll_bar(orientation);
+        scroll_bar.setRange(0, 100);
+        if (orientation == Qt::Horizontal) {
+            scroll_bar.resize(ScrollBarLength, ScrollBarThickness);
+        } else {
+            scroll_bar.resize(ScrollBarThickness, ScrollBarLength);
+        }
+
+        const std::vector<DrawCall> calls = hpq::test::render_with_style(scroll_bar, palette);
+
+        int line_button_count = 0;
+        for (const DrawCall &call : calls) {
+            if (!draws_in_green(call)) {
+                continue;
+            }
+            EXPECT_EQ(call.brush, QBrush(ButtonGreen)) << "orientation " << orientation;
+            ++line_button_count;
+        }
+        EXPECT_EQ(line_button_count, 2) << "orientation " << orientation;
+    }
+}
 
 TEST(ScrollBarTest, HorizontalScrollBarDrawsOneLeftAndOneRightVectorArrow) {
     bool drew_image = true;
