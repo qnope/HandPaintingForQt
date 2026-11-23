@@ -132,7 +132,8 @@ TEST(InkMedium, SameLineGivesTheSameArea) {
     EXPECT_EQ(first[0].path, second[0].path);
 }
 
-TEST(InkMedium, PressureDiffersFromOneLineToAnother) {
+// A view that scrolls moves its lines: each keeps its pressure.
+TEST(InkMedium, MovedLineKeepsItsPressure) {
     const QPointF offset(0, 40);
     const std::vector<DrawCall> first = ink_calls(draw_line);
     const std::vector<DrawCall> second = ink_calls([&](QPainter &painter) {
@@ -142,7 +143,20 @@ TEST(InkMedium, PressureDiffersFromOneLineToAnother) {
 
     ASSERT_EQ(first.size(), 1u);
     ASSERT_EQ(second.size(), 1u);
-    EXPECT_NE(first[0].path.translated(offset), second[0].path);
+    EXPECT_TRUE(hpq::test::are_close(first[0].path.translated(offset), second[0].path));
+}
+
+TEST(InkMedium, PressureDiffersFromOneLineToALongerOne) {
+    const std::vector<DrawCall> first = ink_calls(draw_line);
+    const std::vector<DrawCall> second = ink_calls([&](QPainter &painter) {
+        painter.setPen(QPen(PenColor, PenWidth));
+        painter.drawLine(QLineF(Line.p1(), Line.p2() + QPointF(10, 0)));
+    });
+
+    ASSERT_EQ(first.size(), 1u);
+    ASSERT_EQ(second.size(), 1u);
+    // Both lines start at the same place: their areas already differ there.
+    EXPECT_NE(first[0].path.elementAt(1).y, second[0].path.elementAt(1).y);
 }
 
 TEST(InkMedium, OutlineOfARectangleIsOneFilledArea) {

@@ -73,6 +73,11 @@ std::function<void(QPainter &)> fill_rectangle(const QColor &color) {
     };
 }
 
+// Where the first pixel of the image of `brush` is on the target.
+QPointF place_of_grain(const QBrush &brush) {
+    return brush.transform().map(QPointF(0, 0));
+}
+
 // The part of the pixels of `image` that are not transparent.
 double coverage(const QImage &image) {
     int covered = 0;
@@ -126,7 +131,9 @@ TEST(ChalkMedium, SameLineGivesTheSameArea) {
     EXPECT_EQ(first[0].path, second[0].path);
 }
 
-TEST(ChalkMedium, PressureDiffersFromOneLineToAnother) {
+// A view that scrolls moves its lines: each keeps its pressure and its gaps, and its grain
+// goes with it.
+TEST(ChalkMedium, MovedLineKeepsItsPressureAndItsGrain) {
     const QPointF offset(0, 40);
     const std::vector<DrawCall> first = chalk_calls(draw_line);
     const std::vector<DrawCall> second = chalk_calls([&](QPainter &painter) {
@@ -136,7 +143,21 @@ TEST(ChalkMedium, PressureDiffersFromOneLineToAnother) {
 
     ASSERT_EQ(first.size(), 1u);
     ASSERT_EQ(second.size(), 1u);
-    EXPECT_NE(first[0].path.translated(offset), second[0].path);
+    EXPECT_TRUE(hpq::test::are_close(first[0].path.translated(offset), second[0].path));
+    EXPECT_EQ(place_of_grain(second[0].brush) - place_of_grain(first[0].brush), offset);
+}
+
+TEST(ChalkMedium, PressureDiffersFromOneLineToALongerOne) {
+    const std::vector<DrawCall> first = chalk_calls(draw_line);
+    const std::vector<DrawCall> second = chalk_calls([&](QPainter &painter) {
+        painter.setPen(QPen(PenColor, PenWidth));
+        painter.drawLine(QLineF(Line.p1(), Line.p2() + QPointF(10, 0)));
+    });
+
+    ASSERT_EQ(first.size(), 1u);
+    ASSERT_EQ(second.size(), 1u);
+    // Both lines start at the same place: their areas already differ there.
+    EXPECT_NE(first[0].path.elementAt(1).y, second[0].path.elementAt(1).y);
 }
 
 TEST(ChalkMedium, DashedLineKeepsItsDashesAndGetsTheGrain) {
@@ -162,6 +183,8 @@ TEST(ChalkMedium, FillOfTheWindowColorIsTheWholeSlate) {
     EXPECT_TRUE(calls[0].is_fill());
     EXPECT_EQ(calls[0].brush.style(), Qt::TexturePattern);
     EXPECT_EQ(coverage(calls[0].brush.textureImage()), 1.0);
+    // The slate does not move with what is drawn on it.
+    EXPECT_EQ(place_of_grain(calls[0].brush), QPointF(0, 0));
 }
 
 TEST(ChalkMedium, FillOfAnotherColorIsRubbedOnTheGrain) {
@@ -174,6 +197,8 @@ TEST(ChalkMedium, FillOfAnotherColorIsRubbedOnTheGrain) {
     const double covered = coverage(calls[0].brush.textureImage());
     EXPECT_GT(covered, 0.3);
     EXPECT_LT(covered, 0.7);
+    // The chalk goes with its shape.
+    EXPECT_EQ(place_of_grain(calls[0].brush), Rectangle.topLeft());
 }
 
 TEST(ChalkMedium, GrainOfAFillIsSparserThanTheGrainOfALine) {
@@ -195,6 +220,8 @@ TEST(ChalkMedium, TextIsDrawnThroughTheGrainInThePenColor) {
     EXPECT_EQ(calls[0].kind, DrawCall::Kind::Text);
     EXPECT_EQ(calls[0].pen.brush().style(), Qt::TexturePattern);
     EXPECT_EQ(calls[0].pen.color(), PenColor);
+    // The grain goes with the text.
+    EXPECT_EQ(place_of_grain(calls[0].pen.brush()), calls[0].position);
 }
 
 namespace {

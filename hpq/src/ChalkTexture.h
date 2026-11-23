@@ -21,7 +21,8 @@ enum class ChalkGrain {
 QImage chalk_grain(ChalkGrain grain);
 
 // A brush that paints `color` through the grain, and has it as its color. It is anchored to
-// the origin of the painter, not to what is drawn: the holes stay at the same places of the slate.
+// the origin of the painter: who draws a shape with it moves it to the shape, so that the
+// holes follow the shape.
 // `device_pixel_ratio` is the one of the device painted on: the grain keeps its size in logical
 // pixels, and its image has the resolution of the device, so that it is drawn as it is.
 QBrush chalk_brush(const QColor &color, ChalkGrain grain, double device_pixel_ratio);

@@ -62,11 +62,14 @@ protected:
         painter.end();
     }
 
-    // Draws with `draw` and checks that the spy saw one shape whose bounding box is `bounds`.
+    // Draws with `draw` and checks that the spy saw one shape, the one whose bounding box is
+    // `bounds` moved to the origin, and that the target got it back at its place.
     void expect_one_shape_with_bounds(const std::function<void(QPainter &)> &draw_primitive, const QRectF &bounds) {
         draw(draw_primitive);
         ASSERT_EQ(m_spy.outline_shapes().size(), 1u);
-        EXPECT_EQ(m_spy.outline_shapes()[0].boundingRect(), bounds);
+        EXPECT_EQ(m_spy.outline_shapes()[0].boundingRect(), QRectF(QPointF(0, 0), bounds.size()));
+        ASSERT_FALSE(m_target.engine().strokes().empty());
+        EXPECT_EQ(m_target.engine().strokes()[0].path.boundingRect(), bounds);
     }
 
     hpq::Theme m_theme = hpq::sketch_theme();

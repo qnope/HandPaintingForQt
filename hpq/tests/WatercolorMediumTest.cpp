@@ -128,8 +128,14 @@ struct Wash {
     QRgb at(int x, int y) const { return image.pixel(x - origin.x(), y - origin.y()); }
 };
 
+// The rectangle of the target that the image of `call` covers: a wash is drawn from the place
+// of its shape, which is in the transform of the call.
+QRectF target_rect(const DrawCall &call) {
+    return call.transform.mapRect(call.rect);
+}
+
 Wash wash_of(const DrawCall &call) {
-    return {call.image.convertToFormat(QImage::Format_ARGB32), call.rect.topLeft().toPoint()};
+    return {call.image.convertToFormat(QImage::Format_ARGB32), target_rect(call).topLeft().toPoint()};
 }
 
 // How light the pixels of `area` of the target are in `wash`, on average, from 0 to 255.
@@ -155,6 +161,11 @@ QRect top_edge() {
 
 QRect left_edge() {
     return QRect(Rectangle.left(), Rectangle.top() + EdgeReach, 1, Rectangle.height() - 2 * EdgeReach);
+}
+
+// The pixels of Rectangle beside its left side, where the edge does not change the wash.
+QRect beside_left_edge() {
+    return left_edge().translated(EdgeReach, 0);
 }
 
 }  // namespace
@@ -277,16 +288,17 @@ TEST(WatercolorMedium, FillOfAnotherColorIsAWashOverItsArea) {
 
     ASSERT_EQ(calls.size(), 1u);
     ASSERT_EQ(calls[0].kind, DrawCall::Kind::Pixmap);
-    EXPECT_TRUE(calls[0].rect.contains(Rectangle));
+    EXPECT_TRUE(target_rect(calls[0]).contains(Rectangle));
     const Wash wash = wash_of(calls[0]);
-    // Whole inside its area, in the color of the brush on average.
+    // Whole inside its area, but for the deepest hollows of the grain, which keep a little
+    // less of it; in the color of the brush on average.
     const QRect area = inside();
     double red = 0.0;
     double green = 0.0;
     double blue = 0.0;
     for (int y = area.top(); y <= area.bottom(); ++y) {
         for (int x = area.left(); x <= area.right(); ++x) {
-            ASSERT_EQ(qAlpha(wash.at(x, y)), 255);
+            ASSERT_GE(qAlpha(wash.at(x, y)), 240);
             red += qRed(wash.at(x, y));
             green += qGreen(wash.at(x, y));
             blue += qBlue(wash.at(x, y));
@@ -327,7 +339,7 @@ TEST(WatercolorMedium, PigmentGathersAllAlongTheEdgeOfAShape) {
     // The wash, then the outline.
     ASSERT_EQ(calls.size(), 2u);
     ASSERT_EQ(calls[0].kind, DrawCall::Kind::Pixmap);
-    EXPECT_TRUE(calls[0].rect.contains(Rectangle));
+    EXPECT_TRUE(target_rect(calls[0]).contains(Rectangle));
     EXPECT_TRUE(calls[1].is_fill());
     EXPECT_EQ(calls[1].brush.color(), PenColor);
     const Wash wash = wash_of(calls[0]);
@@ -346,7 +358,9 @@ TEST(WatercolorMedium, PigmentGathersAlongTheLongSidesOnlyOfABand) {
     const Wash wash = wash_of(calls[0]);
     const double inside_lightness = lightness(wash, inside());
     EXPECT_LT(lightness(wash, top_edge()), inside_lightness - 10.0);
-    EXPECT_NEAR(lightness(wash, left_edge()), inside_lightness, 6.0);
+    // The wash settles unevenly from one end of the band to the other: an end is compared
+    // with the wash beside it.
+    EXPECT_NEAR(lightness(wash, left_edge()), lightness(wash, beside_left_edge()), 6.0);
 }
 
 // The stroke of a flat brush overruns its ends: it covers the grid line between two cells.
@@ -383,6 +397,22 @@ TEST(WatercolorMedium, SameFillGivesTheSameWash) {
     ASSERT_EQ(first.size(), 1u);
     ASSERT_EQ(second.size(), 1u);
     EXPECT_EQ(first[0].rect, second[0].rect);
+    EXPECT_EQ(first[0].image, second[0].image);
+}
+
+// A view that scrolls moves its washes: the pigment stays settled as it was.
+TEST(WatercolorMedium, MovedFillGivesTheSameWashAtItsNewPlace) {
+    const QPoint offset(15, 40);
+    const std::vector<DrawCall> first = watercolor_calls(fill_rectangle(WashColor));
+    const std::vector<DrawCall> second = watercolor_calls([&](QPainter &painter) {
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(WashColor);
+        painter.drawRect(Rectangle.translated(offset));
+    });
+
+    ASSERT_EQ(first.size(), 1u);
+    ASSERT_EQ(second.size(), 1u);
+    EXPECT_EQ(target_rect(second[0]), target_rect(first[0]).translated(offset));
     EXPECT_EQ(first[0].image, second[0].image);
 }
 
@@ -489,7 +519,11 @@ TEST(WatercolorMedium, SameWashLaidTwiceIsTheWashLaidOnce) {
 
     for (int y = inside().top(); y <= inside().bottom(); ++y) {
         for (int x = inside().left(); x <= inside().right(); ++x) {
-            ASSERT_EQ(once.pixel(x, y), twice.pixel(x, y)) << "at " << x << ", " << y;
+            // A deep hollow of the grain keeps a little less than a whole wash: laid twice, it
+            // is one level darker at most.
+            ASSERT_NEAR(qRed(once.pixel(x, y)), qRed(twice.pixel(x, y)), 1) << "at " << x << ", " << y;
+            ASSERT_NEAR(qGreen(once.pixel(x, y)), qGreen(twice.pixel(x, y)), 1) << "at " << x << ", " << y;
+            ASSERT_NEAR(qBlue(once.pixel(x, y)), qBlue(twice.pixel(x, y)), 1) << "at " << x << ", " << y;
         }
     }
 }

@@ -11,6 +11,9 @@ namespace hpq {
 
 // Turns the shape of a primitive into the paths that are drawn instead of it.
 // For a given engine, the result depends only on the shape, the options and the seed.
+// A shape is given with the top left corner of its bounding rectangle at the origin, whatever
+// its place on the device, and the paths are moved back to that place: a shape that moves keeps
+// its paths.
 class GeometryEngine {
 public:
     GeometryEngine() = default;
