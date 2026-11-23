@@ -77,8 +77,9 @@ jobs:
           "-DQT_HOST_PATH:PATH=$QT_HOST_PATH"
           -DHPQ_BUILD_TESTS=OFF
 
+      # A number of jobs: --parallel alone is "make -j" with no limit (see ci.yml).
       - name: Build
-        run: cmake --build build --parallel
+        run: cmake --build build --parallel 4
 
       - name: Assemble the site
         run: |

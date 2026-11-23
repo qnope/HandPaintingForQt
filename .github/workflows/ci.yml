@@ -86,8 +86,10 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
           "-DCMAKE_PREFIX_PATH:PATH=$QT_ROOT_DIR"
 
+      # --parallel without a number is "make -j" with no limit: every file of a target is
+      # compiled at once, the runner runs out of memory and the build crawls or is killed.
       - name: Build
-        run: cmake --build build --config Debug --parallel
+        run: cmake --build build --config Debug --parallel 4
 
       - name: Test
         env:
