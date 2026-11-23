@@ -129,19 +129,31 @@
       }
 
       // Phones. To open the virtual keyboard, Qt gives the focus to a text field it keeps hidden
-      // in the page, when a text widget is tapped. Qt reads the tap from the pointer events; the
-      // browser then makes mouse events of the same tap, and Safari on iOS takes the focus away
-      // with them: the keyboard closes as soon as it opens. Cancelling the end of the touch tells
-      // the browser to make no mouse event; the pointer events are not affected.
-      // Only for the contents of the windows: their title bars need the click.
+      // in the page, when a text widget is tapped. Qt reads the tap from the pointer events. The
+      // browser then makes mouse events of the same tap, and with them Safari on iOS moves the
+      // focus to what is under the finger: the keyboard closes as soon as it opens.
+      // Cancelling the end of the touch tells the browser to make no mouse event of the tap; a
+      // mousedown that comes all the same loses its default action, the change of focus.
+      // Only in the contents of the windows of Qt: their title bars need the click.
       function keep_focus_after_tap(screen_element)
       {
+          const MouseEventsOfTapMs = 1000;
+          const in_window_contents = event => event.composedPath().some(
+              element => element.classList?.contains('qt-window-contents'));
+          let last_tap_time = -Infinity;
+
           screen_element.addEventListener('touchend', event => {
-              const in_window_contents = event.composedPath().some(
-                  element => element.classList?.contains('qt-window-contents'));
-              if (in_window_contents && event.cancelable)
+              if (!in_window_contents(event))
+                  return;
+              last_tap_time = event.timeStamp;
+              if (event.cancelable)
                   event.preventDefault();
           }, { capture: true, passive: false });
+
+          screen_element.addEventListener('mousedown', event => {
+              if (in_window_contents(event) && event.timeStamp - last_tap_time < MouseEventsOfTapMs)
+                  event.preventDefault();
+          }, { capture: true });
       }
 
       // The hidden text field of Qt is added to <body> when the application starts. Qt inserts

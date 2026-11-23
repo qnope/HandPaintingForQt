@@ -23,7 +23,6 @@ int main(int argc, char *argv[])
     if (auto_quit)
         hpq::example::install_unexpected_warning_marker();
 
-    qputenv("QT_LOGGING_RULES", "qt.qpa.wasm.inputcontext.debug=true"); // DIAGNOSTIC (temporary)
     QApplication app(argc, argv);
     hpq::example::apply_default_font();
 

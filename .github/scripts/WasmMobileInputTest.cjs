@@ -1,194 +1,167 @@
-// DIAGNOSTIC (temporary): taps the application like a phone does and reports what happens to the
-// focus of the page and to the text typed afterwards.
-const fs = require('fs');
-const http = require('http');
-const path = require('path');
-const playwright = require('playwright');
+// Test of the WebAssembly site on a phone: opens it in a browser that emulates a phone, taps the
+// line edit and types, and checks that the page keeps the focus where Qt puts it to open the
+// virtual keyboard, and that the text reaches the widget.
+//
+// An emulated phone has no virtual keyboard and is not Safari on iOS: the test checks what the
+// keyboard depends on, not the keyboard itself.
+//
+// Usage: node WasmMobileInputTest.cjs <site directory>
+// Needs the "playwright" package (see WasmSite.cjs for the browser).
+const { devices } = require('playwright');
+const { StartTimeoutMs, serve, site_url, launch_browser, site_directory_argument } = require('./WasmSite.cjs');
 
-const ContentTypes = {
-    '.html': 'text/html; charset=utf-8',
-    '.js': 'text/javascript',
-    '.wasm': 'application/wasm',
-    '.ttf': 'font/ttf',
-};
+const Phone = 'Pixel 7';
+// Time left to the application and to the browser after an action, before looking at the page.
+const SettleMs = 300;
+const TextTyped = 'ab';
+const TextComposed = 'cd';
+// Events the browser makes of a tap, after the pointer and touch events.
+const MouseEventsOfTap = ['mousedown', 'mouseup', 'click'];
 
-function serve(site_directory)
-{
-    const server = http.createServer((request, response) => {
-        const url_path = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-        const file_path = path.join(site_directory, url_path.endsWith('/') ? url_path + 'index.html' : url_path);
-        if (!file_path.startsWith(site_directory) || !fs.existsSync(file_path) || !fs.statSync(file_path).isFile()) {
-            response.writeHead(404).end('Not found');
-            return;
-        }
-        response.writeHead(200, { 'Content-Type': ContentTypes[path.extname(file_path)] ?? 'application/octet-stream' });
-        fs.createReadStream(file_path).pipe(response);
-    });
-    return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server)));
-}
-
+// Runs in the page, before its scripts: what the test reads from the page.
 function install_probes()
 {
-    const describe = element => {
-        if (!element)
-            return 'null';
-        let text = element.tagName;
-        if (element.id)
-            text += '#' + element.id;
-        if (element.className && typeof element.className === 'string')
-            text += '.' + element.className.replace(/ /g, '.');
-        return text;
-    };
-    window.hpq_state = () => {
-        let active = document.activeElement;
-        const chain = [describe(active)];
-        while (active && active.shadowRoot && active.shadowRoot.activeElement) {
-            active = active.shadowRoot.activeElement;
-            chain.push(describe(active));
+    const find_in_shadow_trees = (root, predicate) => {
+        for (const element of root.querySelectorAll('*')) {
+            if (predicate(element))
+                return element;
+            const found = element.shadowRoot ? find_in_shadow_trees(element.shadowRoot, predicate) : null;
+            if (found)
+                return found;
         }
-        const input = document.querySelector('body > input');
-        const rect = input ? input.getBoundingClientRect() : {};
-        return `active=${chain.join('>')} input.value=${JSON.stringify(input?.value)} at (${rect.left}, ${rect.top})`;
+        return null;
     };
-    window.hpq_cursor = () => {
-        const find = root => {
-            for (const element of root.querySelectorAll('*')) {
-                if (element.classList.contains('qt-window-contents'))
-                    return element;
-                const found = element.shadowRoot ? find(element.shadowRoot) : null;
-                if (found)
-                    return found;
-            }
-            return null;
-        };
-        return find(document)?.style.cursor ?? 'none found';
+    // Qt draws each window in a shadow tree of the container element.
+    const window_contents = () => find_in_shadow_trees(
+        document, element => element.classList.contains('qt-window-contents'));
+
+    window.hpq_probes = {
+        // The hidden text field Qt gives the focus to, for the virtual keyboard to open.
+        text_field: () => document.querySelector('body > input'),
+        text_field_has_focus: () => document.activeElement === window.hpq_probes.text_field(),
+        text_field_value: () => window.hpq_probes.text_field()?.value,
+        text_field_attributes: () => {
+            const text_field = window.hpq_probes.text_field();
+            return ['autocorrect', 'autocomplete', 'spellcheck'].map(name => `${name}=${text_field?.getAttribute(name)}`).join(' ');
+        },
+        // CSS name of the mouse cursor of the widget under the mouse.
+        cursor: () => window_contents()?.style.cursor,
+        // Mouse events seen since the last call.
+        mouse_events: [],
+        take_mouse_events: () => window.hpq_probes.mouse_events.splice(0),
+        // What Safari on iOS does after a tap, even when the page cancelled the pointer events:
+        // a mousedown, whose default action moves the focus. True when the page cancels it.
+        mouse_down_of_tap_is_cancelled: () => {
+            const canvas = find_in_shadow_trees(document, element => element.tagName === 'CANVAS');
+            return !canvas.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, composed: true }));
+        },
     };
-    window.hpq_verbose = false;
-    for (const type of ['focusin', 'focusout', 'pointerdown', 'pointerup', 'pointercancel', 'touchstart', 'touchend',
-                        'mousedown', 'mouseup', 'click', 'keydown', 'keyup', 'input',
-                        'compositionstart', 'compositionupdate', 'compositionend']) {
-        window.addEventListener(type, event => {
-            if (!window.hpq_verbose)
-                return;
-            const target = event.composedPath()[0];
-            let details = '';
-            if (type.startsWith('key'))
-                details = ` key=${event.key} code=${event.keyCode} composing=${event.isComposing}`;
-            if (type === 'input')
-                details = ` inputType=${event.inputType} data=${event.data}`;
-            if (type.startsWith('composition'))
-                details = ` data=${event.data}`;
-            if (type.startsWith('pointer'))
-                details = ` pointerType=${event.pointerType}`;
-            console.log(`[event] ${type} on ${describe(target)}${details}`);
-        }, true);
-    }
+    for (const type of ['mousedown', 'mouseup', 'click'])
+        window.addEventListener(type, () => window.hpq_probes.mouse_events.push(type), true);
 }
 
-// Candidate fix, as the page would install it.
-function install_fix()
+// The vertical position of the line edit at the horizontal position x. Moving the mouse changes
+// nothing in the application, and Qt gives the page the cursor of the widget under the mouse:
+// going down the form, the line edit is the first widget with the cursor of a text.
+async function find_line_edit(page, x, height)
 {
-    document.querySelector('#screen').addEventListener('touchend', event => {
-        const in_window_contents = event.composedPath().some(
-            element => element.classList && element.classList.contains('qt-window-contents'));
-        if (in_window_contents && event.cancelable)
-            event.preventDefault();
-    }, { capture: true, passive: false });
-}
-
-const QtLogFilter = /setFocusObject|showInputPanel|hideInputPanel|insertPreedit|commitPreedit|Key callback|processKey|inputType/;
-
-async function run(site_url, browser_name, device_name, with_fix)
-{
-    const use_chrome = browser_name === 'chromium' && process.env.CHROME_BIN;
-    const browser = await playwright[browser_name].launch(use_chrome ? { executablePath: process.env.CHROME_BIN } : {});
-    console.log(`\n===== ${browser_name} ${browser.version()}, ${device_name}, ${with_fix ? 'WITH' : 'without'} the fix`);
-    try {
-        const context = await browser.newContext({ ...playwright.devices[device_name] });
-        const page = await context.newPage();
-        let show_console = false;
-        page.on('console', message => {
-            const text = message.text().trim();
-            if (show_console && text && (text.startsWith('[event]') || QtLogFilter.test(text)))
-                console.log(`    ${text.replace('qt.qpa.wasm.inputcontext: ', 'Qt: ')}`);
-        });
-        page.on('pageerror', error => console.log(`[pageerror] ${error.message}`));
-        await page.addInitScript(install_probes);
-        await page.goto(site_url);
-        await page.waitForFunction(() => document.documentElement.dataset.state === 'running', undefined, { timeout: 120000 });
-        await page.waitForTimeout(3000);
-        if (with_fix)
-            await page.evaluate(install_fix);
-
-        const viewport = page.viewportSize();
-        console.log(`viewport ${JSON.stringify(viewport)}; ${await page.evaluate(() => window.hpq_state())}`);
-
-        // The mouse cursor of Qt tells where the text fields are: no click, so nothing changes.
-        const x = Math.round(viewport.width * 0.6);
-        const runs = [];
-        for (let y = 40; y < viewport.height * 0.6; y += 3) {
-            await page.mouse.move(x, y);
-            await page.waitForTimeout(20);
-            const cursor = await page.evaluate(() => window.hpq_cursor());
-            if (runs.length === 0 || runs[runs.length - 1].cursor !== cursor)
-                runs.push({ cursor, from: y, to: y });
-            else
-                runs[runs.length - 1].to = y;
+    const StepPx = 3;
+    let first, last;
+    for (let y = 0; y < height && (first === undefined || last === y - StepPx); y += StepPx) {
+        await page.mouse.move(x, y);
+        await page.waitForTimeout(20);
+        if (await page.evaluate(() => window.hpq_probes.cursor()) === 'text') {
+            first ??= y;
+            last = y;
         }
-        console.log(`cursor runs at x=${x}: ${JSON.stringify(runs)}`);
-        const text_run = runs.find(run => run.cursor === 'text');
-        if (!text_run) {
-            console.log('RESULT: no text field found with the mouse cursor.');
-            return;
-        }
-        const y = Math.round((text_run.from + text_run.to) / 2);
-        await page.mouse.move(5, 5);
-
-        show_console = true;
-        await page.evaluate(() => { window.hpq_verbose = true; });
-        const step = async (title, action) => {
-            console.log(`--- ${title}`);
-            await action();
-            await page.waitForTimeout(600);
-            console.log(`  => ${await page.evaluate(() => window.hpq_state())}`);
-        };
-        await step(`first tap on the line edit (${x}, ${y})`, () => page.touchscreen.tap(x, y));
-        await step('second tap on the line edit', () => page.touchscreen.tap(x, y));
-        await step('keyboard.type("ab")', () => page.keyboard.type('ab', { delay: 50 }));
-        await step('composition "cd" then commit', async () => {
-            if (browser_name !== 'chromium')
-                return page.keyboard.insertText('cd');
-            const session = await context.newCDPSession(page);
-            await session.send('Input.imeSetComposition', { text: 'c', selectionStart: 1, selectionEnd: 1 });
-            await page.waitForTimeout(100);
-            await session.send('Input.imeSetComposition', { text: 'cd', selectionStart: 2, selectionEnd: 2 });
-            await page.waitForTimeout(100);
-            await session.send('Input.insertText', { text: 'cd' });
-        });
-        await step('tap again: Qt copies the text of the widget in its input element', () => page.touchscreen.tap(x, y));
-    } finally {
-        await browser.close();
     }
+    // The mouse leaves the line edit: the taps come next.
+    await page.mouse.move(x, 0);
+    return first === undefined ? undefined : Math.round((first + last) / 2);
 }
 
 async function main()
 {
-    const site_directory = path.resolve(process.argv[2] ?? '');
-    const browser_name = process.argv[3] ?? 'chromium';
-    const device_name = process.argv[4] ?? 'Pixel 7';
+    const site_directory = site_directory_argument();
+    if (!site_directory) {
+        console.error('Usage: node WasmMobileInputTest.cjs <site directory>');
+        return 2;
+    }
+
     const server = await serve(site_directory);
+    const browser = await launch_browser();
+    const errors = [];
+    const expect = (condition, message) => {
+        console.log(`${condition ? 'ok  ' : 'FAIL'} ${message}`);
+        if (!condition)
+            errors.push(message);
+    };
     try {
-        const site_url = `http://127.0.0.1:${server.address().port}/`;
-        await run(site_url, browser_name, device_name, false);
-        await run(site_url, browser_name, device_name, true);
+        const context = await browser.newContext({ ...devices[Phone] });
+        const page = await context.newPage();
+        page.on('pageerror', error => errors.push(`Uncaught error in the page: ${error.message}`));
+        await page.addInitScript(install_probes);
+        await page.goto(site_url(server));
+        await page.waitForFunction(() => document.documentElement.dataset.state === 'running',
+                                   undefined, { timeout: StartTimeoutMs });
+        await page.waitForFunction(() => window.hpq_probes.cursor() !== undefined, undefined, { timeout: StartTimeoutMs });
+        await page.waitForTimeout(2000);
+        const probe = name => page.evaluate(probe_name => window.hpq_probes[probe_name](), name);
+
+        const viewport = page.viewportSize();
+        const x = Math.round(viewport.width * 0.6);
+        const y = await find_line_edit(page, x, viewport.height);
+        console.log(`${Phone}, ${viewport.width} x ${viewport.height}: line edit at (${x}, ${y})`);
+        if (y === undefined) {
+            errors.push('The line edit was not found.');
+            return 1;
+        }
+        const tap = async () => {
+            await probe('take_mouse_events');
+            await page.touchscreen.tap(x, y);
+            await page.waitForTimeout(SettleMs);
+        };
+
+        await tap();
+        expect(await probe('text_field_has_focus'), 'A tap on the line edit gives the focus to the text field of Qt.');
+        const mouse_events = await probe('take_mouse_events');
+        expect(mouse_events.length === 0,
+               `The browser makes no mouse event of the tap (${MouseEventsOfTap.join(', ')}): got [${mouse_events.join(', ')}].`);
+        expect(await probe('mouse_down_of_tap_is_cancelled'), 'A mousedown that follows the tap is cancelled.');
+        expect(await probe('text_field_has_focus'), 'The text field of Qt still has the focus after this mousedown.');
+        const attributes = await probe('text_field_attributes');
+        expect(attributes === 'autocorrect=off autocomplete=off spellcheck=false',
+               `The corrections of the keyboard are switched off in the text field of Qt: ${attributes}.`);
+
+        await page.keyboard.type(TextTyped, { delay: 50 });
+        // A phone keyboard composes the word being typed, then commits it.
+        const session = await context.newCDPSession(page);
+        for (let length = 1; length <= TextComposed.length; ++length) {
+            await session.send('Input.imeSetComposition',
+                               { text: TextComposed.slice(0, length), selectionStart: length, selectionEnd: length });
+            await page.waitForTimeout(100);
+        }
+        await session.send('Input.insertText', { text: TextComposed });
+        await page.waitForTimeout(SettleMs);
+
+        // On a tap, Qt copies the text of the widget to its text field.
+        await tap();
+        const text = await probe('text_field_value');
+        expect(text === TextTyped + TextComposed,
+               `The text typed and composed reaches the line edit: "${text}", expected "${TextTyped + TextComposed}".`);
+        expect(await probe('text_field_has_focus'), 'The text field of Qt has the focus after a tap on the focused line edit.');
     } finally {
+        await browser.close();
         server.close();
     }
+
+    for (const error of errors)
+        console.error(`ERROR: ${error}`);
+    console.log(errors.length === 0 ? 'Text can be typed on a phone.' : 'Mobile input test failed.');
+    return errors.length === 0 ? 0 : 1;
 }
 
-if (require.main === module) {
-    main().then(() => process.exit(0), error => {
-        console.error(error);
-        process.exit(1);
-    });
-}
+main().then(code => process.exit(code), error => {
+    console.error(error);
+    process.exit(1);
+});
