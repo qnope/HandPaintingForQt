@@ -82,8 +82,13 @@ bool fills(const QPolygonF &polygon, const Region &region) {
 }
 
 // Cuts `polygons`, inside `region`, in two across the longer side of the region, between two
-// pixels, until each part fits in a tile.
-void cut_in_tiles(const Polygons &polygons, const Region &region, std::vector<Polygons> &tiles) {
+// pixels, until each part fits in a tile. Leaves out the parts outside `paintable`.
+void cut_in_tiles(const Polygons &polygons, const Region &region, const QRectF &paintable,
+                  std::vector<Polygons> &tiles) {
+    if (region.right <= paintable.left() || region.left >= paintable.right() || region.bottom <= paintable.top() ||
+        region.top >= paintable.bottom()) {
+        return;
+    }
     const double width = region.right - region.left;
     const double height = region.bottom - region.top;
     if (width <= TileSize && height <= TileSize) {
@@ -115,23 +120,26 @@ void cut_in_tiles(const Polygons &polygons, const Region &region, std::vector<Po
         }
     }
     if (!before_parts.isEmpty()) {
-        cut_in_tiles(before_parts, before_region, tiles);
+        cut_in_tiles(before_parts, before_region, paintable, tiles);
     }
     if (!after_parts.isEmpty()) {
-        cut_in_tiles(after_parts, after_region, tiles);
+        cut_in_tiles(after_parts, after_region, paintable, tiles);
     }
 }
 
 }  // namespace
 
-std::vector<QPainterPath> path_tiles(const QPainterPath &path, const QTransform &to_device) {
+std::vector<QPainterPath> path_tiles(const QPainterPath &path, const QTransform &to_device, const QRect &paintable) {
+    if (paintable.isEmpty()) {
+        return {};
+    }
     const QRectF bounds = to_device.mapRect(path.boundingRect());
     if (bounds.width() <= TileSize && bounds.height() <= TileSize) {
         return {path};
     }
     std::vector<Polygons> tiles;
     cut_in_tiles(path.toSubpathPolygons(to_device), Region{bounds.left(), bounds.top(), bounds.right(), bounds.bottom()},
-                 tiles);
+                 QRectF(paintable), tiles);
     const QTransform from_device = to_device.inverted();
     std::vector<QPainterPath> pieces;
     pieces.reserve(tiles.size());

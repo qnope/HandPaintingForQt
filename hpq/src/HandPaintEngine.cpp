@@ -140,6 +140,21 @@ QPointF scroll_offset(const QPaintDevice *device) {
     return QPointF(area->horizontalScrollBar()->value(), area->verticalScrollBar()->value());
 }
 
+// The pixels of the device of `painter` that it can paint in `area`: those in its clip, and in
+// the system clip of its engine.
+QRect paintable_pixels(const QPainter &painter, const QRectF &area) {
+    const QTransform to_device = painter.deviceTransform();
+    QRect pixels = to_device.mapRect(area).toAlignedRect();
+    if (painter.hasClipping()) {
+        pixels &= to_device.mapRect(painter.clipBoundingRect()).toAlignedRect();
+    }
+    const QRegion system_clip = painter.paintEngine()->systemClip();
+    if (!system_clip.isEmpty()) {
+        pixels &= system_clip.boundingRect();
+    }
+    return pixels;
+}
+
 // True when `pen` draws a plain line of one color, which chalk or a brush can follow with
 // uneven pressure.
 bool is_plain_line(const QPen &pen) {
@@ -534,7 +549,8 @@ void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &br
     // band: a long line takes as many passes as it is long. Cut in tiles, it takes one pass a
     // tile. Another engine might smooth each tile on its own, and show the cuts.
     if (m_target.paintEngine()->type() == QPaintEngine::Raster) {
-        for (const QPainterPath &piece : path_tiles(glaze, m_target.deviceTransform())) {
+        const QRect paintable = paintable_pixels(m_target, glaze.boundingRect());
+        for (const QPainterPath &piece : path_tiles(glaze, m_target.deviceTransform(), paintable)) {
             m_target.drawPath(piece);
         }
     } else {
