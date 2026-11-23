@@ -197,18 +197,6 @@ QBrush lighter_marker(QBrush marker) {
     return marker;
 }
 
-// A hand-drawn highlight goes past its rectangle, but a view repaints only that rectangle when
-// the highlight moves: what went past would stay on the rows next to it. What moves or lights
-// up keeps inside its rectangle, as Qt keeps an item of a view: the entry of a menu (as in the
-// list of a combo box), the row of a tree, and the handle of a scroll bar.
-template <typename Draw>
-void draw_inside_rect(const QStyleOption &option, QPainter &painter, Draw draw) {
-    painter.save();
-    painter.setClipRect(option.rect, Qt::IntersectClip);
-    draw();
-    painter.restore();
-}
-
 }  // namespace
 
 // QProxyStyle takes the ownership of the base style.
@@ -218,10 +206,6 @@ void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *opt
                                  const QWidget *widget) const {
     if (element == CE_HeaderSection) {
         draw_header_section(*option, *painter);
-        return;
-    }
-    if (element == CE_MenuItem) {
-        draw_inside_rect(*option, *painter, [&] { QProxyStyle::drawControl(element, option, painter, widget); });
         return;
     }
     // A label draws its frame, then its text: its marker is laid with the frame, under the text.
@@ -266,9 +250,6 @@ void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption 
         return;
     case PE_FrameGroupBox:
         draw_group_box_frame(*option, *painter);
-        return;
-    case PE_PanelItemViewRow:
-        draw_inside_rect(*option, *painter, [&] { QProxyStyle::drawPrimitive(element, option, painter, widget); });
         return;
     default:
         QProxyStyle::drawPrimitive(element, option, painter, widget);
@@ -376,9 +357,7 @@ void HandPaintStyle::draw_scroll_bar(const QStyleOptionSlider &option, QPainter 
     QStyleOptionSlider without_line_buttons = option;
     without_line_buttons.subControls &= ~(SC_ScrollBarSubLine | SC_ScrollBarAddLine);
     without_line_buttons.palette.setBrush(QPalette::Button, option.palette.window());
-    // The handle moves along the groove: it keeps inside the scroll bar, as a highlight in a view.
-    draw_inside_rect(option, painter,
-                     [&] { QProxyStyle::drawComplexControl(CC_ScrollBar, &without_line_buttons, &painter, widget); });
+    QProxyStyle::drawComplexControl(CC_ScrollBar, &without_line_buttons, &painter, widget);
 
     const bool is_horizontal = option.orientation == Qt::Horizontal;
     const PrimitiveElement sub_arrow = is_horizontal ? PE_IndicatorArrowLeft : PE_IndicatorArrowUp;
