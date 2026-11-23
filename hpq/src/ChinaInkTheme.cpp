@@ -113,14 +113,14 @@ QPalette china_ink_palette(FillStyle fill_style) {
     return palette;
 }
 
-// A brush goes three times over a line, close to it: where the passes part the line is
-// thick, where they meet it is thin. Its hachures are wider apart than those of a pencil.
-constexpr RoughOptions BrushRoughOptions{1.0, 3, 1.5, 5.0};
+// A brush draws a line in one stroke. Its hachures are wider apart than those of a pencil.
+constexpr RoughOptions BrushRoughOptions{1.0, 1, 1.5, 5.0};
 
 }  // namespace
 
 Theme china_ink_theme(FillStyle fill_style) {
-    return Theme(china_ink_palette(fill_style), QFont(brush_font_family()), BrushRoughOptions, fill_style);
+    return Theme(china_ink_palette(fill_style), QFont(brush_font_family()), BrushRoughOptions, fill_style,
+                 Medium::Ink);
 }
 
 }  // namespace hpq

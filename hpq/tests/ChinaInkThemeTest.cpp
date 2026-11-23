@@ -84,17 +84,18 @@ TEST(ChinaInkTheme, SelectionIsSealRedWithReadableText) {
     }
 }
 
-// The passes of the brush make the thick and thin of a line: one pass would be a plain line.
-TEST(ChinaInkTheme, DrawsSeveralStrokesWithAPlainLine) {
+// A brush draws a line in one stroke: a second one would hide its thick and thin.
+TEST(ChinaInkTheme, DrawsOneStrokeWithABrush) {
     const hpq::Theme theme = hpq::china_ink_theme();
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Pencil);
-    EXPECT_GE(theme.rough_options().stroke_count, 3);
+    EXPECT_EQ(theme.medium(), hpq::Medium::Ink);
+    EXPECT_EQ(theme.rough_options().stroke_count, 1);
 }
 
 TEST(ChinaInkTheme, KeepsTheFillStyleItIsGiven) {
     EXPECT_EQ(hpq::china_ink_theme().fill_style(), hpq::FillStyle::Solid);
     EXPECT_EQ(hpq::china_ink_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::china_ink_theme(hpq::FillStyle::Hachure).medium(), hpq::Medium::Ink);
 }
 
 // The paper shows between the hachures of a selection: its text must be readable on the paper.
