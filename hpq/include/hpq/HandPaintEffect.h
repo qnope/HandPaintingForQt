@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 #include <hpq/PaintCache.h>
 #include <hpq/Theme.h>
@@ -14,7 +15,7 @@ namespace hpq {
 // HandPaintDevice, so every primitive gets the hand-painted look of the theme.
 // It keeps what was made to draw the shapes of its last repaints: a shape that did not change
 // since is drawn again without being made rough again.
-class HandPaintEffect : public QGraphicsEffect {
+class HPQ_EXPORT HandPaintEffect : public QGraphicsEffect {
     Q_OBJECT
 
 public:

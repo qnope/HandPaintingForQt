@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 
 #include <QPainterPath>
@@ -13,7 +14,7 @@ namespace hpq {
 // For a given engine, the result depends only on the shape, the options and the seed.
 // A shape is given in the coordinates of the content of the widget being painted, not of the
 // device: when a view scrolls, its shapes keep their paths.
-class GeometryEngine {
+class HPQ_EXPORT GeometryEngine {
 public:
     GeometryEngine() = default;
     GeometryEngine(const GeometryEngine &) = default;

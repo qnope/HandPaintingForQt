@@ -50,6 +50,7 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 
 1. Using vcpkg: directory is at `../vcpkg`
 2. Never use global variable => use targets
+3. `hpq` est une bibliothèque dynamique (`SHARED`), statique seulement en WebAssembly (Qt for WebAssembly est statique). Sous Windows, `hpq.dll` et les exécutables sont construits dans `build/bin` (`hpq_set_runtime_directory`)
 
 ## Consideration for code
 
@@ -57,6 +58,7 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 * Prefer values over pointers
 * File names: `PascalCase`
 * Introduce FwdDecls.h
+* Public classes and free functions of `hpq/include/hpq` carry `HPQ_EXPORT` (`hpq/Export.h`): without it, they are not visible outside the shared library
 * Type Names: `PascalCase`
 * variable: `snake_case`
 * function_names: `snake_case`

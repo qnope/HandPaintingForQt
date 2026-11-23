@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 #include <hpq/HandPaintEngine.h>
 
@@ -14,7 +15,7 @@ namespace hpq {
 // The target painter, the theme, the geometry engine and the cache must outlive the device.
 // With a cache, what is made to draw a shape is kept there and taken back when the same shape
 // is drawn again, by this device or by a later one with the same theme and geometry engine.
-class HandPaintDevice : public QPaintDevice {
+class HPQ_EXPORT HandPaintDevice : public QPaintDevice {
 public:
     HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
                     PaintCache *cache = nullptr);

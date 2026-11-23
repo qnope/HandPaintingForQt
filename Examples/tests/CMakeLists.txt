@@ -3,6 +3,7 @@ target_sources(HandPaintingExampleTests PRIVATE TestMain.cpp StartupTest.cpp Mai
   ItemEditorInputPanelTest.cpp TableModelFactoryTest.cpp TreeModelFactoryTest.cpp HpqTest.cpp)
 target_link_libraries(HandPaintingExampleTests PRIVATE HandPaintingExampleLib GTest::gtest)
 set_target_properties(HandPaintingExampleTests PROPERTIES AUTOMOC ON)
+hpq_set_runtime_directory(HandPaintingExampleTests)
 add_test(NAME HandPaintingExampleTests COMMAND HandPaintingExampleTests)
 
 # Runs the application offscreen, quitting right after the event loop starts.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <hpq/Export.h>
+
 #include <QImage>
 #include <QPainterPath>
 
@@ -17,7 +19,7 @@ namespace hpq {
 // What is kept depends only on the shape and on how it is drawn, not on where: a cache serves
 // one theme and one geometry engine, and the shapes of a view that scrolls find their paths.
 // It forgets what was not drawn for a while, so that it stays small.
-class PaintCache {
+class HPQ_EXPORT PaintCache {
 public:
     // What the kept paths draw of a shape.
     enum class PathKind { Outline, FrameOutline, FillArea, Hachure };
@@ -68,10 +70,10 @@ private:
         double parameter;
         QPainterPath shape;
     };
-    struct KeyHash {
+    struct HPQ_EXPORT KeyHash {
         std::size_t operator()(const Key &key) const;
     };
-    struct KeyEqual {
+    struct HPQ_EXPORT KeyEqual {
         bool operator()(const Key &first, const Key &second) const;
     };
     static std::size_t byte_count_of(const Key &key);

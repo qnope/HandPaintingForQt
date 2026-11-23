@@ -14,6 +14,14 @@ With vcpkg and Qt, add `-DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcp
 
 The local presets use the Ninja generator (`build/debug`, Debug). The `release` preset builds in `build/release`: `cmake --preset release`, `cmake --build --preset release`, `ctest --preset release`. Without presets, add `-G Ninja` to the first command.
 
+## Shared library
+
+`hpq` is built as a shared library (`hpq.dll`, `libhpq.so`, `libhpq.dylib`). Only what its headers mark with `HPQ_EXPORT` (`hpq/Export.h`) is visible outside it: its public classes and functions.
+
+On Linux and macOS the executables of the build find the library by RPATH. Windows has no RPATH, so `hpq.dll` and the executables are all built in `build/bin` there.
+
+With Qt for WebAssembly, which is static, `hpq` stays a static library.
+
 ## WebAssembly
 
 The example application also builds with Qt for WebAssembly. With the Emscripten release matching the Qt version activated (3.1.56 for Qt 6.8):

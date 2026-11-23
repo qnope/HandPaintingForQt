@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 #include <hpq/PaintCache.h>
 
@@ -22,7 +23,7 @@ namespace hpq {
 // With a cache, it keeps there the rough paths and the washes that it makes, and takes them
 // back when it draws the same shape again: the drawing is the same, made faster. The cache
 // must serve this theme and this geometry engine only, and outlive the engine.
-class HandPaintEngine : public QPaintEngine {
+class HPQ_EXPORT HandPaintEngine : public QPaintEngine {
 public:
     HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
                     PaintCache *cache = nullptr);
