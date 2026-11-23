@@ -21,5 +21,14 @@ if(HPQ_BUILD_TESTS)
   enable_testing()
 endif()
 
+# Windows has no RPATH: an executable loads hpq.dll from its own directory (or from PATH).
+# So hpq.dll and the executables of the project are all built in one directory there.
+# The other platforms keep their build directories: the executables find hpq by RPATH.
+function(hpq_set_runtime_directory target)
+  if(WIN32)
+    set_target_properties(${target} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+  endif()
+endfunction()
+
 add_subdirectory(hpq)
 add_subdirectory(Examples)

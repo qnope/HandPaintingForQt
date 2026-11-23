@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 
 #include <memory>
@@ -13,12 +14,12 @@ namespace hpq {
 // Its existing labels get the marker of the theme, if it has one.
 // The lists that its combo boxes open are windows of their own: each gets the palette and a
 // HandPaintEffect too.
-void apply_theme(QWidget &window, const Theme &theme,
-                 std::shared_ptr<const GeometryEngine> geometry_engine);
+HPQ_EXPORT void apply_theme(QWidget &window, const Theme &theme,
+                            std::shared_ptr<const GeometryEngine> geometry_engine);
 
 // Removes the HandPaintEffect of `window` and of the lists of its combo boxes, takes the
 // markers away from its labels, and gives back the palettes, font and styles they had before
 // the first apply_theme. Does nothing on a window that was never themed.
-void remove_theme(QWidget &window);
+HPQ_EXPORT void remove_theme(QWidget &window);
 
 }  // namespace hpq

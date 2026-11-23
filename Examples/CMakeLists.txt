@@ -9,6 +9,7 @@ target_include_directories(HandPaintingExampleLib PUBLIC ${CMAKE_CURRENT_SOURCE_
 qt_add_executable(HandPaintingExample)
 target_link_libraries(HandPaintingExample PRIVATE HandPaintingExampleLib)
 set_target_properties(HandPaintingExample PROPERTIES AUTOMOC ON)
+hpq_set_runtime_directory(HandPaintingExample)
 
 add_subdirectory(src)
 add_subdirectory(ui)

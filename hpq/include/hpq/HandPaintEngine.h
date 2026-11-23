@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 
 #include <QBrush>
@@ -17,7 +18,7 @@ namespace hpq {
 
 // Paint engine that draws each primitive it receives on a target QPainter,
 // changed by a GeometryEngine and drawn as a Theme says.
-class HandPaintEngine : public QPaintEngine {
+class HPQ_EXPORT HandPaintEngine : public QPaintEngine {
 public:
     HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine);
 

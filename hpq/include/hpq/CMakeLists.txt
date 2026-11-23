@@ -1,4 +1,4 @@
-target_sources(hpq PRIVATE Hpq.h FwdDecls.h GeometryEngine.h RoughOptions.h RoughGeometryEngine.h)
+target_sources(hpq PRIVATE Hpq.h Export.h FwdDecls.h GeometryEngine.h RoughOptions.h RoughGeometryEngine.h)
 target_sources(hpq PRIVATE FillStyle.h Medium.h Theme.h SketchTheme.h SlateTheme.h)
 target_sources(hpq PRIVATE NotebookTheme.h)
 target_sources(hpq PRIVATE BlueprintTheme.h)

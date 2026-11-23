@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/Theme.h>
 
 namespace hpq {
@@ -11,6 +12,6 @@ namespace hpq {
 // text is drawn, and no other text role of the palette has it.
 // With FillStyle::Hachure, the text of a selection is violet and not luminous: it is read on
 // the paper that shows between the hachures.
-Theme invisible_ink_theme(FillStyle fill_style = FillStyle::Solid);
+HPQ_EXPORT Theme invisible_ink_theme(FillStyle fill_style = FillStyle::Solid);
 
 }  // namespace hpq
