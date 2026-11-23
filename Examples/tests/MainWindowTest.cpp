@@ -15,9 +15,12 @@
 #include <QTreeView>
 #include <gtest/gtest.h>
 #include <hpq/BlueprintTheme.h>
+#include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintEffect.h>
+#include <hpq/NotebookTheme.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
+#include <hpq/VelledaTheme.h>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
@@ -64,11 +67,13 @@ TEST(MainWindow, ComboBoxHoldsTheThemes)
     hpq::example::MainWindow w;
     auto *combo = find<QComboBox>(w, "comboBox");
     ASSERT_NE(combo, nullptr);
-    ASSERT_EQ(combo->count(), 4);
+    ASSERT_EQ(combo->count(), 6);
     EXPECT_EQ(combo->itemText(0), "Sketch");
     EXPECT_EQ(combo->itemText(1), "China Ink");
     EXPECT_EQ(combo->itemText(2), "Black slate and chalk");
-    EXPECT_EQ(combo->itemText(3), "Blueprint");
+    EXPECT_EQ(combo->itemText(3), "School notebook");
+    EXPECT_EQ(combo->itemText(4), "Velleda");
+    EXPECT_EQ(combo->itemText(5), "Blueprint");
 }
 
 TEST(MainWindow, TableViewUsesTheTableModel)
@@ -120,7 +125,11 @@ bool has_hand_paint_effect(const QWidget &widget)
 constexpr int SketchIndex = 0;
 constexpr int ChinaInkIndex = 1;
 constexpr int BlackSlateIndex = 2;
-constexpr int BlueprintIndex = 3;
+constexpr int SchoolNotebookIndex = 3;
+constexpr int VelledaIndex = 4;
+constexpr int BlueprintIndex = 5;
+// The index of a combo box without a current entry.
+constexpr int NoEntryIndex = -1;
 } // namespace
 
 TEST(MainWindow, StartsWithTheSketchThemeApplied)
@@ -163,12 +172,22 @@ TEST(MainWindow, UncheckingHachuresAppliesTheSolidSketchThemeAgain)
     EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
 }
 
-TEST(MainWindow, CheckingHachuresUnderAnotherThemeKeepsTheThemeRemoved)
+TEST(MainWindow, CheckingHachuresWithoutCurrentEntryKeepsTheThemeRemoved)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_EQ(w.graphicsEffect(), nullptr);
+}
+
+TEST(MainWindow, CheckingHachuresUnderChinaInkAppliesTheHatchedChinaInkTheme)
 {
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
-    EXPECT_EQ(w.graphicsEffect(), nullptr);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_NE(w.palette(), hpq::china_ink_theme().palette());
 }
 
 TEST(MainWindow, CheckingHachuresUnderBlackSlateAppliesTheHatchedSlateTheme)
@@ -180,12 +199,21 @@ TEST(MainWindow, CheckingHachuresUnderBlackSlateAppliesTheHatchedSlateTheme)
     EXPECT_EQ(w.palette(), hpq::slate_theme(hpq::FillStyle::Hachure).palette());
 }
 
-TEST(MainWindow, SelectingChinaInkRemovesTheSketchTheme)
+TEST(MainWindow, SelectingNoEntryRemovesTheSketchTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
+    EXPECT_EQ(w.graphicsEffect(), nullptr);
+    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
+}
+
+TEST(MainWindow, SelectingChinaInkAppliesTheChinaInkTheme)
 {
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
-    EXPECT_EQ(w.graphicsEffect(), nullptr);
-    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme().palette());
+    EXPECT_EQ(w.font().family(), "Kaushan Script");
 }
 
 TEST(MainWindow, SelectingBlackSlateAppliesTheSlateTheme)
@@ -195,6 +223,43 @@ TEST(MainWindow, SelectingBlackSlateAppliesTheSlateTheme)
     EXPECT_TRUE(has_hand_paint_effect(w));
     EXPECT_EQ(w.palette(), hpq::slate_theme().palette());
     EXPECT_EQ(w.font().family(), "Architects Daughter");
+}
+
+TEST(MainWindow, SelectingSchoolNotebookAppliesTheNotebookTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(SchoolNotebookIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::notebook_theme().palette());
+    EXPECT_EQ(w.font().family(), "Playwrite FR Moderne");
+}
+
+TEST(MainWindow, CheckingHachuresUnderSchoolNotebookAppliesTheHatchedNotebookTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(SchoolNotebookIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::notebook_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_NE(w.palette(), hpq::notebook_theme().palette());
+}
+
+TEST(MainWindow, SelectingVelledaAppliesTheVelledaTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(VelledaIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::velleda_theme().palette());
+    EXPECT_EQ(w.font().family(), "Architects Daughter");
+}
+
+TEST(MainWindow, CheckingHachuresUnderVelledaAppliesTheHatchedVelledaTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(VelledaIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::velleda_theme(hpq::FillStyle::Hachure).palette());
 }
 
 TEST(MainWindow, SelectingBlueprintAppliesTheBlueprintTheme)
@@ -230,5 +295,6 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
     EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
 }
 
-INSTANTIATE_TEST_SUITE_P(OtherEntries, MainWindowOtherTheme,
-                         ::testing::Values(ChinaInkIndex, BlackSlateIndex, BlueprintIndex));
+INSTANTIATE_TEST_SUITE_P(NoEntryAndEveryOtherTheme, MainWindowOtherTheme,
+                         ::testing::Values(NoEntryIndex, ChinaInkIndex, BlackSlateIndex, SchoolNotebookIndex,
+                                           VelledaIndex, BlueprintIndex));

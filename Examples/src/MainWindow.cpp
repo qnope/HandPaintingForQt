@@ -1,14 +1,18 @@
 #include "MainWindow.h"
 
+#include "ItemEditorInputPanel.h"
 #include "TableModelFactory.h"
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
 #include <hpq/BlueprintTheme.h>
+#include <hpq/ChinaInkTheme.h>
+#include <hpq/NotebookTheme.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
 #include <hpq/Theming.h>
+#include <hpq/VelledaTheme.h>
 
 #include <QBrush>
 #include <QCheckBox>
@@ -29,17 +33,26 @@ namespace hpq::example {
 
 namespace {
 constexpr int SketchIndex = 0;
+constexpr int ChinaInkIndex = 1;
 constexpr int BlackSlateIndex = 2;
-constexpr int BlueprintIndex = 3;
+constexpr int SchoolNotebookIndex = 3;
+constexpr int VelledaIndex = 4;
+constexpr int BlueprintIndex = 5;
 
-// The theme of the entry `index` of the combo box, or nothing for an entry without a theme.
-std::optional<hpq::Theme> theme_of_entry(int index, hpq::FillStyle fill_style)
+// The theme of an entry of the combo box, or nothing when `index` is not one of its entries.
+std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
 {
     switch (index) {
     case SketchIndex:
         return hpq::sketch_theme(fill_style);
+    case ChinaInkIndex:
+        return hpq::china_ink_theme(fill_style);
     case BlackSlateIndex:
         return hpq::slate_theme(fill_style);
+    case SchoolNotebookIndex:
+        return hpq::notebook_theme(fill_style);
+    case VelledaIndex:
+        return hpq::velleda_theme(fill_style);
     case BlueprintIndex:
         return hpq::blueprint_theme(fill_style);
     default:
@@ -92,7 +105,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_ui(std::make_unique<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
-    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk", "Blueprint"});
+    m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk", "School notebook"});
+    m_ui->comboBox->addItem("Velleda");
+    m_ui->comboBox->addItem("Blueprint");
 
     auto table_model = create_table_model();
     table_model->setParent(this);
@@ -101,6 +116,10 @@ MainWindow::MainWindow(QWidget *parent)
     auto tree_model = create_tree_model();
     tree_model->setParent(this);
     m_ui->treeView->setModel(tree_model.release());
+
+    // Each is owned by its view.
+    new ItemEditorInputPanel(*m_ui->tableView);
+    new ItemEditorInputPanel(*m_ui->treeView);
 
     m_ui->graphicsView->setScene(create_shapes_scene(this));
 
@@ -115,7 +134,7 @@ void MainWindow::update_theme()
 {
     const hpq::FillStyle fill_style =
         m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
-    const std::optional<hpq::Theme> theme = theme_of_entry(m_ui->comboBox->currentIndex(), fill_style);
+    const std::optional<hpq::Theme> theme = theme_for(m_ui->comboBox->currentIndex(), fill_style);
     if (!theme) {
         hpq::remove_theme(*this);
         return;

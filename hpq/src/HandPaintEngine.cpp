@@ -5,6 +5,7 @@
 #include <hpq/RoughOptions.h>
 #include <hpq/Theme.h>
 
+#include "BrushStroke.h"
 #include "ChalkStroke.h"
 #include "ChalkTexture.h"
 
@@ -76,7 +77,19 @@ double chalk_width(const QPen &pen) {
     return std::max(pen.widthF(), 1.0) + ChalkExtraWidth;
 }
 
-// True when `pen` draws a plain line of one color, which chalk can follow with uneven pressure.
+// A brush is soft: the line of an outline is this much wider, in pixels, than the pen it
+// stands for. A hachure is drawn with the tip of the brush, and keeps the width of its pen.
+constexpr double BrushExtraWidth = 1.0;
+// A brush ribbon is at most this many times wider than its width.
+constexpr double BrushWidestPressure = 2.2;
+
+// Width, in pixels, of the brush line drawn for `pen`; a cosmetic pen is one pixel wide.
+double brush_width(const QPen &pen, bool is_outline) {
+    return std::max(pen.widthF(), 1.0) + (is_outline ? BrushExtraWidth : 0.0);
+}
+
+// True when `pen` draws a plain line of one color, which chalk or a brush can follow with
+// uneven pressure.
 bool is_plain_line(const QPen &pen) {
     return pen.style() == Qt::SolidLine && pen.brush().style() == Qt::SolidPattern;
 }
@@ -221,15 +234,20 @@ bool HandPaintEngine::is_hatched(const QBrush &brush) const {
 
 void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed,
                                   StrokeKind kind) {
+    const bool is_outline = kind == StrokeKind::Outline;
     const bool is_chalk = m_theme.medium() == Medium::Chalk;
-    const double width = is_chalk ? chalk_width(pen) : pen.widthF();
+    // A brush follows a plain line; a dashed line is drawn by its pen, as a pencil draws it.
+    const bool is_brush = m_theme.medium() == Medium::Ink && is_plain_line(pen);
+    const double width = is_chalk ? chalk_width(pen) : is_brush ? brush_width(pen, is_outline) : pen.widthF();
     // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
     // the edge of a widget would be cut by the widget's area without this margin.
     // Hachures stay inside their shape: they get no margin.
-    const double widest = is_chalk ? width * ChalkWidestPressure : width;
+    const double widest = width * (is_chalk ? ChalkWidestPressure : is_brush ? BrushWidestPressure : 1.0);
     const int system_clip_margin =
-        kind == StrokeKind::Outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
-    if (!is_chalk) {
+        is_outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
+    if (is_brush) {
+        draw_on_target(brush_ribbon(stroke, width, stroke_seed), Qt::NoPen, pen.brush(), system_clip_margin);
+    } else if (!is_chalk) {
         draw_on_target(stroke, pen, Qt::NoBrush, system_clip_margin);
     } else if (is_plain_line(pen)) {
         draw_on_target(chalk_ribbon(stroke, width, stroke_seed), Qt::NoPen,
