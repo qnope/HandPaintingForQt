@@ -19,6 +19,9 @@ private:
     // Removes the theme when comboBox has no current entry.
     void update_theme();
 
+    // Opens a message box about the library, which takes the theme of the window.
+    void show_about();
+
     std::unique_ptr<Ui::MainWindow> m_ui;
 };
 

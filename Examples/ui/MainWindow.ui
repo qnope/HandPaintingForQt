@@ -32,13 +32,20 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QComboBox" name="comboBox"/>
+        <widget class="QComboBox" name="comboBox">
+         <property name="toolTip">
+          <string>The theme the window is drawn with</string>
+         </property>
+        </widget>
        </item>
        <item row="1" column="1">
         <widget class="QLineEdit" name="lineEdit"/>
        </item>
        <item row="1" column="0">
         <widget class="QCheckBox" name="checkBox">
+         <property name="toolTip">
+          <string>Fill the shapes with hatches</string>
+         </property>
          <property name="text">
           <string>CheckBox</string>
          </property>
@@ -99,10 +106,22 @@
      <string>Edit</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About Hand Painting for Qt</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
