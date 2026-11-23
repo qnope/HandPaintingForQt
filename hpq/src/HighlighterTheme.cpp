@@ -147,7 +147,7 @@ QBrush label_marker() {
 
 Theme highlighter_theme(FillStyle fill_style) {
     return Theme(highlighter_palette(fill_style), QFont(hand_font_family()), HighlighterRoughOptions, fill_style,
-                 Medium::Pencil, label_marker());
+                 Medium::Pencil, TextInk::Visible, label_marker());
 }
 
 }  // namespace hpq

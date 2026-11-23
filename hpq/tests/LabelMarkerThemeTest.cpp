@@ -23,7 +23,7 @@ const QBrush Marker(QColor(0xff, 0xf0, 0x00, 0x80));
 hpq::Theme marking_theme() {
     const hpq::Theme sketch = hpq::sketch_theme();
     return hpq::Theme(sketch.palette(), sketch.font(), sketch.rough_options(), sketch.fill_style(), sketch.medium(),
-                      Marker);
+                      sketch.text_ink(), Marker);
 }
 
 std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {

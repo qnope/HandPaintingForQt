@@ -389,7 +389,21 @@ int pixel_size(const QFont &font, const QPaintDevice &device) {
 
 }  // namespace
 
+// Qt writes the text of a selection in the HighlightedText color of the color group of its widget.
+bool HandPaintEngine::shows_text(const QColor &color) const {
+    if (m_theme.text_ink() == TextInk::Visible) {
+        return true;
+    }
+    const QPalette palette = m_theme.palette();
+    return color == palette.color(QPalette::Active, QPalette::HighlightedText) ||
+           color == palette.color(QPalette::Inactive, QPalette::HighlightedText) ||
+           color == palette.color(QPalette::Disabled, QPalette::HighlightedText);
+}
+
 void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &text_item) {
+    if (!shows_text(m_pen.color())) {
+        return;
+    }
     QFont font = m_theme.font();
     font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
     save_target_in_logical_coordinates();

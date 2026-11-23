@@ -18,6 +18,7 @@
 #include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintEffect.h>
 #include <hpq/HighlighterTheme.h>
+#include <hpq/InvisibleInkTheme.h>
 #include <hpq/NotebookTheme.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
@@ -69,7 +70,7 @@ TEST(MainWindow, ComboBoxHoldsTheThemes)
     hpq::example::MainWindow w;
     auto *combo = find<QComboBox>(w, "comboBox");
     ASSERT_NE(combo, nullptr);
-    ASSERT_EQ(combo->count(), 8);
+    ASSERT_EQ(combo->count(), 9);
     EXPECT_EQ(combo->itemText(0), "Sketch");
     EXPECT_EQ(combo->itemText(1), "China Ink");
     EXPECT_EQ(combo->itemText(2), "Black slate and chalk");
@@ -77,7 +78,8 @@ TEST(MainWindow, ComboBoxHoldsTheThemes)
     EXPECT_EQ(combo->itemText(4), "Velleda");
     EXPECT_EQ(combo->itemText(5), "Watercolor");
     EXPECT_EQ(combo->itemText(6), "Blueprint");
-    EXPECT_EQ(combo->itemText(7), "Highlighter");
+    EXPECT_EQ(combo->itemText(7), "Invisible ink");
+    EXPECT_EQ(combo->itemText(8), "Highlighter");
 }
 
 TEST(MainWindow, TableViewUsesTheTableModel)
@@ -133,7 +135,8 @@ constexpr int SchoolNotebookIndex = 3;
 constexpr int VelledaIndex = 4;
 constexpr int WatercolorIndex = 5;
 constexpr int BlueprintIndex = 6;
-constexpr int HighlighterIndex = 7;
+constexpr int InvisibleInkIndex = 7;
+constexpr int HighlighterIndex = 8;
 // The index of a combo box without a current entry.
 constexpr int NoEntryIndex = -1;
 } // namespace
@@ -305,6 +308,24 @@ TEST(MainWindow, CheckingHachuresUnderBlueprintAppliesTheHatchedBlueprintTheme)
     EXPECT_EQ(w.palette(), hpq::blueprint_theme(hpq::FillStyle::Hachure).palette());
 }
 
+TEST(MainWindow, SelectingInvisibleInkAppliesTheInvisibleInkTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(InvisibleInkIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::invisible_ink_theme().palette());
+    EXPECT_EQ(w.font().family(), "Architects Daughter");
+}
+
+TEST(MainWindow, CheckingHachuresUnderInvisibleInkAppliesTheHatchedInvisibleInkTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(InvisibleInkIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::invisible_ink_theme(hpq::FillStyle::Hachure).palette());
+}
+
 TEST(MainWindow, SelectingHighlighterAppliesTheHighlighterTheme)
 {
     hpq::example::MainWindow w;
@@ -340,4 +361,4 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
 INSTANTIATE_TEST_SUITE_P(NoEntryAndEveryOtherTheme, MainWindowOtherTheme,
                          ::testing::Values(NoEntryIndex, ChinaInkIndex, BlackSlateIndex, SchoolNotebookIndex,
                                            VelledaIndex, WatercolorIndex, BlueprintIndex,
-                                           HighlighterIndex));
+                                           InvisibleInkIndex, HighlighterIndex));

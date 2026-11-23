@@ -5,12 +5,13 @@
 namespace hpq {
 
 Theme::Theme(QPalette palette, QFont font, RoughOptions rough_options, FillStyle fill_style, Medium medium,
-             QBrush label_marker)
+             TextInk text_ink, QBrush label_marker)
     : m_palette(std::move(palette)),
       m_font(std::move(font)),
       m_rough_options(rough_options),
       m_fill_style(fill_style),
       m_medium(medium),
+      m_text_ink(text_ink),
       m_label_marker(std::move(label_marker)) {}
 
 QPalette Theme::palette() const {
@@ -31,6 +32,10 @@ FillStyle Theme::fill_style() const {
 
 Medium Theme::medium() const {
     return m_medium;
+}
+
+TextInk Theme::text_ink() const {
+    return m_text_ink;
 }
 
 QBrush Theme::label_marker() const {
