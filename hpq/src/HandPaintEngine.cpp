@@ -8,6 +8,8 @@
 #include "BrushStroke.h"
 #include "ChalkStroke.h"
 #include "ChalkTexture.h"
+#include "WatercolorPaint.h"
+#include "WatercolorTexture.h"
 
 #include <QPaintDevice>
 #include <QPainter>
@@ -87,6 +89,13 @@ constexpr double BrushWidestPressure = 2.2;
 double brush_width(const QPen &pen, bool is_outline) {
     return std::max(pen.widthF(), 1.0) + (is_outline ? BrushExtraWidth : 0.0);
 }
+
+// A hachure of watercolor is one stroke of a small flat brush: it is this much wider, in
+// pixels, than the pen it stands for.
+constexpr double WatercolorHachureExtraWidth = 1.0;
+
+// A wash does not follow the outline of its shape: it gets another seed than the outline.
+constexpr std::uint32_t WashSeedMask = 0x5bd1e995u;
 
 // True when `pen` draws a plain line of one color, which chalk or a brush can follow with
 // uneven pressure.
@@ -193,7 +202,7 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
     const std::uint32_t shape_seed = seed(shape);
     const bool filled = m_brush.style() != Qt::NoBrush;
     if (kind != ShapeKind::Open && filled) {
-        fill_shape(shape, options, shape_seed);
+        fill_shape(shape, kind, options, shape_seed);
     }
     if (m_pen.style() != Qt::NoPen) {
         // A rectangle with no area is a line: it frames nothing.
@@ -206,17 +215,34 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
     }
 }
 
-void HandPaintEngine::fill_shape(const QPainterPath &shape, const RoughOptions &options, std::uint32_t shape_seed) {
-    const QPainterPath area = m_geometry_engine.fill_area(shape, options, shape_seed);
+void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, const RoughOptions &options,
+                                 std::uint32_t shape_seed) {
+    const bool is_watercolor = m_theme.medium() == Medium::Watercolor;
+    const QPainterPath area =
+        m_geometry_engine.fill_area(shape, options, is_watercolor ? shape_seed ^ WashSeedMask : shape_seed);
     const QPainterPath hachure =
         is_hatched(m_brush) ? m_geometry_engine.hachure(shape, options, shape_seed) : QPainterPath();
     if (hachure.isEmpty()) {
-        draw_on_target(area, Qt::NoPen, seen_through_medium(m_brush));
+        lay_on_target(area, m_brush, kind == ShapeKind::Rectangle && m_pen.style() == Qt::NoPen);
         return;
     }
     // The paper shows between the hachures, and hides what was drawn under the shape.
     draw_on_target(area, Qt::NoPen, seen_through_medium(m_theme.palette().window()));
     draw_stroke(hachure, QPen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap), shape_seed, StrokeKind::Hachure);
+}
+
+void HandPaintEngine::lay_on_target(const QPainterPath &area, const QBrush &brush, bool is_band) {
+    if (!is_wash(brush)) {
+        draw_on_target(area, Qt::NoPen, seen_through_medium(brush));
+        return;
+    }
+    save_target_in_device_coordinates();
+    paint_wash(m_target, area, brush.color(), is_band ? WashKind::Band : WashKind::Patch);
+    m_target.restore();
+}
+
+bool HandPaintEngine::is_wash(const QBrush &brush) const {
+    return m_theme.medium() == Medium::Watercolor && brush.style() == Qt::SolidPattern && !is_ground(brush.color());
 }
 
 bool HandPaintEngine::is_hatched(const QBrush &brush) const {
@@ -234,18 +260,27 @@ bool HandPaintEngine::is_hatched(const QBrush &brush) const {
 
 void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed,
                                   StrokeKind kind) {
+    const Medium medium = m_theme.medium();
     const bool is_outline = kind == StrokeKind::Outline;
-    const bool is_chalk = m_theme.medium() == Medium::Chalk;
+    const bool is_chalk = medium == Medium::Chalk;
+    const bool is_watercolor = medium == Medium::Watercolor;
     // A brush follows a plain line; a dashed line is drawn by its pen, as a pencil draws it.
-    const bool is_brush = m_theme.medium() == Medium::Ink && is_plain_line(pen);
-    const double width = is_chalk ? chalk_width(pen) : is_brush ? brush_width(pen, is_outline) : pen.widthF();
+    const bool is_brush = (medium == Medium::Ink || is_watercolor) && is_plain_line(pen);
+    const double width = is_chalk   ? chalk_width(pen)
+                         : is_brush ? brush_width(pen, is_outline) +
+                                          (is_watercolor && !is_outline ? WatercolorHachureExtraWidth : 0.0)
+                                    : pen.widthF();
     // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
     // the edge of a widget would be cut by the widget's area without this margin.
     // Hachures stay inside their shape: they get no margin.
     const double widest = width * (is_chalk ? ChalkWidestPressure : is_brush ? BrushWidestPressure : 1.0);
     const int system_clip_margin =
         is_outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
-    if (is_brush) {
+    if (is_brush && is_watercolor) {
+        save_target_in_device_coordinates(system_clip_margin);
+        paint_line(m_target, brush_ribbon(stroke, width, stroke_seed), pen.color());
+        m_target.restore();
+    } else if (is_brush) {
         draw_on_target(brush_ribbon(stroke, width, stroke_seed), Qt::NoPen, pen.brush(), system_clip_margin);
     } else if (!is_chalk) {
         draw_on_target(stroke, pen, Qt::NoBrush, system_clip_margin);
@@ -261,16 +296,24 @@ void HandPaintEngine::draw_stroke(const QPainterPath &stroke, const QPen &pen, s
 }
 
 QBrush HandPaintEngine::seen_through_medium(const QBrush &brush) const {
-    if (m_theme.medium() != Medium::Chalk || brush.style() != Qt::SolidPattern) {
+    if (brush.style() != Qt::SolidPattern) {
         return brush;
     }
     const QColor color = brush.color();
-    return is_slate(color) ? slate_brush(color, target_pixel_ratio())
-                           : chalk_brush(color, ChalkGrain::Fill, target_pixel_ratio());
+    switch (m_theme.medium()) {
+    case Medium::Chalk:
+        return is_ground(color) ? slate_brush(color, target_pixel_ratio())
+                                : chalk_brush(color, ChalkGrain::Fill, target_pixel_ratio());
+    case Medium::Watercolor:
+        return is_ground(color) ? paper_brush(color, target_pixel_ratio()) : brush;
+    default:
+        return brush;
+    }
 }
 
-// Chalk cannot paint the slate: a fill of the color of the window or of a view is the slate.
-bool HandPaintEngine::is_slate(const QColor &color) const {
+// Chalk cannot paint the slate, nor watercolor the white of the paper: a fill of the color of
+// the window or of a view is the slate or the paper.
+bool HandPaintEngine::is_ground(const QColor &color) const {
     const QPalette palette = m_theme.palette();
     return color == palette.color(QPalette::Active, QPalette::Window) ||
            color == palette.color(QPalette::Active, QPalette::Base);

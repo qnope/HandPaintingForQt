@@ -11,6 +11,10 @@ enum class Medium {
     // The line of a brush loaded with ink, which swells and thins with the pressure of the
     // hand and ends in a point, and a plain fill.
     Ink,
+    // Watercolor laid with a paint brush on a grainy paper: lines whose pigment settles
+    // unevenly, and washes with a soft edge where the pigment gathers, which let the paper and
+    // the washes under them show through.
+    Watercolor,
 };
 
 }  // namespace hpq
