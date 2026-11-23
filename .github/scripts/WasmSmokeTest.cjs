@@ -2,39 +2,10 @@
 // and checks that the application starts and draws a window.
 //
 // Usage: node WasmSmokeTest.cjs <site directory> [screenshot.png]
-// Needs the "playwright" package. The browser is CHROME_BIN when set (GitHub runners),
-// otherwise the Chromium of Playwright.
-const fs = require('fs');
-const http = require('http');
-const path = require('path');
-const { chromium } = require('playwright');
+// Needs the "playwright" package (see WasmSite.cjs for the browser).
+const { StartTimeoutMs, serve, site_url, launch_browser, site_directory_argument } = require('./WasmSite.cjs');
 
-const StartTimeoutMs = 120000;
 const WindowTimeoutMs = 30000;
-const ContentTypes = {
-    '.html': 'text/html; charset=utf-8',
-    '.js': 'text/javascript',
-    '.wasm': 'application/wasm',
-    '.svg': 'image/svg+xml',
-    '.ttf': 'font/ttf',
-    '.txt': 'text/plain; charset=utf-8',
-};
-
-function serve(site_directory)
-{
-    const server = http.createServer((request, response) => {
-        const url_path = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-        const file_path = path.join(site_directory, url_path.endsWith('/') ? url_path + 'index.html' : url_path);
-        if (!file_path.startsWith(site_directory) || !fs.existsSync(file_path) || !fs.statSync(file_path).isFile()) {
-            response.writeHead(404).end('Not found');
-            return;
-        }
-        const content_type = ContentTypes[path.extname(file_path)] ?? 'application/octet-stream';
-        response.writeHead(200, { 'Content-Type': content_type });
-        fs.createReadStream(file_path).pipe(response);
-    });
-    return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server)));
-}
 
 // Sizes of the canvases of the page, shadow trees included: Qt draws each window in a canvas
 // placed in a shadow tree of the container element.
@@ -55,15 +26,15 @@ function canvas_sizes()
 
 async function main()
 {
-    const site_directory = path.resolve(process.argv[2] ?? '');
+    const site_directory = site_directory_argument();
     const screenshot_path = process.argv[3];
-    if (process.argv.length < 3 || !fs.existsSync(path.join(site_directory, 'index.html'))) {
+    if (!site_directory) {
         console.error('Usage: node WasmSmokeTest.cjs <site directory> [screenshot.png]');
         return 2;
     }
 
     const server = await serve(site_directory);
-    const browser = await chromium.launch(process.env.CHROME_BIN ? { executablePath: process.env.CHROME_BIN } : {});
+    const browser = await launch_browser();
     const errors = [];
     try {
         const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -75,7 +46,7 @@ async function main()
                 errors.push(`HTTP ${response.status()}: ${response.url()}`);
         });
 
-        await page.goto(`http://127.0.0.1:${server.address().port}/`);
+        await page.goto(site_url(server));
         const state = () => page.evaluate(() => document.documentElement.dataset.state);
         try {
             await page.waitForFunction(() => document.documentElement.dataset.state !== 'loading',
