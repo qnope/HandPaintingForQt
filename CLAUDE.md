@@ -11,6 +11,7 @@ Simple library allowing to perform custom painting à la Rough.js with Qt widget
 5. Velleda
 6. Watercolor
 7. Blueprint
+8. Highlighter
 
 ## Build Targets
 1. Windows: MSVC

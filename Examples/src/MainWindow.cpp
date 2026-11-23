@@ -7,6 +7,7 @@
 
 #include <hpq/BlueprintTheme.h>
 #include <hpq/ChinaInkTheme.h>
+#include <hpq/HighlighterTheme.h>
 #include <hpq/NotebookTheme.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
@@ -40,6 +41,7 @@ constexpr int SchoolNotebookIndex = 3;
 constexpr int VelledaIndex = 4;
 constexpr int WatercolorIndex = 5;
 constexpr int BlueprintIndex = 6;
+constexpr int HighlighterIndex = 7;
 
 // The theme of an entry of the combo box, or nothing when `index` is not one of its entries.
 std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
@@ -59,6 +61,8 @@ std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
         return hpq::watercolor_theme(fill_style);
     case BlueprintIndex:
         return hpq::blueprint_theme(fill_style);
+    case HighlighterIndex:
+        return hpq::highlighter_theme(fill_style);
     default:
         return std::nullopt;
     }
@@ -113,6 +117,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->comboBox->addItem("Velleda");
     m_ui->comboBox->addItem("Watercolor");
     m_ui->comboBox->addItem("Blueprint");
+    m_ui->comboBox->addItem("Highlighter");
 
     auto table_model = create_table_model();
     table_model->setParent(this);

@@ -255,10 +255,13 @@ void HandPaintStyle::draw_combo_box(const QStyleOptionComboBox &option, QPainter
 
 // Fusion draws the arrows of the line buttons from a cached pixmap: let Fusion draw the rest,
 // then draw each line button as a flat panel with a vector arrow.
+// Fusion shades the groove and the handle from the Button color. They are not buttons: they
+// get the color of the window, so that a theme that colors its buttons keeps a plain scroll bar.
 void HandPaintStyle::draw_scroll_bar(const QStyleOptionSlider &option, QPainter &painter,
                                      const QWidget *widget) const {
     QStyleOptionSlider without_line_buttons = option;
     without_line_buttons.subControls &= ~(SC_ScrollBarSubLine | SC_ScrollBarAddLine);
+    without_line_buttons.palette.setBrush(QPalette::Button, option.palette.window());
     QProxyStyle::drawComplexControl(CC_ScrollBar, &without_line_buttons, &painter, widget);
 
     const bool is_horizontal = option.orientation == Qt::Horizontal;
