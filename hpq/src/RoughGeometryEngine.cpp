@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <optional>
 #include <random>
 #include <vector>
 
@@ -120,6 +121,131 @@ QList<QPolygonF> flattened_subpaths(const QPainterPath &shape)
     return polygons;
 }
 
+// True when `polygon` is a rectangle with its sides along the axes: it goes once around, its
+// four sides in turn along x and along y.
+bool is_upright_rectangle(const QPolygonF &polygon)
+{
+    if (polygon.size() != 5 || !polygon.isClosed())
+        return false;
+    const bool starts_along_x = polygon[0].y() == polygon[1].y();
+    for (int i = 0; i < 4; ++i) {
+        const QPointF side = polygon[i + 1] - polygon[i];
+        const bool along_x = (i % 2 == 0) == starts_along_x;
+        const double along = along_x ? side.x() : side.y();
+        const double across = along_x ? side.y() : side.x();
+        if (along == 0.0 || across != 0.0)
+            return false;
+    }
+    return true;
+}
+
+double cross(const QPointF &a, const QPointF &b)
+{
+    return a.x() * b.y() - a.y() * b.x();
+}
+
+// Where a segment goes through a convex polygon: the fractions of the segment where it goes in
+// and out, and the sides it crosses there; no side where it starts or ends inside.
+struct Passage {
+    double in = 0.0;
+    double out = 1.0;
+    int in_side = -1;
+    int out_side = -1;
+};
+
+// How the segment from `from` to `to` goes through the closed polygon `convex`, whose corners
+// all turn the way of `turn` (1 or -1); none when it misses the polygon.
+std::optional<Passage> passage_through(const QPointF &from, const QPointF &to, const QPolygonF &convex, int turn)
+{
+    Passage passage;
+    const QPointF direction = to - from;
+    for (int side = 0; side + 1 < convex.size(); ++side) {
+        const QPointF along = convex[side + 1] - convex[side];
+        // How far outside the side the segment starts, and how fast it goes out of it.
+        const double start = -turn * cross(along, from - convex[side]);
+        const double speed = -turn * cross(along, direction);
+        if (speed == 0.0) {
+            if (start > 0.0)
+                return std::nullopt;
+            continue;
+        }
+        const double t = -start / speed;
+        if (speed < 0.0 && t >= passage.in) {
+            passage.in = t;
+            passage.in_side = side;
+        } else if (speed > 0.0 && t < passage.out) {
+            passage.out = t;
+            passage.out_side = side;
+        }
+    }
+    if (passage.in > passage.out)
+        return std::nullopt;
+    return passage;
+}
+
+// The outline of what `boundary` and `rectangle` cover together, when `boundary` goes around
+// the rectangle the same way and never crosses itself: `boundary` where it is outside the
+// rectangle, and the sides of the rectangle where it goes inside. None when rounding leaves
+// a doubt, for example when the boundary goes exactly along a side.
+std::optional<QPolygonF> united_with_rectangle(const QPolygonF &boundary, const QPolygonF &rectangle)
+{
+    const int count = boundary.isClosed() ? boundary.size() - 1 : boundary.size();
+    const QRectF bounds = rectangle.boundingRect();
+    // The outline starts from a point outside the rectangle; with none, the boundary is inside.
+    int start = 0;
+    while (start < count && bounds.contains(boundary[start]))
+        ++start;
+    if (start == count)
+        return rectangle;
+    const int turn = cross(rectangle[1] - rectangle[0], rectangle[2] - rectangle[1]) > 0.0 ? 1 : -1;
+
+    QPolygonF outline{boundary[start]};
+    // Where the boundary went into the rectangle, and through which side, while it is inside.
+    QPointF entry;
+    int entry_side = -1;
+    // Goes on along the sides of the rectangle, by its corners, from the entry to the exit:
+    // once around when the boundary comes out of the side it went in by, behind where it went in.
+    const auto follow_sides = [&](int exit_side, const QPointF &exit) {
+        const QPointF along = rectangle[entry_side + 1] - rectangle[entry_side];
+        int side = entry_side;
+        if (exit_side == entry_side && QPointF::dotProduct(exit - entry, along) < 0.0) {
+            outline << rectangle[side + 1];
+            side = (side + 1) % 4;
+        }
+        for (; side != exit_side; side = (side + 1) % 4)
+            outline << rectangle[side + 1];
+    };
+    for (int i = start; i < start + count; ++i) {
+        const QPointF from = boundary[i % count];
+        const QPointF to = boundary[(i + 1) % count];
+        const std::optional<Passage> passage = passage_through(from, to, rectangle, turn);
+        const auto point_at = [&](double t) { return from + t * (to - from); };
+        if (entry_side < 0) {
+            // A segment that misses the rectangle, or only touches it, stays in the outline.
+            if (!passage || passage->in == passage->out) {
+                outline << to;
+                continue;
+            }
+            if (passage->in_side < 0)
+                return std::nullopt;
+            entry = point_at(passage->in);
+            entry_side = passage->in_side;
+            outline << entry;
+            if (passage->out == 1.0)
+                continue;
+        } else if (!passage || passage->in > 0.0) {
+            return std::nullopt;
+        } else if (passage->out == 1.0) {
+            continue;
+        }
+        const QPointF exit = point_at(passage->out);
+        follow_sides(passage->out_side, exit);
+        entry_side = -1;
+        outline << exit << to;
+    }
+    return outline;
+}
+
 // Largest random move of a stroke point, from the roughness and max_offset options.
 double wobble_amplitude(const RoughOptions &options)
 {
@@ -206,9 +332,10 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     std::mt19937 generator = shape_generator(m_base_seed, seed);
     const double amplitude = wobble_amplitude(options);
 
+    const QList<QPolygonF> polygons = flattened_subpaths(shape);
     QPainterPath area;
     area.setFillRule(shape.fillRule());
-    for (const QPolygonF &polygon : flattened_subpaths(shape)) {
+    for (const QPolygonF &polygon : polygons) {
         if (polygon.isEmpty())
             continue;
         QPainterPath boundary = rough_stroke(polygon, amplitude, generator);
@@ -217,6 +344,20 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     }
     // The area wobbles outward only: it always covers the whole shape, so that adjacent fills
     // (for example the rectangles of a widget background region) leave no unpainted seam.
+    // Uniting two paths is slow. The rough boundary of a rectangle higher and wider than twice
+    // the wobble never crosses itself and goes around the rectangle the same way: a rectangle,
+    // the most common shape, is united with it by a faster way of its own.
+    const QRectF bounds = shape.boundingRect();
+    if (polygons.size() == 1 && is_upright_rectangle(polygons.front()) &&
+        std::min(bounds.width(), bounds.height()) > 2.0 * amplitude) {
+        if (const std::optional<QPolygonF> outline =
+                united_with_rectangle(area.toSubpathPolygons().front(), polygons.front())) {
+            QPainterPath united;
+            united.addPolygon(*outline);
+            united.closeSubpath();
+            return united;
+        }
+    }
     return area.united(shape);
 }
 

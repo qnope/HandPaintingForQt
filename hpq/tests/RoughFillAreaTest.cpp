@@ -117,3 +117,33 @@ TEST(RoughFillAreaTest, FillAreaCoversTheWholeShape)
         }
     }
 }
+
+// A rectangle is united with its rough boundary by a way of its own: it must cover what
+// uniting the two paths covers. With the same seed, the first stroke of the outline is the
+// rough boundary of the area.
+TEST(RoughFillAreaTest, RectangleFillCoversWhatItsBoundaryAndTheRectangleCover)
+{
+    constexpr double Step = 0.5;
+    const hpq::RoughGeometryEngine engine(BaseSeed);
+    hpq::RoughOptions options = fill_options();
+    options.stroke_count = 1;
+    for (const QRectF &rectangle : {QRectF(10, 10, 100, 50), QRectF(0, 0, 300, 11), QRectF(5, 5, 11, 160)}) {
+        QPainterPath shape;
+        shape.addRect(rectangle);
+        const double margin = options.max_offset;
+        const QRectF around = rectangle.adjusted(-margin, -margin, margin, margin);
+        for (std::uint32_t seed = 0; seed < 20; ++seed) {
+            const QPainterPath fill = engine.fill_area(shape, options, seed);
+            QPainterPath boundary = engine.outline(shape, options, seed).front();
+            boundary.closeSubpath();
+            const QPainterPath united = boundary.united(shape);
+            EXPECT_TRUE(is_closed(fill));
+            for (double y = around.top() + Step / 2; y < around.bottom(); y += Step) {
+                for (double x = around.left() + Step / 2; x < around.right(); x += Step) {
+                    ASSERT_EQ(fill.contains(QPointF(x, y)), united.contains(QPointF(x, y)))
+                        << "seed " << seed << " point " << x << "," << y;
+                }
+            }
+        }
+    }
+}
