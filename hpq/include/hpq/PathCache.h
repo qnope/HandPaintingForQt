@@ -16,11 +16,12 @@ public:
     // What the kept paths draw of a shape.
     enum class Kind { Outline, FrameOutline, FillArea, Hachure };
 
-    // The paths of `kind` for `shape` and `parameter`: the kept ones, or else the ones that
-    // `make` returns, which are then kept.
+    // The paths of `kind` for `shape`, `parameter` and `variant`: the kept ones, or else the
+    // ones that `make` returns, which are then kept.
     template <typename Make>
-    std::vector<QPainterPath> paths(Kind kind, const QPainterPath &shape, double parameter, Make make) {
-        const Key key{kind, parameter, shape};
+    std::vector<QPainterPath> paths(Kind kind, const QPainterPath &shape, double parameter, int variant,
+                                    Make make) {
+        const Key key{kind, parameter, variant, shape};
         if (const std::vector<QPainterPath> *kept = find(key)) {
             return *kept;
         }
@@ -36,6 +37,7 @@ private:
     struct Key {
         Kind kind;
         double parameter;
+        int variant;
         QPainterPath shape;
     };
     struct KeyHash {

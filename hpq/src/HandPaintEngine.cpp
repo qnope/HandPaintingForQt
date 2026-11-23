@@ -113,6 +113,8 @@ std::optional<QRectF> sight_of(const QPainter &painter) {
 
 bool HandPaintEngine::begin(QPaintDevice *) {
     m_target_sight = sight_of(m_target);
+    const QTransform to_device = m_target.deviceTransform();
+    m_target_scale = std::hypot(to_device.m11(), to_device.m12());
     return true;
 }
 
@@ -232,9 +234,22 @@ void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap,
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }
 
 template <typename Make>
-std::vector<QPainterPath> HandPaintEngine::kept_paths(PathCache::Kind kind, const QPainterPath &shape,
-                                                      double parameter, Make make) {
-    return m_path_cache ? m_path_cache->paths(kind, shape, parameter, make) : make();
+std::vector<QPainterPath> HandPaintEngine::kept_paths(PathCache::Kind kind, const QPainterPath &shape, Ink ink,
+                                                      const QPen &pen, Make make) {
+    if (!m_path_cache) {
+        return make();
+    }
+    // What the paths depend on besides the shape: the width of a ribbon, or the width, the
+    // caps and the joins of a stroked area.
+    double width = 0.0;
+    int variant = 0;
+    if (ink == Ink::ChalkRibbon) {
+        width = chalk_width(pen);
+    } else if (ink == Ink::StrokedArea) {
+        width = pen.widthF();
+        variant = 1 + static_cast<int>(pen.capStyle()) + static_cast<int>(pen.joinStyle());
+    }
+    return m_path_cache->paths(kind, shape, width, variant, make);
 }
 
 void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
@@ -251,17 +266,16 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
     if (m_pen.style() != Qt::NoPen) {
         // A rectangle with no area is a line: it frames nothing.
         const bool is_frame = kind == ShapeKind::Rectangle && !filled && !shape.boundingRect().isEmpty();
-        const bool as_ribbon = is_ribbon(m_pen);
-        const double width = as_ribbon ? chalk_width(m_pen) : 0.0;
+        const Ink ink = ink_of(m_pen);
         const std::vector<QPainterPath> strokes =
-            kept_paths(is_frame ? PathCache::Kind::FrameOutline : PathCache::Kind::Outline, shape, width, [&] {
+            kept_paths(is_frame ? PathCache::Kind::FrameOutline : PathCache::Kind::Outline, shape, ink, m_pen, [&] {
                 const std::uint32_t shape_seed = seed(shape);
                 std::vector<QPainterPath> inked_strokes;
                 std::uint32_t stroke_seed = shape_seed;
                 for (const QPainterPath &outline : m_geometry_engine.outline(shape, options, shape_seed)) {
                     // Each stroke of the outline gets its own seed: with chalk, its own pressure and gaps.
                     inked_strokes.push_back(
-                        inked(is_frame ? kept_outside(outline, shape) : outline, as_ribbon, width, ++stroke_seed));
+                        inked(is_frame ? kept_outside(outline, shape) : outline, ink, m_pen, ++stroke_seed));
                 }
                 return inked_strokes;
             });
@@ -272,19 +286,18 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
 }
 
 void HandPaintEngine::fill_shape(const QPainterPath &shape, const RoughOptions &options) {
-    const QPainterPath area = kept_paths(PathCache::Kind::FillArea, shape, 0.0, [&] {
+    const QPainterPath area = kept_paths(PathCache::Kind::FillArea, shape, Ink::Line, QPen(), [&] {
         return std::vector<QPainterPath>{m_geometry_engine.fill_area(shape, options, seed(shape))};
     }).front();
     const QPen hachure_pen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap);
     QPainterPath hachure;
     if (is_hatched(m_brush)) {
-        const bool as_ribbon = is_ribbon(hachure_pen);
-        const double width = as_ribbon ? chalk_width(hachure_pen) : 0.0;
-        hachure = kept_paths(PathCache::Kind::Hachure, shape, width, [&] {
+        const Ink ink = ink_of(hachure_pen);
+        hachure = kept_paths(PathCache::Kind::Hachure, shape, ink, hachure_pen, [&] {
             const std::uint32_t shape_seed = seed(shape);
             const QPainterPath lines = m_geometry_engine.hachure(shape, options, shape_seed);
             // No lines: the shape cannot be hatched, and no ribbon stands for that.
-            return std::vector<QPainterPath>{lines.isEmpty() ? lines : inked(lines, as_ribbon, width, shape_seed)};
+            return std::vector<QPainterPath>{lines.isEmpty() ? lines : inked(lines, ink, hachure_pen, shape_seed)};
         }).front();
     }
     if (hachure.isEmpty()) {
@@ -309,13 +322,35 @@ bool HandPaintEngine::is_hatched(const QBrush &brush) const {
     return brush.style() != Qt::SolidPattern || brush.color() != paper.color();
 }
 
-bool HandPaintEngine::is_ribbon(const QPen &pen) const {
-    return m_theme.medium() == Medium::Chalk && is_plain_line(pen);
+HandPaintEngine::Ink HandPaintEngine::ink_of(const QPen &pen) const {
+    if (!is_plain_line(pen)) {
+        return Ink::Line;
+    }
+    if (m_theme.medium() == Medium::Chalk) {
+        return Ink::ChalkRibbon;
+    }
+    // The target strokes a line of one device pixel fast. A wider one, it turns into an area at
+    // every repaint: with a path cache, that area is made once and kept.
+    const bool is_thin = pen.isCosmetic() || pen.widthF() * m_target_scale <= 1.0;
+    return m_path_cache && !is_thin ? Ink::StrokedArea : Ink::Line;
 }
 
-QPainterPath HandPaintEngine::inked(const QPainterPath &stroke, bool as_ribbon, double width,
+QPainterPath HandPaintEngine::inked(const QPainterPath &stroke, Ink ink, const QPen &pen,
                                     std::uint32_t stroke_seed) const {
-    return as_ribbon ? chalk_ribbon(stroke, width, stroke_seed) : stroke;
+    switch (ink) {
+    case Ink::ChalkRibbon:
+        return chalk_ribbon(stroke, chalk_width(pen), stroke_seed);
+    case Ink::StrokedArea: {
+        QPainterPathStroker stroker;
+        stroker.setWidth(pen.widthF());
+        stroker.setCapStyle(pen.capStyle());
+        stroker.setJoinStyle(pen.joinStyle());
+        stroker.setMiterLimit(pen.miterLimit());
+        return stroker.createStroke(stroke);
+    }
+    default:
+        return stroke;
+    }
 }
 
 void HandPaintEngine::draw_stroke(const QPainterPath &inked_stroke, const QPen &pen, StrokeKind kind) {
@@ -327,11 +362,19 @@ void HandPaintEngine::draw_stroke(const QPainterPath &inked_stroke, const QPen &
     const double widest = is_chalk ? width * ChalkWidestPressure : width;
     const int system_clip_margin =
         kind == StrokeKind::Outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + widest)) : 0;
-    if (!is_chalk) {
-        draw_on_target(inked_stroke, pen, Qt::NoBrush, system_clip_margin);
-    } else if (is_ribbon(pen)) {
+    switch (ink_of(pen)) {
+    case Ink::ChalkRibbon:
         draw_on_target(inked_stroke, Qt::NoPen, chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()),
                        system_clip_margin);
+        return;
+    case Ink::StrokedArea:
+        draw_on_target(inked_stroke, Qt::NoPen, pen.brush(), system_clip_margin);
+        return;
+    default:
+        break;
+    }
+    if (!is_chalk) {
+        draw_on_target(inked_stroke, pen, Qt::NoBrush, system_clip_margin);
     } else {
         // A dashed line keeps its dashes: it only gets the grain.
         QPen grainy_pen = chalk_pen(pen, ChalkGrain::Stroke);

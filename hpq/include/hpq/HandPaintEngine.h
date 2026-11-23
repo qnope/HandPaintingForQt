@@ -62,16 +62,20 @@ private:
     // Whether a shape filled with `brush` gets hachures: the theme asks for them, and they
     // would show on the paper without hiding a drawing that `brush` lets through.
     bool is_hatched(const QBrush &brush) const;
-    // Whether a stroke drawn with `pen` is a chalk ribbon: an area to fill, not a line.
-    bool is_ribbon(const QPen &pen) const;
-    // The path that draws `stroke` with a pen of `width`: itself, or its chalk ribbon, whose
-    // pressure and gaps come from `stroke_seed`.
-    QPainterPath inked(const QPainterPath &stroke, bool as_ribbon, double width, std::uint32_t stroke_seed) const;
+    // How a stroke is put on the target: as a line that the target strokes with the pen, or as
+    // an area to fill, either the ribbon of a chalk or the line stroked once and for all.
+    enum class Ink { Line, ChalkRibbon, StrokedArea };
+    // How a stroke drawn with `pen` is put on the target.
+    Ink ink_of(const QPen &pen) const;
+    // The path that draws `stroke` with `pen` as `ink`: itself, its chalk ribbon, whose
+    // pressure and gaps come from `stroke_seed`, or the area that the pen covers along it.
+    QPainterPath inked(const QPainterPath &stroke, Ink ink, const QPen &pen, std::uint32_t stroke_seed) const;
     // Draws on the target, with `pen` and the medium of the theme, a stroke that inked() made.
     void draw_stroke(const QPainterPath &inked_stroke, const QPen &pen, StrokeKind kind);
-    // The paths of `kind` for `shape` and `parameter`, from the path cache when there is one.
+    // The paths of `kind` for `shape` drawn with `pen` as `ink`, from the path cache when
+    // there is one.
     template <typename Make>
-    std::vector<QPainterPath> kept_paths(PathCache::Kind kind, const QPainterPath &shape, double parameter,
+    std::vector<QPainterPath> kept_paths(PathCache::Kind kind, const QPainterPath &shape, Ink ink, const QPen &pen,
                                          Make make);
     // `brush` as the medium of the theme lays it on an area: unchanged by a pencil; with chalk,
     // rubbed on the grain, or the slate itself when it has the color of the slate.
@@ -104,6 +108,8 @@ private:
     // The bounds of what the target painter can paint (its clips), in its coordinates; none
     // when nothing limits it.
     std::optional<QRectF> m_target_sight;
+    // How many device pixels of the target one pixel of its painter covers.
+    double m_target_scale = 1.0;
     const Theme &m_theme;
     const GeometryEngine &m_geometry_engine;
     PathCache *m_path_cache;

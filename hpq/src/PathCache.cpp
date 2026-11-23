@@ -36,6 +36,7 @@ std::size_t PathCache::KeyHash::operator()(const Key &key) const {
     std::uint64_t hash = 0x243f6a8885a308d3ULL;
     mix(hash, static_cast<std::uint64_t>(key.kind));
     mix(hash, bits_of(key.parameter));
+    mix(hash, static_cast<std::uint64_t>(key.variant));
     mix(hash, static_cast<std::uint64_t>(key.shape.fillRule()));
     for (int index = 0; index < key.shape.elementCount(); ++index) {
         const QPainterPath::Element element = key.shape.elementAt(index);
@@ -48,7 +49,7 @@ std::size_t PathCache::KeyHash::operator()(const Key &key) const {
 
 // The same elements, bit for bit: QPainterPath::operator== compares them loosely.
 bool PathCache::KeyEqual::operator()(const Key &a, const Key &b) const {
-    if (a.kind != b.kind || bits_of(a.parameter) != bits_of(b.parameter) ||
+    if (a.kind != b.kind || bits_of(a.parameter) != bits_of(b.parameter) || a.variant != b.variant ||
         a.shape.fillRule() != b.shape.fillRule() || a.shape.elementCount() != b.shape.elementCount()) {
         return false;
     }
