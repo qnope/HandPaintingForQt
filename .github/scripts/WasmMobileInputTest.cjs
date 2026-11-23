@@ -1,6 +1,7 @@
 // Test of the WebAssembly site on a phone: opens it in a browser that emulates a phone, taps the
 // line edit and types, and checks that the page keeps the focus where Qt puts it to open the
-// virtual keyboard, and that the text reaches the widget.
+// virtual keyboard, and that the text reaches the widget. Then double taps a cell of the table
+// and checks the same for the editor of the cell.
 //
 // An emulated phone has no virtual keyboard and is not Safari on iOS: the test checks what the
 // keyboard depends on, not the keyboard itself.
@@ -15,6 +16,8 @@ const Phone = 'Pixel 7';
 const SettleMs = 300;
 const TextTyped = 'ab';
 const TextComposed = 'cd';
+// Typed in the editor of a cell: fits a cell that holds a number as well as one that holds text.
+const CellTextTyped = '42';
 // Events the browser makes of a tap, after the pointer and touch events.
 const MouseEventsOfTap = ['mousedown', 'mouseup', 'click'];
 
@@ -199,10 +202,15 @@ async function main()
         const cell_text = await probe('text_field_value');
         expect(typeof cell_text === 'string' && cell_text.length > 0,
                `The text field of Qt holds the text of the cell: "${cell_text}".`);
-        // DIAGNOSTIC (temporary): what one more tap in the open editor does.
+
+        await page.keyboard.type(CellTextTyped, { delay: 50 });
+        await page.waitForTimeout(SettleMs);
+        // A tap in the editor: Qt copies the text of the editor to its text field.
         await page.touchscreen.tap(cell_x, cell_y);
         await page.waitForTimeout(SettleMs);
-        console.log(`After one more tap in the editor: focus=${await probe('text_field_has_focus')} value="${await probe('text_field_value')}"`);
+        const edited_text = await probe('text_field_value');
+        expect(edited_text === CellTextTyped,
+               `The text typed replaces the text of the cell in its editor: "${edited_text}", expected "${CellTextTyped}".`);
     } finally {
         await browser.close();
         server.close();
