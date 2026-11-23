@@ -2,39 +2,36 @@
 
 #include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
+#include <hpq/Theme.h>
 
 #include <QObject>
-#include <QPointer>
 
-class QWidget;
+#include <memory>
 
 namespace hpq {
 
-// An event filter that gives the menus, the dialogs and the tooltips of an application the theme
-// of the widget that opens them. They are windows of their own, which apply_theme on that widget
-// does not reach. The application decides whether they follow it, by installing the filter:
+// An event filter that gives a theme to the menus, the dialogs and the tooltips of an
+// application. They are windows of their own, which apply_theme on a widget does not reach.
+// The application installs it if it wants them themed:
 //
-//     hpq::WindowTheming window_theming;
+//     hpq::WindowTheming window_theming(theme, geometry_engine);
 //     application.installEventFilter(&window_theming);
 //
-// A window is opened by its parent widget, and a tooltip without parent (as under Windows) by the
-// widget that asked for it. When it is polished, before Qt computes its size, and each time it
-// is shown, the window gets the theme of the nearest of its opener and the ancestors of its opener
-// given one with apply_theme, or loses its theme if none has one. A window without opener, such
-// as the main window, is left as it is.
+// Each window that is not a main window (Qt::Window) gets apply_theme when it is polished,
+// before Qt computes its size with its font, and each time it is shown, so that a window themed
+// by a WindowTheming installed before takes the theme of this one.
 class HPQ_EXPORT WindowTheming : public QObject {
     Q_OBJECT
 
 public:
-    using QObject::QObject;
+    WindowTheming(Theme theme, std::shared_ptr<const GeometryEngine> geometry_engine,
+                  QObject *parent = nullptr);
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
-    void follow_opener(QWidget &window) const;
-
-    // The last widget that got a tooltip event: a tooltip is made while that widget handles it.
-    QPointer<QWidget> m_tool_tip_asker;
+    Theme m_theme;
+    std::shared_ptr<const GeometryEngine> m_geometry_engine;
 };
 
 }  // namespace hpq

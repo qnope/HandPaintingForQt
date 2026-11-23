@@ -1,7 +1,6 @@
 #include "MainWindow.h"
 
 #include <QAction>
-#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGraphicsItem>
@@ -27,7 +26,6 @@
 #include <hpq/SlateTheme.h>
 #include <hpq/VelledaTheme.h>
 #include <hpq/WatercolorTheme.h>
-#include <hpq/WindowTheming.h>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
@@ -175,18 +173,27 @@ TEST(MainWindow, StartsWithTheSketchThemeApplied)
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
-// The application installs a WindowTheming, as Main.cpp does.
 TEST(MainWindow, AboutOpensAMessageBoxInTheThemeOfTheWindow)
 {
-    hpq::WindowTheming window_theming;
-    QApplication::instance()->installEventFilter(&window_theming);
     hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(BlackSlateIndex);
     find<QAction>(w, "actionAbout")->trigger();
     auto *about = w.findChild<QMessageBox *>();
     ASSERT_NE(about, nullptr);
     EXPECT_TRUE(about->isVisible());
     EXPECT_TRUE(has_hand_paint_effect(*about));
-    EXPECT_EQ(about->palette(), hpq::sketch_theme().palette());
+    EXPECT_EQ(about->palette(), hpq::slate_theme().palette());
+    about->close();
+}
+
+TEST(MainWindow, WithoutThemeAboutOpensAPlainMessageBox)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
+    find<QAction>(w, "actionAbout")->trigger();
+    auto *about = w.findChild<QMessageBox *>();
+    ASSERT_NE(about, nullptr);
+    EXPECT_EQ(about->graphicsEffect(), nullptr);
     about->close();
 }
 

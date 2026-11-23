@@ -18,6 +18,7 @@
 #include <hpq/WatercolorTheme.h>
 
 #include <QAction>
+#include <QApplication>
 #include <QBrush>
 #include <QCheckBox>
 #include <QComboBox>
@@ -154,10 +155,14 @@ void MainWindow::update_theme()
         m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
     const std::optional<hpq::Theme> theme = theme_for(m_ui->comboBox->currentIndex(), fill_style);
     if (!theme) {
+        m_window_theming.reset();
         hpq::remove_theme(*this);
         return;
     }
-    hpq::apply_theme(*this, *theme, std::make_shared<const hpq::RoughGeometryEngine>());
+    const auto geometry_engine = std::make_shared<const hpq::RoughGeometryEngine>();
+    hpq::apply_theme(*this, *theme, geometry_engine);
+    m_window_theming.emplace(*theme, geometry_engine);
+    QApplication::instance()->installEventFilter(&*m_window_theming);
 }
 
 void MainWindow::show_about()

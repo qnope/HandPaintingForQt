@@ -2,8 +2,6 @@
 #include "MainWindow.h"
 #include "PlatformMessages.h"
 
-#include <hpq/WindowTheming.h>
-
 #include <QApplication>
 #include <QTimer>
 
@@ -27,9 +25,6 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
     hpq::example::apply_default_font();
-    // The menus, the dialogs and the tooltips take the theme of the widget that opens them.
-    hpq::WindowTheming window_theming;
-    app.installEventFilter(&window_theming);
 
     hpq::example::MainWindow window;
     show_main_window(window);
