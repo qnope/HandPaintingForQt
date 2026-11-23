@@ -123,21 +123,45 @@ public:
     }
 };
 
+// The widget that `device` is; null when it is another device.
+const QWidget *widget_of(const QPaintDevice *device) {
+    if (device == nullptr || device->devType() != QInternal::Widget) {
+        return nullptr;
+    }
+    return static_cast<const QWidget *>(device);
+}
+
+// The scroll area whose viewport is `widget`; null when it is not a viewport.
+const QAbstractScrollArea *scroll_area_of(const QWidget &widget) {
+    const auto *area = qobject_cast<const QAbstractScrollArea *>(widget.parentWidget());
+    return area != nullptr && area->viewport() == &widget ? area : nullptr;
+}
+
 // How far the content shown by `device` is scrolled: none, unless it is the viewport of a
 // scroll area.
 QPointF scroll_offset(const QPaintDevice *device) {
-    if (device == nullptr || device->devType() != QInternal::Widget) {
-        return QPointF();
-    }
-    const auto *widget = static_cast<const QWidget *>(device);
-    const auto *area = qobject_cast<const QAbstractScrollArea *>(widget->parentWidget());
-    if (area == nullptr || area->viewport() != widget) {
+    const QWidget *widget = widget_of(device);
+    const QAbstractScrollArea *area = widget != nullptr ? scroll_area_of(*widget) : nullptr;
+    if (area == nullptr) {
         return QPointF();
     }
     if (const auto *view = qobject_cast<const QAbstractItemView *>(area)) {
         return ItemViewOffsets::of(*view);
     }
     return QPointF(area->horizontalScrollBar()->value(), area->verticalScrollBar()->value());
+}
+
+// Where `widget` may draw, in its coordinates: up to `margin` past its rectangle, but not past
+// the viewport of a scroll area that shows it. A viewport cuts what it shows at its edges:
+// past them is the frame of its scroll area, and what is around it.
+QRect drawable_rect(const QWidget &widget, int margin) {
+    QRect drawable = widget.rect().adjusted(-margin, -margin, margin, margin);
+    for (const QWidget *ancestor = &widget; !ancestor->isWindow(); ancestor = ancestor->parentWidget()) {
+        if (scroll_area_of(*ancestor) != nullptr) {
+            drawable &= QRect(widget.mapFrom(ancestor, QPoint()), ancestor->size());
+        }
+    }
+    return drawable;
 }
 
 // The pixels of the device of `painter` that it can paint in `area`: those in its clip, and in
@@ -566,7 +590,12 @@ void HandPaintEngine::save_target_in_device_coordinates(int system_clip_margin) 
     // styles draw past it (for example the fill of a selected tab) and rely on it to cut.
     const QRegion system_clip = systemClip();
     if (!system_clip.isEmpty()) {
-        m_target.setClipRegion(grown(system_clip, system_clip_margin), Qt::IntersectClip);
+        QRegion clip = grown(system_clip, system_clip_margin);
+        const QWidget *widget = widget_of(painter()->device());
+        if (system_clip_margin > 0 && widget != nullptr) {
+            clip &= drawable_rect(*widget, system_clip_margin).translated(widget_origin().toPoint());
+        }
+        m_target.setClipRegion(clip, Qt::IntersectClip);
     }
     if (m_clipping) {
         m_target.setClipPath(m_clip, Qt::IntersectClip);
