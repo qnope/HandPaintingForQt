@@ -57,7 +57,7 @@ private:
     // would show on the paper without hiding a drawing that `brush` lets through.
     bool is_hatched(const QBrush &brush) const;
     // Draws one stroke on the target with `pen` and the medium of the theme.
-    // `stroke_seed` gives a chalk stroke its pressure and its gaps.
+    // `stroke_seed` gives a chalk stroke its pressure and its gaps, and a brush stroke its pressure.
     void draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed, StrokeKind kind);
     // `brush` as the medium of the theme lays it on an area: unchanged by a pencil; with chalk,
     // rubbed on the grain, or the slate itself when it has the color of the slate.

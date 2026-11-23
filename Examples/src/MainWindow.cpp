@@ -5,6 +5,7 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
+#include <hpq/ChinaInkTheme.h>
 #include <hpq/NotebookTheme.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
@@ -31,16 +32,19 @@ namespace hpq::example {
 
 namespace {
 constexpr int SketchIndex = 0;
+constexpr int ChinaInkIndex = 1;
 constexpr int BlackSlateIndex = 2;
 constexpr int SchoolNotebookIndex = 3;
 constexpr int VelledaIndex = 4;
 
-// The theme of an entry of the combo box; nothing for an entry whose theme does not exist yet.
+// The theme of an entry of the combo box, or nothing when `index` is not one of its entries.
 std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
 {
     switch (index) {
     case SketchIndex:
         return hpq::sketch_theme(fill_style);
+    case ChinaInkIndex:
+        return hpq::china_ink_theme(fill_style);
     case BlackSlateIndex:
         return hpq::slate_theme(fill_style);
     case SchoolNotebookIndex:
