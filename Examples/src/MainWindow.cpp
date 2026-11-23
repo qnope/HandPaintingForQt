@@ -10,6 +10,7 @@
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
 #include <hpq/Theming.h>
+#include <hpq/VelledaTheme.h>
 
 #include <QBrush>
 #include <QCheckBox>
@@ -32,6 +33,7 @@ namespace {
 constexpr int SketchIndex = 0;
 constexpr int BlackSlateIndex = 2;
 constexpr int SchoolNotebookIndex = 3;
+constexpr int VelledaIndex = 4;
 
 // The theme of an entry of the combo box; nothing for an entry whose theme does not exist yet.
 std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
@@ -43,6 +45,8 @@ std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
         return hpq::slate_theme(fill_style);
     case SchoolNotebookIndex:
         return hpq::notebook_theme(fill_style);
+    case VelledaIndex:
+        return hpq::velleda_theme(fill_style);
     default:
         return std::nullopt;
     }
@@ -94,6 +98,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
     m_ui->comboBox->addItems({"Sketch", "China Ink", "Black slate and chalk", "School notebook"});
+    m_ui->comboBox->addItem("Velleda");
 
     auto table_model = create_table_model();
     table_model->setParent(this);

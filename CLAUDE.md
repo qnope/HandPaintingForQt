@@ -8,6 +8,7 @@ Simple library allowing to perform custom painting à la Rough.js with Qt widget
 2. China Ink
 3. Black slate and chalk
 4. School notebook
+5. Velleda
 
 ## Build Targets
 1. Windows: MSVC
