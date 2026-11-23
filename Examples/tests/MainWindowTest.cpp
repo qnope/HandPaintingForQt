@@ -14,6 +14,7 @@
 #include <QTableView>
 #include <QTreeView>
 #include <gtest/gtest.h>
+#include <hpq/BlueprintTheme.h>
 #include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintEffect.h>
 #include <hpq/NotebookTheme.h>
@@ -67,13 +68,14 @@ TEST(MainWindow, ComboBoxHoldsTheThemes)
     hpq::example::MainWindow w;
     auto *combo = find<QComboBox>(w, "comboBox");
     ASSERT_NE(combo, nullptr);
-    ASSERT_EQ(combo->count(), 6);
+    ASSERT_EQ(combo->count(), 7);
     EXPECT_EQ(combo->itemText(0), "Sketch");
     EXPECT_EQ(combo->itemText(1), "China Ink");
     EXPECT_EQ(combo->itemText(2), "Black slate and chalk");
     EXPECT_EQ(combo->itemText(3), "School notebook");
     EXPECT_EQ(combo->itemText(4), "Velleda");
     EXPECT_EQ(combo->itemText(5), "Watercolor");
+    EXPECT_EQ(combo->itemText(6), "Blueprint");
 }
 
 TEST(MainWindow, TableViewUsesTheTableModel)
@@ -128,6 +130,7 @@ constexpr int BlackSlateIndex = 2;
 constexpr int SchoolNotebookIndex = 3;
 constexpr int VelledaIndex = 4;
 constexpr int WatercolorIndex = 5;
+constexpr int BlueprintIndex = 6;
 // The index of a combo box without a current entry.
 constexpr int NoEntryIndex = -1;
 } // namespace
@@ -280,6 +283,25 @@ TEST(MainWindow, CheckingHachuresUnderWatercolorAppliesTheHatchedWatercolorTheme
     EXPECT_EQ(w.palette(), hpq::watercolor_theme(hpq::FillStyle::Hachure).palette());
 }
 
+TEST(MainWindow, SelectingBlueprintAppliesTheBlueprintTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(BlueprintIndex);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::blueprint_theme().palette());
+    EXPECT_EQ(w.font().family(), "Architects Daughter");
+    EXPECT_EQ(w.font().capitalization(), QFont::AllUppercase);
+}
+
+TEST(MainWindow, CheckingHachuresUnderBlueprintAppliesTheHatchedBlueprintTheme)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(BlueprintIndex);
+    find<QCheckBox>(w, "checkBox")->setChecked(true);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::blueprint_theme(hpq::FillStyle::Hachure).palette());
+}
+
 class MainWindowOtherTheme : public ::testing::TestWithParam<int>
 {
 };
@@ -296,4 +318,4 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
 
 INSTANTIATE_TEST_SUITE_P(NoEntryAndEveryOtherTheme, MainWindowOtherTheme,
                          ::testing::Values(NoEntryIndex, ChinaInkIndex, BlackSlateIndex, SchoolNotebookIndex,
-                                           VelledaIndex, WatercolorIndex));
+                                           VelledaIndex, WatercolorIndex, BlueprintIndex));
