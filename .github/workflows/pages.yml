@@ -1,7 +1,7 @@
 name: Pages
 
 # Builds the example application with Qt for WebAssembly, checks that it starts in a browser
-# and, on main, publishes it on GitHub Pages.
+# and that text can be typed in it on a phone and, on main, publishes it on GitHub Pages.
 # The repository setting "Pages > Build and deployment > Source" must be "GitHub Actions".
 
 on:
@@ -23,7 +23,7 @@ env:
   # Emscripten release the Qt for WebAssembly binaries of QtVersion are built with:
   # https://doc.qt.io/qt-6.8/wasm.html
   EmscriptenVersion: '3.1.56'
-  # Used by the smoke test only.
+  # Used by the tests of the site only.
   PlaywrightVersion: '1.63.0'
 
 jobs:
@@ -99,6 +99,13 @@ jobs:
           export CHROME_BIN="${CHROME_BIN:-$(command -v google-chrome)}"
           NODE_PATH="$RUNNER_TEMP/smoke-test/node_modules" \
             node .github/scripts/WasmSmokeTest.cjs _site "$RUNNER_TEMP/application.png"
+
+      # In a browser that emulates a phone: the page keeps the focus where Qt puts it to open the
+      # virtual keyboard, and the text typed reaches the line edit.
+      - name: Check that text can be typed on a phone
+        run: |
+          NODE_PATH="$RUNNER_TEMP/smoke-test/node_modules" \
+            node .github/scripts/WasmMobileInputTest.cjs _site
 
       - name: Upload the screenshot of the application
         if: always()
