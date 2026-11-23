@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 
+#include "ItemEditorInputPanel.h"
 #include "TableModelFactory.h"
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
@@ -101,6 +102,10 @@ MainWindow::MainWindow(QWidget *parent)
     auto tree_model = create_tree_model();
     tree_model->setParent(this);
     m_ui->treeView->setModel(tree_model.release());
+
+    // Each is owned by its view.
+    new ItemEditorInputPanel(*m_ui->tableView);
+    new ItemEditorInputPanel(*m_ui->treeView);
 
     m_ui->graphicsView->setScene(create_shapes_scene(this));
 
