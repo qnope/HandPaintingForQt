@@ -8,6 +8,7 @@
 #include "BrushStroke.h"
 #include "ChalkStroke.h"
 #include "ChalkTexture.h"
+#include "PathTiles.h"
 #include "WatercolorTexture.h"
 #include "WatercolorWash.h"
 
@@ -528,7 +529,17 @@ void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &br
     }
     m_target.setPen(Qt::NoPen);
     m_target.setBrush(brush);
-    m_target.drawPath(area.translated(m_origin));
+    const QPainterPath glaze = area.translated(m_origin);
+    // The raster engine of Qt smooths a path in bands, and goes over the whole path for each
+    // band: a long line takes as many passes as it is long. Cut in tiles, it takes one pass a
+    // tile. Another engine might smooth each tile on its own, and show the cuts.
+    if (m_target.paintEngine()->type() == QPaintEngine::Raster) {
+        for (const QPainterPath &piece : path_tiles(glaze, m_target.deviceTransform())) {
+            m_target.drawPath(piece);
+        }
+    } else {
+        m_target.drawPath(glaze);
+    }
     m_target.restore();
 }
 

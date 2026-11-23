@@ -218,6 +218,53 @@ TEST(WatercolorMedium, SameLineGivesTheSameRibbon) {
     EXPECT_EQ(first[0].path, second[0].path);
 }
 
+// The largest difference between a channel of a pixel of `first` and the same of `second`.
+int largest_difference(const QImage &first, const QImage &second) {
+    int largest = 0;
+    for (int y = 0; y < first.height(); ++y) {
+        for (int x = 0; x < first.width(); ++x) {
+            const QRgb a = first.pixel(x, y);
+            const QRgb b = second.pixel(x, y);
+            largest = std::max({largest, std::abs(qRed(a) - qRed(b)), std::abs(qGreen(a) - qGreen(b)),
+                                std::abs(qBlue(a) - qBlue(b))});
+        }
+    }
+    return largest;
+}
+
+// The calls of `draw` laid on paper as they were given: each path whole, in one fill.
+QImage calls_on_paper(const Draw &draw) {
+    QImage sheet(RecordingPaintDevice::Size, RecordingPaintDevice::Size, QImage::Format_ARGB32_Premultiplied);
+    sheet.fill(paper_color());
+    QPainter painter(&sheet);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+    painter.setPen(Qt::NoPen);
+    for (const DrawCall &call : watercolor_calls(draw)) {
+        painter.setTransform(call.transform);
+        painter.setBrush(call.brush);
+        painter.drawPath(call.path);
+    }
+    return sheet;
+}
+
+// An image gets a long line, or the outline of a large shape, in pieces that it smooths
+// faster: they paint it as the whole path does, with no seam.
+TEST(WatercolorMedium, LongLineIsPaintedAsOnePath) {
+    const Draw draw_frame = [](QPainter &painter) {
+        painter.setPen(QPen(PenColor, PenWidth));
+        painter.drawRect(QRect(10, 10, 180, 180));
+    };
+    for (const Draw &draw : {Draw(draw_line), draw_frame}) {
+        const QImage expected = calls_on_paper(draw);
+        QImage paper = expected;
+        paper.fill(paper_color());
+        ASSERT_GT(largest_difference(expected, paper), 60);
+
+        EXPECT_LE(largest_difference(painted_on_paper(draw), expected), 3);
+    }
+}
+
 // A line only darkens what is under it: it does not show on a darker line.
 TEST(WatercolorMedium, LineDoesNotShowOnADarkerOne) {
     const int y = static_cast<int>(Line.y1());
