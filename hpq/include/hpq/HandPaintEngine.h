@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hpq/FwdDecls.h>
+#include <hpq/PaintCache.h>
 
 #include <QBrush>
 #include <QPaintEngine>
@@ -10,6 +11,7 @@
 #include <QTransform>
 
 #include <cstdint>
+#include <vector>
 
 class QPainter;
 
@@ -17,9 +19,13 @@ namespace hpq {
 
 // Paint engine that draws each primitive it receives on a target QPainter,
 // changed by a GeometryEngine and drawn as a Theme says.
+// With a cache, it keeps there the rough paths and the washes that it makes, and takes them
+// back when it draws the same shape again: the drawing is the same, made faster. The cache
+// must serve this theme and this geometry engine only, and outlive the engine.
 class HandPaintEngine : public QPaintEngine {
 public:
-    HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine);
+    HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
+                    PaintCache *cache = nullptr);
 
     bool begin(QPaintDevice *device) override;
     bool end() override;
@@ -46,6 +52,18 @@ private:
     enum class ShapeKind { Open, Closed, Rectangle };
     // What a stroke draws: the outline of a shape, or the lines of a hatched fill.
     enum class StrokeKind { Outline, Hachure };
+    // The area that the tool of a medium marks along a stroke, filled instead of stroking it.
+    enum class Ribbon { None, Chalk, Brush };
+    // How a pen draws a stroke with the medium of the theme.
+    struct Tool {
+        Ribbon ribbon = Ribbon::None;
+        // The width, in pixels, of the line that the tool draws.
+        double width = 0.0;
+        // How far past the area of the widget being rendered the tool may draw.
+        int system_clip_margin = 0;
+    };
+    // The seed of the shape being drawn, made when it is first asked for.
+    class ShapeSeed;
 
     // Draws `shape` on the target: its fill when it is not open and the brush is set,
     // then its rough outline strokes when the pen is set.
@@ -57,8 +75,12 @@ private:
     // Fills `shape` on the target with the brush, as the fill style of the theme says.
     // Here and below, a shape, an area or a stroke is in the coordinates of the content: in
     // device pixels, counted from m_origin.
-    void fill_shape(const QPainterPath &shape, ShapeKind kind, const RoughOptions &options,
-                    std::uint32_t shape_seed);
+    void fill_shape(const QPainterPath &shape, ShapeKind kind, const RoughOptions &options, ShapeSeed &shape_seed);
+    // The paths of `kind` that `tool` draws for `shape`: the ones `make` returns, or the ones
+    // it returned for the same shape and the same tool when the engine has a cache.
+    template <typename Make>
+    std::vector<QPainterPath> kept_paths(PaintCache::PathKind kind, const QPainterPath &shape, const Tool &tool,
+                                         Make make);
     // Lays `brush` on `area` as the medium of the theme does. `is_band` tells that the area
     // is a rectangle without outline, which watercolor paints in one stroke of a flat brush.
     void lay_on_target(const QPainterPath &area, const QBrush &brush, bool is_band);
@@ -68,10 +90,14 @@ private:
     // Whether a shape filled with `brush` gets hachures: the theme asks for them, and they
     // would show on the paper without hiding a drawing that `brush` lets through.
     bool is_hatched(const QBrush &brush) const;
-    // Draws one stroke on the target with `pen` and the medium of the theme.
+    // How `pen` draws a stroke of `kind` with the medium of the theme.
+    Tool tool_of(const QPen &pen, StrokeKind kind) const;
+    // What `tool` marks along `stroke`: its ribbon, or the stroke itself when it has none.
     // `stroke_seed` gives a chalk stroke its pressure and its gaps, and a brush stroke its pressure.
+    QPainterPath marked(const QPainterPath &stroke, const Tool &tool, std::uint32_t stroke_seed) const;
+    // Draws on the target what `tool` marked along a stroke, with `pen` and the medium of the theme.
     // A watercolor stroke has a smooth edge, and only darkens what is under it.
-    void draw_stroke(const QPainterPath &stroke, const QPen &pen, std::uint32_t stroke_seed, StrokeKind kind);
+    void draw_marked(const QPainterPath &marked_stroke, const QPen &pen, const Tool &tool);
     // `brush` as the medium of the theme lays it on an area: unchanged by a pencil; with chalk,
     // rubbed on the grain, or the slate itself when it has the color of the slate; with
     // watercolor, the grainy paper when it has the color of the paper.
@@ -116,6 +142,8 @@ private:
     QPainter &m_target;
     const Theme &m_theme;
     const GeometryEngine &m_geometry_engine;
+    // Where the paths and washes made for a shape are kept; null when they are made at each drawing.
+    PaintCache *m_cache;
     QPen m_pen;
     QBrush m_brush;
     // The device painter's world transform: shapes are mapped by it to device coordinates

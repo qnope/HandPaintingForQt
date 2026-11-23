@@ -1,5 +1,7 @@
 #pragma once
 
+#include <hpq/FwdDecls.h>
+
 #include <QColor>
 #include <QPainterPath>
 
@@ -28,6 +30,9 @@ enum class WashKind {
 // What is laid depends only on the arguments and on the place: a painter that draws a part of
 // the wash through a clip draws the same pixels as one that draws it whole.
 // Leaves the painter with another composition mode.
-void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind);
+// With a cache, the wash is made whole the first time and kept there, then taken back when
+// the same wash is laid again, at any place: what is laid is the same.
+void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind,
+                PaintCache *cache = nullptr);
 
 }  // namespace hpq

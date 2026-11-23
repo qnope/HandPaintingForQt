@@ -7,8 +7,9 @@ Q_GUI_EXPORT int qt_paint_device_metric(const QPaintDevice *device, QPaintDevice
 
 namespace hpq {
 
-HandPaintDevice::HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine)
-    : m_target(target), m_engine(target, theme, geometry_engine) {}
+HandPaintDevice::HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
+                                 PaintCache *cache)
+    : m_target(target), m_engine(target, theme, geometry_engine, cache) {}
 
 QPaintEngine *HandPaintDevice::paintEngine() const { return &m_engine; }
 
