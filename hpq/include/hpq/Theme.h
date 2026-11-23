@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FillStyle.h>
 #include <hpq/FwdDecls.h>
 #include <hpq/Medium.h>
@@ -15,7 +16,7 @@ namespace hpq {
 // What a hand-painted look draws with: colors, font, roughness, fill, medium, the ink of its
 // text and the marker of its labels.
 // The values are set at construction and can only be read afterwards.
-class Theme {
+class HPQ_EXPORT Theme {
 public:
     Theme(QPalette palette, QFont font, RoughOptions rough_options, FillStyle fill_style,
           Medium medium = Medium::Pencil, TextInk text_ink = TextInk::Visible, QBrush label_marker = Qt::NoBrush);

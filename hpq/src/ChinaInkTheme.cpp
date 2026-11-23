@@ -4,7 +4,8 @@
 #include <QFontDatabase>
 #include <QStringList>
 
-// The resource of a static library must be initialized by hand, outside any namespace.
+// Where hpq is a static library (Qt for WebAssembly), its resource must be initialized by
+// hand, outside any namespace. In the shared library, the call does nothing more.
 static void init_hpq_china_ink_fonts_resource() {
     Q_INIT_RESOURCE(hpq_china_ink_fonts);
 }

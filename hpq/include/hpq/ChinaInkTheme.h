@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/Theme.h>
 
 namespace hpq {
@@ -9,6 +10,6 @@ namespace hpq {
 // Registers the embedded "Kaushan Script" font in QFontDatabase.
 // With FillStyle::Hachure, the text of a selection is ink and not paper: it is read on the
 // paper that shows between the hachures.
-Theme china_ink_theme(FillStyle fill_style = FillStyle::Solid);
+HPQ_EXPORT Theme china_ink_theme(FillStyle fill_style = FillStyle::Solid);
 
 }  // namespace hpq

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/GeometryEngine.h>
 #include <hpq/RoughOptions.h>
 
@@ -11,7 +12,7 @@ namespace hpq {
 // around the original shape, never farther than RoughOptions::max_offset.
 // The wobble comes from the base seed of the engine and the seed of the shape:
 // an engine draws a shape the same way every time, so a repaint changes nothing.
-class RoughGeometryEngine : public GeometryEngine {
+class HPQ_EXPORT RoughGeometryEngine : public GeometryEngine {
 public:
     // Takes its base seed from std::random_device: each engine has its own hand.
     RoughGeometryEngine();

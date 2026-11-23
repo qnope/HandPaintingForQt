@@ -1,6 +1,21 @@
-add_library(hpq STATIC)
+# hpq is a shared library, except with Qt for WebAssembly: Qt is static there and the whole
+# application is linked in one module, so hpq is a static library too.
+if(EMSCRIPTEN)
+  add_library(hpq STATIC)
+  # Tells hpq/Export.h that there is nothing to export or import.
+  target_compile_definitions(hpq PUBLIC HPQ_STATIC)
+else()
+  add_library(hpq SHARED)
+  # Only what hpq/Export.h marks with HPQ_EXPORT leaves the library, on every platform as
+  # with MSVC. DEFINE_SYMBOL is defined while hpq itself is compiled: HPQ_EXPORT exports.
+  set_target_properties(hpq PROPERTIES
+    DEFINE_SYMBOL HPQ_BUILDING_LIBRARY
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON)
+endif()
 add_library(hpq::hpq ALIAS hpq)
 set_target_properties(hpq PROPERTIES AUTOMOC ON)
+hpq_set_runtime_directory(hpq)
 add_subdirectory(src)
 add_subdirectory(include/hpq)
 target_include_directories(hpq PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

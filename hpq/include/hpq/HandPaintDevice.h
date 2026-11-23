@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 #include <hpq/HandPaintEngine.h>
 
@@ -12,7 +13,7 @@ namespace hpq {
 // Paint device that gives a hand-painted look to what is drawn on it: each primitive goes
 // through a HandPaintEngine, which draws it on the target painter.
 // The target painter, the theme and the geometry engine must outlive the device.
-class HandPaintDevice : public QPaintDevice {
+class HPQ_EXPORT HandPaintDevice : public QPaintDevice {
 public:
     HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine);
 

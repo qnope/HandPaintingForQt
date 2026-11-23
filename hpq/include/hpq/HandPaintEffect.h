@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hpq/Export.h>
 #include <hpq/FwdDecls.h>
 #include <hpq/Theme.h>
 
@@ -11,7 +12,7 @@ namespace hpq {
 
 // Graphics effect that draws its source (a widget and its children) through a
 // HandPaintDevice, so every primitive gets the hand-painted look of the theme.
-class HandPaintEffect : public QGraphicsEffect {
+class HPQ_EXPORT HandPaintEffect : public QGraphicsEffect {
     Q_OBJECT
 
 public:
