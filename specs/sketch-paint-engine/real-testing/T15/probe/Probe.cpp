@@ -14,7 +14,7 @@ static void report(QMainWindow &w, const char *tag, const QString &dir)
     for (int i = 0; i < 5; ++i) QApplication::processEvents();
     auto *combo = w.findChild<QComboBox *>("comboBox");
     auto *eff = w.graphicsEffect();
-    bool is_hpe = dynamic_cast<hpq::HandPaintEffect *>(eff) != nullptr;
+    bool is_hpe = qobject_cast<hpq::HandPaintEffect *>(eff) != nullptr;
     hpq::SketchTheme sketch;
     std::printf("[%s] combo index=%d text='%s' effect=%s(%s) palette==Sketch:%d font='%s' window=%s\n",
                 tag, combo->currentIndex(), qPrintable(combo->currentText()),
