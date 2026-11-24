@@ -9,6 +9,16 @@
 cmake_minimum_required(VERSION 3.16)
 project(HpqGallery LANGUAGES CXX)
 
+# Not about hpq: Qt 6.8 links the AGL framework, which the macOS SDK of Xcode 26 no longer has
+# ("framework 'AGL' not found"). Where it is missing, link the OpenGL framework in its place.
+if(APPLE)
+  execute_process(COMMAND xcrun --show-sdk-path
+    OUTPUT_VARIABLE gallery_sdk OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(NOT EXISTS "${gallery_sdk}/System/Library/Frameworks/AGL.framework")
+    set(WrapOpenGL_AGL "-framework OpenGL")
+  endif()
+endif()
+
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(GALLERY_HPQ_SOURCE "find_package" CACHE STRING "How hpq is found: find_package, FetchContent or add_subdirectory")

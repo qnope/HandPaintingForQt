@@ -194,6 +194,23 @@ With `FetchContent` or `add_subdirectory`, setting `CMAKE_RUNTIME_OUTPUT_DIRECTO
 project also builds `hpq.dll` in the directory of your executables. To ship the application,
 `windeployqt` copies Qt next to it.
 
+### On macOS with Qt 6.8 and Xcode 26
+
+Not an issue of hpq, but one you may meet: Qt 6.8 links the AGL framework, which the macOS SDK
+of Xcode 26 no longer has, and the link fails with `framework 'AGL' not found`. Before
+`find_package(Qt6)`, link the OpenGL framework in its place, as this project and
+`Examples/Integration` do:
+
+```cmake
+if(APPLE)
+  execute_process(COMMAND xcrun --show-sdk-path
+    OUTPUT_VARIABLE sdk OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(NOT EXISTS "${sdk}/System/Library/Frameworks/AGL.framework")
+    set(WrapOpenGL_AGL "-framework OpenGL")
+  endif()
+endif()
+```
+
 ### Options
 
 | Option | Default | Effect |
