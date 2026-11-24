@@ -81,6 +81,15 @@ jobs:
       - name: Build
         run: cmake --build build --parallel 4
 
+      # hpq is static here: its fonts, compiled by Qt in object libraries of their own, are
+      # installed and exported with it.
+      - name: Install the static hpq
+        run: |
+          cmake --install build --prefix "$RUNNER_TEMP/hpq"
+          test -f "$RUNNER_TEMP/hpq/lib/libhpq.a"
+          test -f "$RUNNER_TEMP/hpq/lib/cmake/HandPaintingForQt/HandPaintingForQtConfig.cmake"
+          test "$(find "$RUNNER_TEMP/hpq/lib/hpq-objects" -name '*.o' | wc -l)" -eq 3
+
       - name: Assemble the site
         run: |
           mkdir _site

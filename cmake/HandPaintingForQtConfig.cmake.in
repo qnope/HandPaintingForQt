@@ -1,0 +1,15 @@
+# CMake package of HandPaintingForQt, installed with hpq:
+#
+#     find_package(HandPaintingForQt 0.1 REQUIRED)
+#     target_link_libraries(my_application PRIVATE hpq::hpq)
+#
+# hpq::hpq brings its headers, C++17 and Qt6::Widgets.
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Qt6 COMPONENTS Widgets)
+
+include("${CMAKE_CURRENT_LIST_DIR}/HandPaintingForQtTargets.cmake")
+
+check_required_components(HandPaintingForQt)

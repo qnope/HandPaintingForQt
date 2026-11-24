@@ -3,6 +3,7 @@ add_library(HandPaintingExampleLib STATIC)
 set_target_properties(HandPaintingExampleLib PROPERTIES AUTOMOC ON AUTOUIC ON AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ui)
 target_link_libraries(HandPaintingExampleLib PUBLIC Qt6::Widgets hpq::hpq)
 target_include_directories(HandPaintingExampleLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+hpq_set_warnings(HandPaintingExampleLib)
 
 # Application. qt_add_executable also finalizes the target for Qt for WebAssembly
 # (JavaScript entry point, qtloader.js).
@@ -10,6 +11,7 @@ qt_add_executable(HandPaintingExample)
 target_link_libraries(HandPaintingExample PRIVATE HandPaintingExampleLib)
 set_target_properties(HandPaintingExample PROPERTIES AUTOMOC ON)
 hpq_set_runtime_directory(HandPaintingExample)
+hpq_set_warnings(HandPaintingExample)
 
 add_subdirectory(src)
 add_subdirectory(ui)

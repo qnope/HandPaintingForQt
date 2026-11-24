@@ -22,7 +22,7 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -97,3 +97,40 @@ jobs:
           # Qt messages go to the log, also for a test stopped by the timeout.
           QT_FORCE_STDERR_LOGGING: 1
         run: ctest --test-dir build -C Debug --output-on-failure --timeout 120
+
+      # The window of Examples/Integration in each theme, as in the README (tools/screenshots).
+      - name: Upload the screenshots of the themes
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: theme-screenshots
+          path: build/tools/screenshots/images
+          if-no-files-found: ignore
+
+      # The paths given to CMake below have forward slashes: on Windows, cygpath -m turns D:\a\x into D:/a/x.
+      - name: Install hpq
+        run: |
+          to_cmake_path() { if [ "$RUNNER_OS" = "Windows" ]; then cygpath -m "$1"; else echo "$1"; fi; }
+          echo "HPQ_PREFIX=$(to_cmake_path "$RUNNER_TEMP/hpq")" >> "$GITHUB_ENV"
+          echo "QT_PREFIX=$(to_cmake_path "$QT_ROOT_DIR")" >> "$GITHUB_ENV"
+          echo "HPQ_SOURCE=$(to_cmake_path "$GITHUB_WORKSPACE")" >> "$GITHUB_ENV"
+          cmake --install build --config Debug --prefix "$(to_cmake_path "$RUNNER_TEMP/hpq")"
+
+      # An application that uses the installed hpq, with find_package(HandPaintingForQt).
+      - name: Integration with find_package
+        run: |
+          cmake -S Examples/Integration -B build-find-package -DCMAKE_BUILD_TYPE=Debug \
+            "-DCMAKE_PREFIX_PATH=$HPQ_PREFIX;$QT_PREFIX"
+          cmake --build build-find-package --config Debug --parallel 4
+          ctest --test-dir build-find-package -C Debug --output-on-failure --timeout 120
+
+      # The same application with hpq built as a subproject, by FetchContent. The release is not
+      # downloaded: FETCHCONTENT_SOURCE_DIR_HANDPAINTINGFORQT gives FetchContent this checkout.
+      - name: Integration with FetchContent
+        run: |
+          cmake -S Examples/Integration -B build-fetch-content -DCMAKE_BUILD_TYPE=Debug \
+            -DGALLERY_HPQ_SOURCE=FetchContent \
+            "-DFETCHCONTENT_SOURCE_DIR_HANDPAINTINGFORQT=$HPQ_SOURCE" \
+            "-DCMAKE_PREFIX_PATH=$QT_PREFIX"
+          cmake --build build-fetch-content --config Debug --parallel 4
+          ctest --test-dir build-fetch-content -C Debug --output-on-failure --timeout 120

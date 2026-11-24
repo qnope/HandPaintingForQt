@@ -45,12 +45,17 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 1. Examples
 2. hpq/src
 3. hpq/include/hpq
+4. Examples/Integration : application autonome qui consomme hpq (find_package, FetchContent, add_subdirectory), construite et lancée par la CI
+5. tools/screenshots : `HpqThemeScreenshots` rend la fenêtre de `Examples/Integration` dans chaque thème ; images du README dans `docs/images` (`QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`)
+6. cmake : `HandPaintingForQtConfig.cmake.in` (paquet CMake) et `CheckVersions.cmake`
 
 ## Consideration for CMake
 
 1. Using vcpkg: directory is at `../vcpkg`
 2. Never use global variable => use targets
 3. `hpq` est une bibliothèque dynamique (`SHARED`), statique seulement en WebAssembly (Qt for WebAssembly est statique). Sous Windows, `hpq.dll` et les exécutables sont construits dans `build/bin` (`hpq_set_runtime_directory`)
+4. Les avertissements (`-Wall -Wextra`, `/W4`) sont `PRIVATE` à chaque cible du projet (`hpq_set_warnings`) : une application qui lie hpq garde les siens
+5. Le projet doit rester utilisable comme sous-projet (`FetchContent`, `add_subdirectory`) : en sous-projet, `HPQ_BUILD_TESTS` et `HPQ_BUILD_EXAMPLES` valent `OFF`. Les règles `install()` et l'export `hpq::hpq` (`HPQ_INSTALL`) sont dans `hpq/CMakeLists.txt`
 
 ## Consideration for code
 
@@ -64,6 +69,10 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 * function_names: `snake_case`
 * constant names: `PascalCase` ; no k in front of it
 * attribute names: `m_snake_case` ; prefix `m_` 
+
+## Versions et release
+
+La version est dans `project()` (`CMakeLists.txt`), `vcpkg.json` et `CHANGELOG.md` (le test `HpqVersionsAgree` vérifie qu'ils concordent). Chaque changement notable va dans la section `[Unreleased]` de `CHANGELOG.md`. Pousser le tag `v<version>` (ou lancer le workflow `Release` à la main) crée la release GitHub avec les notes du changelog.
 
 ## Pull requests
 
