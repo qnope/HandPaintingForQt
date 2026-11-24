@@ -25,6 +25,13 @@ public:
     virtual std::vector<QPainterPath> outline(const QPainterPath &shape, const RoughOptions &options,
                                               std::uint32_t seed) const = 0;
 
+    // The strokes that draw a frame, kept out of it: where a stroke of the outline of `frame`
+    // would go inside, it follows the edge of the frame. A frame around the content of a
+    // widget leaves the content uncovered. By default, each stroke of the outline is united
+    // with the frame.
+    virtual std::vector<QPainterPath> frame_outline(const QPainterPath &frame, const RoughOptions &options,
+                                                    std::uint32_t seed) const;
+
     // A closed area, close to `shape`, that is filled instead of it. It should cover the whole
     // shape, or adjacent fills leave unpainted seams between them.
     virtual QPainterPath fill_area(const QPainterPath &shape, const RoughOptions &options,

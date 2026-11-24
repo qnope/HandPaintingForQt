@@ -1,5 +1,5 @@
 add_executable(HpqTests)
-target_sources(HpqTests PRIVATE TestMain.cpp RoughGeometryEngineTest.cpp RoughFillAreaTest.cpp)
+target_sources(HpqTests PRIVATE TestMain.cpp RoughGeometryEngineTest.cpp RoughFillAreaTest.cpp RoughFrameOutlineTest.cpp)
 target_link_libraries(HpqTests PRIVATE hpq::hpq GTest::gtest)
 hpq_set_runtime_directory(HpqTests)
 add_test(NAME HpqTests COMMAND HpqTests)

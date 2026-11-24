@@ -21,6 +21,8 @@ public:
 
     std::vector<QPainterPath> outline(const QPainterPath &shape, const RoughOptions &options,
                                       std::uint32_t seed) const override;
+    std::vector<QPainterPath> frame_outline(const QPainterPath &frame, const RoughOptions &options,
+                                            std::uint32_t seed) const override;
     QPainterPath fill_area(const QPainterPath &shape, const RoughOptions &options,
                            std::uint32_t seed) const override;
     // Straight lines, RoughOptions::hachure_gap apart, whose ends move a little. They lie on
