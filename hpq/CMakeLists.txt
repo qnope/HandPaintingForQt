@@ -13,35 +13,109 @@ else()
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON)
 endif()
+# The same name everywhere: hpq::hpq in this build, in an application that adds this project
+# with add_subdirectory or FetchContent, and from find_package(HandPaintingForQt).
 add_library(hpq::hpq ALIAS hpq)
-set_target_properties(hpq PROPERTIES AUTOMOC ON)
+set_target_properties(hpq PROPERTIES AUTOMOC ON EXPORT_NAME hpq)
+
+# libhpq.so.0.1.0, with the soname libhpq.so.0.1: before 1.0, a minor version may break the ABI.
+if(PROJECT_VERSION_MAJOR EQUAL 0)
+  set(hpq_soversion ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR})
+else()
+  set(hpq_soversion ${PROJECT_VERSION_MAJOR})
+endif()
+set_target_properties(hpq PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${hpq_soversion})
+# hpqd.dll and hpqd.lib in Debug with MSVC, as Qt does: a Debug and a Release build can be
+# installed in the same prefix, and an application links the one of its configuration.
+if(MSVC)
+  set_target_properties(hpq PROPERTIES DEBUG_POSTFIX d)
+endif()
+# The installed library finds Qt where it was linked with it.
+set_target_properties(hpq PROPERTIES INSTALL_RPATH_USE_LINK_PATH ON)
+
 hpq_set_runtime_directory(hpq)
+hpq_set_warnings(hpq)
 add_subdirectory(src)
 add_subdirectory(include/hpq)
-target_include_directories(hpq PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# hpq/Version.h: the version of the project, for the code that includes hpq.
+configure_file(include/hpq/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h @ONLY)
+target_sources(hpq PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h)
+
+include(GNUInstallDirs)
+target_include_directories(hpq PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(hpq PUBLIC Qt6::Widgets)
 
+# The fonts are embedded in the library. In a static hpq, Qt compiles each resource in an object
+# library of its own (hpq_resources_<n>), which is installed and exported with hpq.
 # Architects Daughter font (SIL OFL 1.1) and its license, embedded as ":/hpq/fonts/...".
 qt_add_resources(hpq "hpq_fonts"
     PREFIX "/hpq"
     BASE resources
-    FILES resources/fonts/ArchitectsDaughter-Regular.ttf resources/fonts/OFL.txt)
+    FILES resources/fonts/ArchitectsDaughter-Regular.ttf resources/fonts/OFL.txt
+    OUTPUT_TARGETS hpq_font_targets)
 
 # Playwrite FR Moderne font (SIL OFL 1.1) and its license, for the school notebook theme.
 qt_add_resources(hpq "hpq_school_fonts"
     PREFIX "/hpq"
     BASE resources
-    FILES resources/fonts/PlaywriteFRModerne-Regular.ttf resources/fonts/OFL-PlaywriteFRModerne.txt)
+    FILES resources/fonts/PlaywriteFRModerne-Regular.ttf resources/fonts/OFL-PlaywriteFRModerne.txt
+    OUTPUT_TARGETS hpq_school_font_targets)
 
 # Kaushan Script font (SIL OFL 1.1) and its license, for the China ink theme.
 qt_add_resources(hpq "hpq_china_ink_fonts"
     PREFIX "/hpq"
     BASE resources
-    FILES resources/fonts/KaushanScript-Regular.ttf resources/fonts/OFL-KaushanScript.txt)
+    FILES resources/fonts/KaushanScript-Regular.ttf resources/fonts/OFL-KaushanScript.txt
+    OUTPUT_TARGETS hpq_china_ink_font_targets)
 
-# C++ standard and warnings: PUBLIC, so everything that links hpq gets them.
+# C++ standard: PUBLIC, the headers of hpq need C++17.
 target_compile_features(hpq PUBLIC cxx_std_17)
-target_compile_options(hpq PUBLIC $<IF:$<CXX_COMPILER_ID:MSVC>,/W4,-Wall;-Wextra>)
 if(HPQ_BUILD_TESTS)
   add_subdirectory(tests)
+endif()
+
+# find_package(HandPaintingForQt) after an install: see cmake/HandPaintingForQtConfig.cmake.in.
+if(HPQ_INSTALL)
+  include(CMakePackageConfigHelpers)
+  set(hpq_config_dir ${CMAKE_INSTALL_LIBDIR}/cmake/HandPaintingForQt)
+
+  install(TARGETS hpq ${hpq_font_targets} ${hpq_school_font_targets} ${hpq_china_ink_font_targets}
+    EXPORT HandPaintingForQtTargets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    OBJECTS DESTINATION ${CMAKE_INSTALL_LIBDIR}/hpq-objects)
+  install(DIRECTORY include/hpq DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.h")
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hpq)
+  install(EXPORT HandPaintingForQtTargets
+    NAMESPACE hpq::
+    DESTINATION ${hpq_config_dir})
+
+  configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/HandPaintingForQtConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/HandPaintingForQtConfig.cmake
+    INSTALL_DESTINATION ${hpq_config_dir})
+  # Before 1.0, only the same minor version is compatible: find_package(HandPaintingForQt 0.1)
+  # accepts 0.1.x, not 0.2.
+  if(PROJECT_VERSION_MAJOR EQUAL 0)
+    set(hpq_compatibility SameMinorVersion)
+  else()
+    set(hpq_compatibility SameMajorVersion)
+  endif()
+  write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/HandPaintingForQtConfigVersion.cmake
+    COMPATIBILITY ${hpq_compatibility})
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/HandPaintingForQtConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/HandPaintingForQtConfigVersion.cmake
+    DESTINATION ${hpq_config_dir})
+
+  # The license of hpq and of the fonts it embeds.
+  install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
+    resources/fonts/OFL.txt resources/fonts/OFL-PlaywriteFRModerne.txt resources/fonts/OFL-KaushanScript.txt
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/HandPaintingForQt)
 endif()
