@@ -70,6 +70,10 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 * constant names: `PascalCase` ; no k in front of it
 * attribute names: `m_snake_case` ; prefix `m_` 
 
+## Images du README
+
+Les images du README (`docs/images`) montrent toujours le rendu actuel : un changement qui modifie ce que dessine hpq les régénère dans la même pull request (`QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`), puis vérifie que seules les images attendues ont changé.
+
 ## Versions et release
 
 La version est dans `project()` (`CMakeLists.txt`), `vcpkg.json` et `CHANGELOG.md` (le test `HpqVersionsAgree` vérifie qu'ils concordent). Chaque changement notable va dans la section `[Unreleased]` de `CHANGELOG.md`. Pousser le tag `v<version>` (ou lancer le workflow `Release` à la main) crée la release GitHub avec les notes du changelog.

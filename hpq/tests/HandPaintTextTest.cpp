@@ -3,6 +3,7 @@
 #include <hpq/HandPaintDevice.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
+#include <hpq/VelledaTheme.h>
 
 #include <gtest/gtest.h>
 
@@ -72,6 +73,54 @@ TEST_F(HandPaintTextTest, PointSizeBecomesSamePixelSizeOnDevice) {
     const int expected_pixel_size = static_cast<int>(std::lround(12.0 * m_device_dpi_y / PointsPerInch));
     EXPECT_EQ(calls[0].font.family(), ThemeFontFamily);
     EXPECT_EQ(calls[0].font.pixelSize(), expected_pixel_size);
+}
+
+TEST_F(HandPaintTextTest, BoldTextStaysBoldInThemeFont) {
+    QFont font("Helvetica");
+    font.setPixelSize(16);
+    font.setBold(true);
+
+    const std::vector<DrawCall> &calls = draw_text(font);
+
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].font.family(), ThemeFontFamily);
+    EXPECT_EQ(calls[0].font.weight(), QFont::Bold);
+}
+
+TEST_F(HandPaintTextTest, ItalicTextStaysItalicInThemeFont) {
+    QFont font("Helvetica");
+    font.setPixelSize(16);
+    font.setItalic(true);
+
+    const std::vector<DrawCall> &calls = draw_text(font);
+
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].font.family(), ThemeFontFamily);
+    EXPECT_TRUE(calls[0].font.italic());
+}
+
+TEST_F(HandPaintTextTest, RegularTextStaysRegularAndUpright) {
+    QFont font("Helvetica");
+    font.setPixelSize(16);
+
+    const std::vector<DrawCall> &calls = draw_text(font);
+
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].font.weight(), QFont::Normal);
+    EXPECT_FALSE(calls[0].font.italic());
+}
+
+TEST_F(HandPaintTextTest, ThemeThatWritesBoldKeepsItsWeightForRegularText) {
+    // The markers of the Velleda theme write bold.
+    m_theme = hpq::velleda_theme();
+    QFont font("Helvetica");
+    font.setPixelSize(16);
+    font.setWeight(QFont::Light);
+
+    const std::vector<DrawCall> &calls = draw_text(font);
+
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].font.weight(), QFont::Bold);
 }
 
 }  // namespace
