@@ -7,6 +7,12 @@ All notable changes to Hand Painting for Qt are written here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- A teaser video at the top of the README: a Qt window drawn by hand in the nine themes while
+  a pointer uses its widgets. `tools/teaser` (`HpqTeaserVideo`) renders it frame by frame,
+  offscreen, with ffmpeg, and the `Pages` workflow publishes it with the site.
+
 ### Changed
 
 - A repaint of a part of a window, such as a hovered button or the blinking cursor of a field,
