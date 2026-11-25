@@ -22,6 +22,7 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 
@@ -82,15 +83,20 @@ int dark_pixel_count(const QImage &image, const QRect &rect) {
     return count;
 }
 
-// The share (0..1) of the columns of `band` that hold a pixel clearly darker than the
-// window color: a line drawn across the band, even wobbly, covers every column.
+// The share (0..1) of the columns of `band` that hold a line clearly darker than the window
+// color: a line drawn across the band, even wobbly, covers every column. A smoothed line that
+// falls between two rows of pixels spreads its ink over both, lighter in each: the darkenings
+// of two pixels one above the other add up.
 double covered_column_share(const QImage &image, const QRect &band) {
     const int window_lightness = hpq::sketch_theme().palette().color(QPalette::Window).lightness();
     constexpr int MinDarkening = 30;
+    const auto darkening = [&](int x, int y) {
+        return std::max(0, window_lightness - image.pixelColor(x, y).lightness());
+    };
     int covered = 0;
     for (int x = band.left(); x <= band.right(); ++x) {
-        for (int y = band.top(); y <= band.bottom(); ++y) {
-            if (image.pixelColor(x, y).lightness() < window_lightness - MinDarkening) {
+        for (int y = band.top(); y < band.bottom(); ++y) {
+            if (darkening(x, y) + darkening(x, y + 1) > MinDarkening) {
                 ++covered;
                 break;
             }
