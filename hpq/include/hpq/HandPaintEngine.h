@@ -25,6 +25,9 @@ namespace hpq {
 // With a cache, it keeps there the rough paths and the washes that it makes, and takes them
 // back when it draws the same shape again: the drawing is the same, made faster. The cache
 // must serve this theme and this geometry engine only, and outlive the engine.
+// A shape, a text or an image that would land out of what the target can paint (its clip, and
+// the area that Qt repaints) is not drawn: a repaint of a part of a window draws only the
+// shapes close to that part.
 class HPQ_EXPORT HandPaintEngine : public QPaintEngine {
 public:
     HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
@@ -63,6 +66,8 @@ private:
         Ribbon ribbon = Ribbon::None;
         // The width, in pixels, of the line that the tool draws.
         double width = 0.0;
+        // The width, in pixels, of the line where the tool presses the most.
+        double widest = 0.0;
         // How the ribbon of a pen ends and turns.
         Qt::PenCapStyle cap_style = Qt::FlatCap;
         Qt::PenJoinStyle join_style = Qt::MiterJoin;
@@ -99,6 +104,12 @@ private:
     bool is_hatched(const QBrush &brush) const;
     // How `pen` draws a stroke of `kind` with the medium of the theme.
     Tool tool_of(const QPen &pen, StrokeKind kind) const;
+    // How far past a shape, in device pixels, what is drawn for it can put ink: its outline
+    // drawn by `outline_tool` when it has one, and its fill when it is `filled`.
+    double ink_reach(const Tool *outline_tool, bool filled) const;
+    // Whether nothing drawn within `margin` pixels of `bounds`, in device coordinates, can
+    // show: the target cannot paint there. What is out of sight is not drawn at all.
+    bool is_out_of_sight(const QRectF &bounds, double margin) const;
     // Whether the target strokes a line of `pen` in one pass: the line is at most one of its pixels wide.
     bool is_thin(const QPen &pen) const;
     // What `tool` marks along `stroke`: its ribbon, or the stroke itself when it has none.

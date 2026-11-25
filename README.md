@@ -35,7 +35,8 @@ drawn by hand too.
   are hand-drawn with the theme, without a change to their code.
 - **A steady hand**: a shape keeps its wobble between repaints and when a view scrolls. A
   geometry engine with a fixed seed draws the same window every time.
-- **Fast repaints**: the rough paths of the shapes are kept between repaints.
+- **Fast repaints**: the rough paths of the shapes are kept between repaints, and a repaint of
+  a part of a window (a hovered button, the cursor of a field) draws only what is close to it.
 - **Fonts included**: the handwritten fonts of the themes are embedded in the library.
 - **Everywhere Qt runs**: a shared library on Windows (MSVC), Linux (gcc, clang) and macOS
   (clang), a static one with Qt for WebAssembly.
