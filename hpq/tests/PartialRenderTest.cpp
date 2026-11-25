@@ -26,6 +26,7 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTextEdit>
@@ -38,7 +39,8 @@
 #include <vector>
 
 // When Qt repaints a part of a window, the effect of the theme renders only the widgets close
-// to that part. The window must still show what a repaint of the whole window shows.
+// to that part; when a view scrolls, Qt moves what it shows and repaints only what comes into
+// view. The window must still show what a repaint of the whole window shows.
 
 namespace {
 
@@ -260,6 +262,88 @@ TEST(PartialRenderTest, RepaintsOfPartsLeaveTheWindowAsAWholeRepaintDrawsIt) {
             window.repaint(QRect((index * 97) % 560, (index * 61) % 420, 6 + (index * 13) % 50, 6 + (index * 29) % 40));
         }
 
+        EXPECT_EQ(stale_pixel_count(window), 0);
+    }
+}
+
+namespace {
+
+// Scrolls `area` along `bar` to its end then back, a few pixels at a time, the screen showing
+// each step.
+void scroll_back_and_forth(QAbstractScrollArea &area, QScrollBar &bar) {
+    if (auto *view = qobject_cast<QAbstractItemView *>(&area)) {
+        view->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+        view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    }
+    for (int value = bar.minimum(); value <= bar.maximum(); value += 13) {
+        bar.setValue(value);
+        shown(*area.window());
+    }
+    for (int value = bar.maximum(); value >= bar.minimum(); value -= 9) {
+        bar.setValue(value);
+        shown(*area.window());
+    }
+}
+
+}  // namespace
+
+// Qt moves the pixels of a view that scrolls, and repaints only what comes into view.
+TEST(PartialRenderTest, ScrollsLeaveTheWindowAsAWholeRepaintDrawsIt) {
+    for (const NamedTheme &named : themes()) {
+        SCOPED_TRACE(named.name);
+        Gallery window(named.theme);
+        hpq::apply_theme(window, named.theme, rough_geometry_engine());
+        window.show();
+        shown(window);
+
+        int scrolled_bars = 0;
+        for (QAbstractScrollArea *area : window.findChildren<QAbstractScrollArea *>()) {
+            for (QScrollBar *bar : {area->horizontalScrollBar(), area->verticalScrollBar()}) {
+                if (area->isVisible() && bar->isVisible()) {
+                    SCOPED_TRACE(area->metaObject()->className());
+                    scroll_back_and_forth(*area, *bar);
+                    ++scrolled_bars;
+                    EXPECT_EQ(stale_pixel_count(window), 0);
+                }
+            }
+        }
+        EXPECT_GE(scrolled_bars, 4);
+    }
+}
+
+// A scroll bar shows when a view gets more than it can show, and hides when it gets less, or
+// when the application asks for it.
+TEST(PartialRenderTest, AScrollBarThatShowsAndHidesLeavesNoTrace) {
+    for (const NamedTheme &named : themes()) {
+        SCOPED_TRACE(named.name);
+        Gallery window(named.theme);
+        hpq::apply_theme(window, named.theme, rough_geometry_engine());
+        window.show();
+        auto *notes = window.findChild<QTextEdit *>();
+        auto *table = window.findChild<QTableWidget *>();
+        ASSERT_NE(notes, nullptr);
+        ASSERT_NE(table, nullptr);
+        shown(window);
+
+        for (int line = 0; line < 12; ++line) {
+            notes->append(QString("Line %1").arg(line));
+            shown(window);
+        }
+        ASSERT_TRUE(notes->verticalScrollBar()->isVisible());
+        EXPECT_EQ(stale_pixel_count(window), 0);
+
+        notes->clear();
+        shown(window);
+        ASSERT_FALSE(notes->verticalScrollBar()->isVisible());
+        EXPECT_EQ(stale_pixel_count(window), 0);
+
+        table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        shown(window);
+        EXPECT_EQ(stale_pixel_count(window), 0);
+
+        table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        shown(window);
+        ASSERT_TRUE(table->verticalScrollBar()->isVisible());
         EXPECT_EQ(stale_pixel_count(window), 0);
     }
 }
