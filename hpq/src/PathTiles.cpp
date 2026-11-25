@@ -3,15 +3,19 @@
 #include <QList>
 #include <QPolygonF>
 #include <QRectF>
+#include <QSizeF>
 
 #include <cmath>
+#include <limits>
 
 namespace hpq {
 
 namespace {
 
-// Side, in pixels of the device, of a tile.
-constexpr double TileSize = 64.0;
+// Side, in pixels of the device, of the tile of a stroke.
+constexpr double StrokeTileSize = 64.0;
+// Width, in pixels of the device, of the strip of an area.
+constexpr double AreaStripWidth = 256.0;
 
 using Polygons = QList<QPolygonF>;
 
@@ -81,9 +85,18 @@ bool fills(const QPolygonF &polygon, const Region &region) {
     return std::abs(signed_area(polygon)) > region_area / 2.0;
 }
 
-// Cuts `polygons`, inside `region`, in two across the longer side of the region, between two
-// pixels, until each part fits in a tile. Leaves out the parts outside `paintable`.
-void cut_in_tiles(const Polygons &polygons, const Region &region, const QRectF &paintable,
+// The size, in pixels of the device, that a piece of `tiling` fits in.
+QSizeF piece_size(Tiling tiling) {
+    if (tiling == Tiling::Area) {
+        return QSizeF(AreaStripWidth, std::numeric_limits<double>::infinity());
+    }
+    return QSizeF(StrokeTileSize, StrokeTileSize);
+}
+
+// Cuts `polygons`, inside `region`, in two across its side that is the longest for a piece of
+// `size`, between two pixels, until each part fits in a piece. Leaves out the parts outside
+// `paintable`.
+void cut_in_tiles(const Polygons &polygons, const Region &region, const QRectF &paintable, const QSizeF &size,
                   std::vector<Polygons> &tiles) {
     if (region.right <= paintable.left() || region.left >= paintable.right() || region.bottom <= paintable.top() ||
         region.top >= paintable.bottom()) {
@@ -91,11 +104,12 @@ void cut_in_tiles(const Polygons &polygons, const Region &region, const QRectF &
     }
     const double width = region.right - region.left;
     const double height = region.bottom - region.top;
-    if (width <= TileSize && height <= TileSize) {
+    if (width <= size.width() && height <= size.height()) {
         tiles.push_back(polygons);
         return;
     }
-    const bool across_x = width >= height;
+    const bool across_x =
+        width > size.width() && (height <= size.height() || width / size.width() >= height / size.height());
     const double cut = std::round(across_x ? (region.left + region.right) / 2.0 : (region.top + region.bottom) / 2.0);
     Region before_region = region;
     Region after_region = region;
@@ -120,26 +134,32 @@ void cut_in_tiles(const Polygons &polygons, const Region &region, const QRectF &
         }
     }
     if (!before_parts.isEmpty()) {
-        cut_in_tiles(before_parts, before_region, paintable, tiles);
+        cut_in_tiles(before_parts, before_region, paintable, size, tiles);
     }
     if (!after_parts.isEmpty()) {
-        cut_in_tiles(after_parts, after_region, paintable, tiles);
+        cut_in_tiles(after_parts, after_region, paintable, size, tiles);
     }
 }
 
 }  // namespace
 
-std::vector<QPainterPath> path_tiles(const QPainterPath &path, const QTransform &to_device, const QRect &paintable) {
+bool fits_in_a_piece(const QSizeF &size, Tiling tiling) {
+    const QSizeF piece = piece_size(tiling);
+    return size.width() <= piece.width() && size.height() <= piece.height();
+}
+
+std::vector<QPainterPath> path_tiles(const QPainterPath &path, const QTransform &to_device, const QRect &paintable,
+                                     Tiling tiling) {
     if (paintable.isEmpty()) {
         return {};
     }
     const QRectF bounds = to_device.mapRect(path.boundingRect());
-    if (bounds.width() <= TileSize && bounds.height() <= TileSize) {
+    if (fits_in_a_piece(bounds.size(), tiling)) {
         return {path};
     }
     std::vector<Polygons> tiles;
     cut_in_tiles(path.toSubpathPolygons(to_device), Region{bounds.left(), bounds.top(), bounds.right(), bounds.bottom()},
-                 QRectF(paintable), tiles);
+                 QRectF(paintable), piece_size(tiling), tiles);
     const QTransform from_device = to_device.inverted();
     std::vector<QPainterPath> pieces;
     pieces.reserve(tiles.size());

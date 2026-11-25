@@ -1,3 +1,5 @@
+#include "ImageComparison.h"
+
 #include <hpq/ChinaInkTheme.h>
 #include <hpq/Medium.h>
 #include <hpq/RoughGeometryEngine.h>
@@ -109,18 +111,12 @@ QImage shown(QWidget &window) {
     return window.screen()->grabWindow(window.winId()).toImage().convertToFormat(QImage::Format_RGB32);
 }
 
-// The number of pixels of `window` that a repaint of the whole window changes.
+// The number of pixels of `window` that a repaint of the whole window changes, by more than
+// the rounding of the raster engine.
 int stale_pixel_count(QWidget &window) {
     const QImage before = shown(window);
     window.repaint();
-    const QImage after = shown(window);
-    int count = 0;
-    for (int y = 0; y < after.height(); ++y) {
-        for (int x = 0; x < after.width(); ++x) {
-            count += before.pixel(x, y) != after.pixel(x, y) ? 1 : 0;
-        }
-    }
-    return count;
+    return hpq::test::differing_pixel_count(before, shown(window));
 }
 
 // A window with widgets of every kind: views that draw what they show part by part, a

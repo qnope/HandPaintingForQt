@@ -25,6 +25,14 @@ All notable changes to Hand Painting for Qt are written here. The format follows
   background with a color of its own are painted whole; a widget of the application that holds
   other widgets and draws something else than a frame or a plain background must draw the same
   shapes whatever part of it is repainted.
+- Every line and every fill is smoothed, in every theme, whether the painter has the
+  `QPainter::Antialiasing` hint or not: a rough line wobbles, and without smoothing its slopes
+  turned into stairs of pixels. Smoothing costs time on the raster engine: a full repaint of
+  the example window takes 1 to 3 times longer (Sketch: 3.2 to 6.6 ms at a device pixel ratio
+  of 1, 12.9 to 24.8 ms at 2), a step of scroll 1.5 to 3 times longer, and a hovered button
+  stays under 0.5 ms. Watercolor, which smoothed its washes already, takes as long as before.
+  To keep that cost down, a line wider than a pixel is filled as an area, cut in pieces that
+  the raster engine smooths quickly, and the cache keeps those pieces, up to twice 16 MB.
 
 ### Fixed
 
@@ -38,9 +46,6 @@ All notable changes to Hand Painting for Qt are written here. The format follows
   their light gradient.
 - A theme made before the `QApplication` no longer crashes in `QFontDatabase`: it warns and has
   no font family, and the themes made once the application exists get their font.
-- A painter with the `QPainter::Antialiasing` hint gets a smooth drawing, as Qt draws it: the
-  hint no longer stops at the hand-painted engine. The shapes of the example application, and
-  in Fusion the fields, the check boxes, the radio buttons and the slider, are smoothed.
 - A bold or an italic text stays bold or italic in the font of the theme: for example, the
   header of a view writes in bold the columns of the selected row, as Qt does.
 - A view that scrolls no longer leaves traces. Qt moves the pixels it already painted and

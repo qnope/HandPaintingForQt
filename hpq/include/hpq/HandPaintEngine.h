@@ -20,8 +20,8 @@ namespace hpq {
 
 // Paint engine that draws each primitive it receives on a target QPainter,
 // changed by a GeometryEngine and drawn as a Theme says.
-// As Qt draws, it smooths what the painter draws with the Antialiasing hint. It writes the text
-// in the font of the theme, bold or italic when the font of the painter is.
+// It smooths every line and every fill, as if the painter had the Antialiasing hint. It writes
+// the text in the font of the theme, bold or italic when the font of the painter is.
 // With a cache, it keeps there the rough paths and the washes that it makes, and takes them
 // back when it draws the same shape again: the drawing is the same, made faster. The cache
 // must serve this theme and this geometry engine only, and outlive the engine.
@@ -144,16 +144,24 @@ private:
     QPointF line_origin(const QPainterPath &logical_line) const;
     double target_pixel_ratio() const;
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
-    // It is smoothed when the device painter has the Antialiasing hint.
+    // It is always smoothed. Without a pen, `path` is an area of `tiling`, filled in pieces.
     // The system clip is grown by `system_clip_margin`.
-    void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
+    void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush, Tiling tiling,
                         int system_clip_margin = 0);
     // Fills `area` on the target with `brush` as a paint brush leaves watercolor: with a smooth
     // edge, and as a glaze that darkens what is under it, when the target can do that.
     void glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin);
-    // Fills `area` with the pen and the brush of the target: on the raster engine, which
-    // smooths a large path slowly, tile by tile.
-    void fill_in_tiles(const QPainterPath &area);
+    // Fills `area` with `brush` and the state of the target, which it moves to m_origin: on the
+    // raster engine, which smooths a large path slowly, in the pieces of `tiling`.
+    void fill_in_pieces(const QPainterPath &area, const QBrush &brush, Tiling tiling);
+    // The pieces of `area` for a target that maps it to the device with `to_device`: those
+    // that reach the `paintable` pixels, and maybe others. With a cache, they are kept there.
+    std::vector<QPainterPath> pieces_of(const QPainterPath &area, const QTransform &to_device, const QRect &paintable,
+                                        Tiling tiling);
+    // Moves the target to m_origin, and gives it `pen` and `brush`, that are laid on `path`:
+    // the target then draws `path`, in the coordinates of the content, as it would draw `path`
+    // moved to m_origin.
+    void set_target_to_content(const QPainterPath &path, const QPen &pen, const QBrush &brush);
     // Saves the target state, then intersects the target clip with the system clip and the
     // device painter's clip.
     // What is drawn next is in device coordinates; restore the target when done.
