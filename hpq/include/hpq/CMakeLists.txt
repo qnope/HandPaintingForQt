@@ -1,5 +1,5 @@
 target_sources(hpq PRIVATE Hpq.h Version.h.in Export.h FwdDecls.h GeometryEngine.h RoughOptions.h RoughGeometryEngine.h)
-target_sources(hpq PRIVATE FillStyle.h Medium.h Theme.h SketchTheme.h SlateTheme.h)
+target_sources(hpq PRIVATE AntialiasingMode.h FillStyle.h Medium.h Theme.h SketchTheme.h SlateTheme.h)
 target_sources(hpq PRIVATE NotebookTheme.h)
 target_sources(hpq PRIVATE BlueprintTheme.h)
 target_sources(hpq PRIVATE HandPaintDevice.h HandPaintEngine.h)

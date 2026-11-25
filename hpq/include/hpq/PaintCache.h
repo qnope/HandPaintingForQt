@@ -4,6 +4,7 @@
 
 #include <QImage>
 #include <QPainterPath>
+#include <QPointF>
 
 #include <cstddef>
 #include <cstdint>
@@ -36,6 +37,21 @@ public:
         }
         std::vector<QPainterPath> made = make();
         m_paths.keep(key, made, byte_count_of(made));
+        return made;
+    }
+
+    // The pieces of `area` cut as the tiling numbered `tiling` cuts it, for a device that maps
+    // it with the scale `scale` and starts its pixels at `phase`, a fraction of a pixel: the
+    // kept ones, or else the ones that `make` returns, which are then kept.
+    template <typename Make>
+    std::vector<QPainterPath> pieces(const QPainterPath &area, int tiling, double scale, const QPointF &phase,
+                                     Make make) {
+        const Key key{static_cast<std::uint32_t>(tiling), phase_bits(phase), scale, area};
+        if (const std::vector<QPainterPath> *kept = m_pieces.find(key)) {
+            return *kept;
+        }
+        std::vector<QPainterPath> made = make();
+        m_pieces.keep(key, made, byte_count_of(made));
         return made;
     }
 
@@ -76,6 +92,8 @@ private:
     struct HPQ_EXPORT KeyEqual {
         bool operator()(const Key &first, const Key &second) const;
     };
+    // The bits of `phase`, close enough to tell two phases apart.
+    static std::uint64_t phase_bits(const QPointF &phase);
     static std::size_t byte_count_of(const Key &key);
     static std::size_t byte_count_of(const std::vector<QPainterPath> &paths);
 
@@ -146,6 +164,8 @@ private:
     };
 
     Generations<std::vector<QPainterPath>> m_paths;
+    // Apart from the paths: cut again, pieces cost less than paths made again.
+    Generations<std::vector<QPainterPath>> m_pieces;
     Generations<QImage> m_washes;
 };
 

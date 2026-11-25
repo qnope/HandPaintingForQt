@@ -1,3 +1,5 @@
+#include <hpq/AntialiasingMode.h>
+#include <hpq/FillStyle.h>
 #include <hpq/HandPaintDevice.h>
 #include <hpq/PaintCache.h>
 #include <hpq/RoughGeometryEngine.h>
@@ -6,13 +8,15 @@
 #include <gtest/gtest.h>
 
 #include <QImage>
+#include <QLinearGradient>
 #include <QPainter>
 
 #include <cstdint>
 #include <functional>
 
-// A rough shape is smoothed where the device painter asks for it, with QPainter::Antialiasing,
-// as Qt draws: its edges then have pixels between the color of the pen and the paper.
+// By default, a rough shape is always smoothed, whether the device painter asks for it, with
+// QPainter::Antialiasing, or not: its edges have pixels between the color of the pen and the
+// paper. The AntialiasingMode of the theme can smooth it only where the painter asks, or never.
 
 namespace {
 
@@ -80,21 +84,71 @@ TEST_F(HandPaintSmoothingTest, LineIsSmoothedWhenThePainterAsksForIt) {
     EXPECT_GT(grey_pixels(paint_by_hand(true, draw_line)), 100);
 }
 
-TEST_F(HandPaintSmoothingTest, LineStaysSharpWhenThePainterDoesNotAsk) {
-    EXPECT_EQ(grey_pixels(paint_by_hand(false, draw_line)), 0);
+TEST_F(HandPaintSmoothingTest, LineIsSmoothedWhenThePainterDoesNotAsk) {
+    EXPECT_EQ(paint_by_hand(false, draw_line), paint_by_hand(true, draw_line));
 }
 
 TEST_F(HandPaintSmoothingTest, WideOutlineKeptByTheCacheIsSmoothed) {
-    hpq::PaintCache smoothed_cache;
-    hpq::PaintCache sharp_cache;
+    hpq::PaintCache cache;
+    hpq::PaintCache other_cache;
 
-    EXPECT_GT(grey_pixels(paint_by_hand(true, draw_wide_outline, &smoothed_cache)), 500);
-    EXPECT_EQ(grey_pixels(paint_by_hand(false, draw_wide_outline, &sharp_cache)), 0);
+    EXPECT_GT(grey_pixels(paint_by_hand(false, draw_wide_outline, &cache)), 500);
+    EXPECT_EQ(paint_by_hand(false, draw_wide_outline, &cache), paint_by_hand(true, draw_wide_outline, &other_cache));
 }
 
-TEST_F(HandPaintSmoothingTest, FillIsSmoothedWhenThePainterAsksForIt) {
+TEST_F(HandPaintSmoothingTest, WideOutlineIsSmoothedWithoutACache) {
+    EXPECT_GT(grey_pixels(paint_by_hand(false, draw_wide_outline)), 500);
+}
+
+TEST_F(HandPaintSmoothingTest, FillIsSmoothedWhetherThePainterAsksForItOrNot) {
     EXPECT_GT(grey_pixels(paint_by_hand(true, fill_ellipse)), 300);
+    EXPECT_EQ(paint_by_hand(false, fill_ellipse), paint_by_hand(true, fill_ellipse));
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeSmoothsAlwaysUnlessToldOtherwise) {
+    EXPECT_EQ(m_theme.antialiasing_mode(), hpq::AntialiasingMode::Always);
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeWithAnotherModeKeepsAllElse) {
+    const hpq::Theme hatched = hpq::sketch_theme(hpq::FillStyle::Hachure);
+    const hpq::Theme never = hatched.with_antialiasing_mode(hpq::AntialiasingMode::Never);
+
+    EXPECT_EQ(never.antialiasing_mode(), hpq::AntialiasingMode::Never);
+    EXPECT_EQ(hatched.antialiasing_mode(), hpq::AntialiasingMode::Always);
+    EXPECT_EQ(never.palette(), hatched.palette());
+    EXPECT_EQ(never.font(), hatched.font());
+    EXPECT_EQ(never.fill_style(), hatched.fill_style());
+    EXPECT_EQ(never.medium(), hatched.medium());
+    EXPECT_EQ(never.text_ink(), hatched.text_ink());
+    EXPECT_EQ(never.label_marker(), hatched.label_marker());
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeThatNeverSmoothsDoesNotSmoothWhenThePainterAsks) {
+    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::Never);
+    hpq::PaintCache cache;
+
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, draw_line)), 0);
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, draw_wide_outline)), 0);
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, draw_wide_outline, &cache)), 0);
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, fill_ellipse)), 0);
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeThatSmoothsOnlyWhenAskedSmoothsWhereThePainterAsks) {
+    const QImage always = paint_by_hand(true, draw_line);
+    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked);
+
+    EXPECT_EQ(paint_by_hand(true, draw_line), always);
+    EXPECT_GT(grey_pixels(paint_by_hand(true, fill_ellipse)), 300);
+    EXPECT_EQ(grey_pixels(paint_by_hand(false, draw_line)), 0);
     EXPECT_EQ(grey_pixels(paint_by_hand(false, fill_ellipse)), 0);
+}
+
+TEST_F(HandPaintSmoothingTest, WideOutlineKeptByTheCacheIsSmoothedOnlyWhenAsked) {
+    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked);
+    hpq::PaintCache cache;
+
+    EXPECT_EQ(grey_pixels(paint_by_hand(false, draw_wide_outline, &cache)), 0);
+    EXPECT_GT(grey_pixels(paint_by_hand(true, draw_wide_outline, &cache)), 500);
 }
 
 TEST_F(HandPaintSmoothingTest, SmoothedFillLeavesNoSeamBetweenItsPieces) {
@@ -108,6 +162,41 @@ TEST_F(HandPaintSmoothingTest, SmoothedFillLeavesNoSeamBetweenItsPieces) {
         }
     }
     EXPECT_EQ(not_black, 0);
+}
+
+// A gradient given in the coordinates of the shape spans the whole shape, also where the
+// shape is filled in several pieces.
+TEST(HandPaintSmoothingGradientTest, GradientOfTheShapeSpansAllItsPieces) {
+    constexpr int Width = 700;
+    constexpr int Height = 100;
+    const hpq::Theme theme = hpq::sketch_theme();
+    const hpq::RoughGeometryEngine geometry_engine{BaseSeed};
+    QImage image(Width, Height, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    QPainter target_painter(&image);
+    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+    QPainter painter(&device);
+    QLinearGradient gradient(0.0, 0.5, 1.0, 0.5);
+    gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
+    gradient.setColorAt(0.0, Qt::black);
+    gradient.setColorAt(1.0, QColor(250, 250, 250));
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(gradient);
+    painter.drawRect(QRectF(20, 20, Width - 40, Height - 40));
+    painter.end();
+    target_painter.end();
+
+    // Along the middle of the shape, the grey only gets lighter: it starts again at no piece.
+    int previous_grey = 0;
+    int darker_steps = 0;
+    for (int x = 30; x < Width - 30; ++x) {
+        const int grey = qGray(image.pixel(x, Height / 2));
+        darker_steps += grey < previous_grey - 1 ? 1 : 0;
+        previous_grey = grey;
+    }
+    EXPECT_EQ(darker_steps, 0);
+    EXPECT_LT(qGray(image.pixel(30, Height / 2)), 40);
+    EXPECT_GT(qGray(image.pixel(Width - 31, Height / 2)), 210);
 }
 
 }  // namespace

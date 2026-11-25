@@ -1,5 +1,6 @@
 #include <hpq/HandPaintEngine.h>
 
+#include <hpq/AntialiasingMode.h>
 #include <hpq/FillStyle.h>
 #include <hpq/GeometryEngine.h>
 #include <hpq/RoughOptions.h>
@@ -107,6 +108,28 @@ constexpr std::uint32_t WashSeedMask = 0x5bd1e995u;
 QBrush moved(QBrush brush, const QPointF &offset) {
     brush.setTransform(brush.transform() * QTransform::fromTranslate(offset.x(), offset.y()));
     return brush;
+}
+
+// `brush` laid on a shape whose control points are in `bounds`, on a device of `device_size`,
+// with its gradient in the logical coordinates of the painter, as Qt lays a gradient given in
+// the coordinates of the shape or of the device: drawn in pieces, or with the painter moved, the
+// shape keeps its gradient.
+QBrush laid_on(const QBrush &brush, const QRectF &bounds, const QSizeF &device_size) {
+    const QGradient *gradient = brush.gradient();
+    if (gradient == nullptr || gradient->coordinateMode() == QGradient::LogicalMode) {
+        return brush;
+    }
+    const QRectF stretch =
+        gradient->coordinateMode() == QGradient::StretchToDeviceMode ? QRectF(QPointF(), device_size) : bounds;
+    const QTransform to_logical(stretch.width(), 0.0, 0.0, stretch.height(), stretch.x(), stretch.y());
+    QGradient logical = *gradient;
+    logical.setCoordinateMode(QGradient::LogicalMode);
+    QBrush laid(logical);
+    // As QPainter stretches a gradient: in ObjectMode, the transform of the brush is in the
+    // coordinates of the shape; in the other modes, in those of the gradient.
+    laid.setTransform(gradient->coordinateMode() == QGradient::ObjectMode ? brush.transform() * to_logical
+                                                                          : to_logical * brush.transform());
+    return laid;
 }
 
 // Reads the scroll offsets of a view of items, which QAbstractItemView keeps protected: a
@@ -405,7 +428,7 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, cons
         });
         if (!hachures.empty()) {
             // The paper shows between the hachures, and hides what was drawn under the shape.
-            draw_on_target(area, Qt::NoPen, seen_through_medium(m_theme.palette().window()));
+            draw_on_target(area, Qt::NoPen, seen_through_medium(m_theme.palette().window()), Tiling::Area);
             draw_marked(hachures.front(), pen, tool);
             return;
         }
@@ -415,7 +438,7 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, cons
 
 void HandPaintEngine::lay_on_target(const QPainterPath &area, const QBrush &brush, bool is_band) {
     if (!is_wash(brush)) {
-        draw_on_target(area, Qt::NoPen, seen_through_medium(brush));
+        draw_on_target(area, Qt::NoPen, seen_through_medium(brush), Tiling::Area);
         return;
     }
     save_target_in_device_coordinates();
@@ -457,10 +480,11 @@ HandPaintEngine::Tool HandPaintEngine::tool_of(const QPen &pen, StrokeKind kind)
         tool.ribbon = Ribbon::Brush;
     } else if (is_chalk && is_plain_line(pen)) {
         tool.ribbon = Ribbon::Chalk;
-    } else if (!is_chalk && m_cache != nullptr && is_plain_line(pen) && !is_thin(pen) &&
-               (pen.joinStyle() != Qt::MiterJoin || pen.miterLimit() == DefaultMiterLimit)) {
-        // The target turns a wide line into an area each time it strokes it: here the area is
-        // made once, and kept with the stroke.
+    } else if (!is_chalk && m_target.paintEngine()->type() == QPaintEngine::Raster && is_plain_line(pen) &&
+               !is_thin(pen) && (pen.joinStyle() != Qt::MiterJoin || pen.miterLimit() == DefaultMiterLimit)) {
+        // The raster engine turns a wide line into an area each time it strokes it, and smooths
+        // that area in one piece, slowly: here the area is made once, kept with the stroke when
+        // there is a cache, and filled in pieces.
         tool.ribbon = Ribbon::Pen;
         tool.cap_style = pen.capStyle();
         tool.join_style = pen.joinStyle();
@@ -499,6 +523,18 @@ bool HandPaintEngine::is_out_of_sight(const QRectF &bounds, double margin) const
     return paintable_pixels(m_target, bounds.adjusted(-margin, -margin, margin, margin)).isEmpty();
 }
 
+bool HandPaintEngine::is_smoothed() const {
+    switch (m_theme.antialiasing_mode()) {
+    case AntialiasingMode::Never:
+        return false;
+    case AntialiasingMode::OnlyWhenAsked:
+        return painter()->testRenderHint(QPainter::Antialiasing);
+    case AntialiasingMode::Always:
+        break;
+    }
+    return true;
+}
+
 bool HandPaintEngine::is_thin(const QPen &pen) const {
     if (pen.isCosmetic()) {
         return true;
@@ -533,18 +569,18 @@ void HandPaintEngine::draw_marked(const QPainterPath &marked_stroke, const QPen 
         glaze_on_target(marked_stroke, moved(pigment_brush(pen.color(), target_pixel_ratio()), m_origin),
                         tool.system_clip_margin);
     } else if (tool.ribbon == Ribbon::Brush || tool.ribbon == Ribbon::Pen) {
-        draw_on_target(marked_stroke, Qt::NoPen, pen.brush(), tool.system_clip_margin);
+        draw_on_target(marked_stroke, Qt::NoPen, pen.brush(), Tiling::Stroke, tool.system_clip_margin);
     } else if (tool.ribbon == Ribbon::Chalk) {
         draw_on_target(marked_stroke, Qt::NoPen,
                        moved(chalk_brush(pen.color(), ChalkGrain::Stroke, target_pixel_ratio()), m_origin),
-                       tool.system_clip_margin);
+                       Tiling::Stroke, tool.system_clip_margin);
     } else if (medium == Medium::Chalk) {
         // A dashed line keeps its dashes: it only gets the grain.
         QPen grainy_pen = chalk_pen(pen, ChalkGrain::Stroke, m_origin);
         grainy_pen.setWidthF(tool.width);
-        draw_on_target(marked_stroke, grainy_pen, Qt::NoBrush, tool.system_clip_margin);
+        draw_on_target(marked_stroke, grainy_pen, Qt::NoBrush, Tiling::Stroke, tool.system_clip_margin);
     } else {
-        draw_on_target(marked_stroke, pen, Qt::NoBrush, tool.system_clip_margin);
+        draw_on_target(marked_stroke, pen, Qt::NoBrush, Tiling::Stroke, tool.system_clip_margin);
     }
 }
 
@@ -610,47 +646,89 @@ double HandPaintEngine::target_pixel_ratio() const {
     return m_target.device()->devicePixelRatioF();
 }
 
-void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
+void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush, Tiling tiling,
                                      int system_clip_margin) {
     save_target_in_device_coordinates(system_clip_margin);
-    // Smoothed where the device painter asks for it, as Qt draws.
-    const bool smoothed = painter()->testRenderHint(QPainter::Antialiasing);
+    const bool smoothed = is_smoothed();
     m_target.setRenderHint(QPainter::Antialiasing, smoothed);
-    m_target.setPen(pen);
-    m_target.setBrush(brush);
-    const QPainterPath placed = path.translated(m_origin);
-    if (smoothed && pen.style() == Qt::NoPen) {
-        fill_in_tiles(placed);
+    if (pen.style() == Qt::NoPen && smoothed) {
+        fill_in_pieces(path, brush, tiling);
     } else {
-        m_target.drawPath(placed);
+        set_target_to_content(path, pen, brush);
+        m_target.drawPath(path);
     }
     m_target.restore();
 }
 
 void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin) {
     save_target_in_device_coordinates(system_clip_margin);
-    m_target.setRenderHint(QPainter::Antialiasing);
     if (m_target.paintEngine()->hasFeature(QPaintEngine::BlendModes)) {
         m_target.setCompositionMode(QPainter::CompositionMode_Darken);
     }
-    m_target.setPen(Qt::NoPen);
-    m_target.setBrush(brush);
-    fill_in_tiles(area.translated(m_origin));
+    // The smooth edge of watercolor is the one of its medium: lost only when the theme never smooths.
+    if (m_theme.antialiasing_mode() != AntialiasingMode::Never) {
+        m_target.setRenderHint(QPainter::Antialiasing);
+        fill_in_pieces(area, brush, Tiling::Stroke);
+    } else {
+        m_target.setRenderHint(QPainter::Antialiasing, false);
+        set_target_to_content(area, Qt::NoPen, brush);
+        m_target.drawPath(area);
+    }
     m_target.restore();
 }
 
-void HandPaintEngine::fill_in_tiles(const QPainterPath &area) {
-    // The raster engine of Qt smooths a path in bands, and goes over the whole path for each
-    // band: a long line takes as many passes as it is long. Cut in tiles, it takes one pass a
-    // tile. Another engine might smooth each tile on its own, and show the cuts.
-    if (m_target.paintEngine()->type() == QPaintEngine::Raster) {
-        const QRect paintable = paintable_pixels(m_target, area.boundingRect());
-        for (const QPainterPath &piece : path_tiles(area, m_target.deviceTransform(), paintable)) {
+void HandPaintEngine::fill_in_pieces(const QPainterPath &area, const QBrush &brush, Tiling tiling) {
+    set_target_to_content(area, Qt::NoPen, brush);
+    // Another engine might smooth each piece on its own, and show the cuts.
+    if (m_target.paintEngine()->type() != QPaintEngine::Raster) {
+        m_target.drawPath(area);
+        return;
+    }
+    const QRect paintable = paintable_pixels(m_target, area.boundingRect());
+    if (paintable.isEmpty()) {
+        return;
+    }
+    const QTransform to_device = m_target.deviceTransform();
+    for (const QPainterPath &piece : pieces_of(area, to_device, paintable, tiling)) {
+        if (to_device.mapRect(piece.boundingRect()).toAlignedRect().intersects(paintable)) {
             m_target.drawPath(piece);
         }
-    } else {
-        m_target.drawPath(area);
     }
+}
+
+std::vector<QPainterPath> HandPaintEngine::pieces_of(const QPainterPath &area, const QTransform &to_device,
+                                                     const QRect &paintable, Tiling tiling) {
+    if (fits_in_a_piece(to_device.mapRect(area.boundingRect()).size(), tiling)) {
+        return {area};
+    }
+    // A target that turns or skews the content gets pieces for this drawing only.
+    if (to_device.type() > QTransform::TxScale) {
+        return path_tiles(area, to_device, paintable, tiling);
+    }
+    // The pieces end between two pixels of the device. Cut from the fraction of a pixel where
+    // the content starts, they are the same wherever the content is moved by whole pixels, as
+    // when a view scrolls: they are kept for the scale and that fraction.
+    const QPointF start = to_device.map(QPointF());
+    const QPoint whole(static_cast<int>(std::floor(start.x())), static_cast<int>(std::floor(start.y())));
+    const QPointF phase = start - QPointF(whole);
+    const QTransform cut(to_device.m11(), 0.0, 0.0, to_device.m22(), phase.x(), phase.y());
+    if (m_cache == nullptr || to_device.m11() != to_device.m22()) {
+        return path_tiles(area, cut, paintable.translated(-whole), tiling);
+    }
+    return m_cache->pieces(area, static_cast<int>(tiling), to_device.m11(), phase, [&] {
+        return path_tiles(area, cut, cut.mapRect(area.boundingRect()).toAlignedRect(), tiling);
+    });
+}
+
+void HandPaintEngine::set_target_to_content(const QPainterPath &path, const QPen &pen, const QBrush &brush) {
+    const QRectF bounds = path.controlPointRect().translated(m_origin);
+    const QSizeF device_size(m_target.device()->width(), m_target.device()->height());
+    // The brushes are laid where they were before the target moved.
+    QPen moved_pen = pen;
+    moved_pen.setBrush(moved(laid_on(pen.brush(), bounds, device_size), -m_origin));
+    m_target.translate(m_origin);
+    m_target.setPen(moved_pen);
+    m_target.setBrush(moved(laid_on(brush, bounds, device_size), -m_origin));
 }
 
 void HandPaintEngine::save_target_in_device_coordinates(int system_clip_margin) {

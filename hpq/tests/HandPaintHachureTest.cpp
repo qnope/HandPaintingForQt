@@ -10,7 +10,9 @@
 #include <QImage>
 #include <QPainter>
 
+#include <cmath>
 #include <cstdint>
+#include <optional>
 
 namespace {
 
@@ -23,6 +25,36 @@ using hpq::test::RecordingPaintDevice;
 const QRectF Rectangle(10, 10, 100, 50);
 const QColor PenColor(Qt::red);
 const QColor BrushColor(Qt::blue);
+// How far, in levels of a channel, a pixel that mixes two colors may be from their exact mix.
+constexpr double MixTolerance = 2.0;
+
+// How much of BrushColor, from 0 to 1, `pixel` shows over `paper`; none when it is not a mix
+// of the two.
+std::optional<double> part_of_brush(const QColor &pixel, const QColor &paper) {
+    const int pixel_levels[] = {pixel.red(), pixel.green(), pixel.blue()};
+    const int paper_levels[] = {paper.red(), paper.green(), paper.blue()};
+    const int brush_levels[] = {BrushColor.red(), BrushColor.green(), BrushColor.blue()};
+    // Read on the channel where the brush and the paper differ the most.
+    int widest = 0;
+    for (int channel = 1; channel < 3; ++channel) {
+        if (std::abs(brush_levels[channel] - paper_levels[channel]) >
+            std::abs(brush_levels[widest] - paper_levels[widest])) {
+            widest = channel;
+        }
+    }
+    const double part = static_cast<double>(pixel_levels[widest] - paper_levels[widest]) /
+                        (brush_levels[widest] - paper_levels[widest]);
+    if (part < 0.0 || part > 1.0) {
+        return std::nullopt;
+    }
+    for (int channel = 0; channel < 3; ++channel) {
+        const double mix = paper_levels[channel] + part * (brush_levels[channel] - paper_levels[channel]);
+        if (std::abs(pixel_levels[channel] - mix) > MixTolerance) {
+            return std::nullopt;
+        }
+    }
+    return part;
+}
 
 // Geometry engine that returns the shape unchanged, and one known line as its hachures.
 class OneHachureGeometryEngine : public hpq::GeometryEngine {
@@ -147,22 +179,23 @@ TEST(HandPaintHachureTest, HatchedRectangleShowsThePaperBetweenLinesInTheBrush) 
         painter.drawRect(QRectF(20, 20, 160, 160));
     }
 
-    int paper_pixels = 0;
-    int brush_pixels = 0;
+    // The hachures are smoothed: a pixel along their edges mixes the paper and the brush.
+    double paper_pixels = 0.0;
+    double brush_pixels = 0.0;
     int other_pixels = 0;
     // Well inside the rectangle, away from the ends of the hachures.
     for (int y = 40; y < 160; ++y) {
         for (int x = 40; x < 160; ++x) {
-            const QColor pixel = image.pixelColor(x, y);
-            if (pixel == paper)
-                ++paper_pixels;
-            else if (pixel == BrushColor)
-                ++brush_pixels;
-            else
+            const std::optional<double> brush_part = part_of_brush(image.pixelColor(x, y), paper);
+            if (brush_part) {
+                brush_pixels += *brush_part;
+                paper_pixels += 1.0 - *brush_part;
+            } else {
                 ++other_pixels;
+            }
         }
     }
     EXPECT_EQ(other_pixels, 0);
-    EXPECT_GT(brush_pixels, 1000);
+    EXPECT_GT(brush_pixels, 1000.0);
     EXPECT_GT(paper_pixels, brush_pixels);
 }

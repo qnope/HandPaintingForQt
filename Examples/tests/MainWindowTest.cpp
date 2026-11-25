@@ -42,6 +42,7 @@ TEST(MainWindow, WidgetsOfTheUiExist)
     EXPECT_NE(find<QLineEdit>(w, "lineEdit"), nullptr);
     EXPECT_NE(find<QGroupBox>(w, "groupBox"), nullptr);
     EXPECT_NE(find<QComboBox>(w, "comboBox"), nullptr);
+    EXPECT_NE(find<QComboBox>(w, "antialiasingComboBox"), nullptr);
     EXPECT_NE(find<QTableView>(w, "tableView"), nullptr);
     EXPECT_NE(find<QTreeView>(w, "treeView"), nullptr);
     EXPECT_NE(find<QGraphicsView>(w, "graphicsView"), nullptr);
@@ -223,6 +224,38 @@ TEST(MainWindow, UncheckingHachuresAppliesTheSolidSketchThemeAgain)
     check_box->setChecked(false);
     EXPECT_TRUE(has_hand_paint_effect(w));
     EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
+}
+
+TEST(MainWindow, AntialiasingComboBoxListsTheModesAndStartsAtAlways)
+{
+    hpq::example::MainWindow w;
+    auto *combo = find<QComboBox>(w, "antialiasingComboBox");
+    ASSERT_NE(combo, nullptr);
+    ASSERT_EQ(combo->count(), 3);
+    EXPECT_EQ(combo->itemText(0), "Never");
+    EXPECT_EQ(combo->itemText(1), "Always");
+    EXPECT_EQ(combo->itemText(2), "Only when asked by Qt");
+    EXPECT_EQ(combo->currentText(), "Always");
+    auto *label = find<QLabel>(w, "antialiasingLabel");
+    ASSERT_NE(label, nullptr);
+    EXPECT_EQ(label->buddy(), combo);
+}
+
+TEST(MainWindow, ChoosingAnAntialiasingModeAppliesTheThemeAgain)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
+    find<QComboBox>(w, "antialiasingComboBox")->setCurrentIndex(0);
+    EXPECT_TRUE(has_hand_paint_effect(w));
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme().palette());
+}
+
+TEST(MainWindow, ChoosingAnAntialiasingModeWithoutCurrentEntryKeepsTheThemeRemoved)
+{
+    hpq::example::MainWindow w;
+    find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
+    find<QComboBox>(w, "antialiasingComboBox")->setCurrentIndex(2);
+    EXPECT_EQ(w.graphicsEffect(), nullptr);
 }
 
 TEST(MainWindow, CheckingHachuresWithoutCurrentEntryKeepsTheThemeRemoved)

@@ -18,9 +18,10 @@ public:
     ~MainWindow() override;
 
 private:
-    // Applies the theme of the entry of comboBox, with hatched fills when checkBox is checked,
-    // to the window and, with m_window_theming, to the menus, dialogs and tooltips of the
-    // application. Removes the theme when comboBox has no current entry.
+    // Applies the theme of the entry of comboBox, with hatched fills when checkBox is checked
+    // and the smoothing of the entry of antialiasingComboBox, to the window and, with
+    // m_window_theming, to the menus, dialogs and tooltips of the application. Removes the
+    // theme when comboBox has no current entry.
     void update_theme();
 
     // Opens a message box about the library, which takes the theme of the window.

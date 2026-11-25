@@ -1,3 +1,4 @@
+#include "ImageComparison.h"
 #include "RecordingPaintDevice.h"
 
 #include <hpq/ChinaInkTheme.h>
@@ -305,6 +306,6 @@ TEST(HandPaintOutOfSightTest, RepaintsOfPartsLeaveTheWindowAsAWholeRepaintDrawsI
         const QImage after_parts = shown(window);
         window.repaint();
 
-        EXPECT_EQ(after_parts, shown(window));
+        EXPECT_EQ(hpq::test::differing_pixel_count(after_parts, shown(window)), 0);
     }
 }

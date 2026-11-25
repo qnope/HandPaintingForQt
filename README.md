@@ -90,6 +90,17 @@ target_link_libraries(MyApplication PRIVATE hpq::hpq)
 Each theme is a function of the library, in its own header, that takes the fill style:
 `hpq::FillStyle::Solid` (the default) or `hpq::FillStyle::Hachure`.
 
+Every line and every fill is smoothed. `Theme::with_antialiasing_mode` gives a theme that
+smooths otherwise: `hpq::AntialiasingMode::Always` (the default), `OnlyWhenAsked` (where the
+painter asks for it with `QPainter::Antialiasing`, as Qt draws) or `Never`. Smoothing costs
+time: a full repaint of a window can take 2 to 3 times longer, a hovered button stays well
+under a millisecond.
+
+```cpp
+hpq::apply_theme(window, hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked),
+                 geometry_engine);
+```
+
 | Theme | Solid | Hachures |
 | --- | --- | --- |
 | **Sketch**<br>`sketch_theme`<br>`<hpq/SketchTheme.h>`<br><br>Graphite pencil on paper. | <img src="docs/images/sketch.png" width="380" alt="Sketch"> | <img src="docs/images/sketch-hachure.png" width="380" alt="Sketch with hachures"> |
@@ -251,7 +262,7 @@ endif()
 
 - [`Examples`](Examples): the example application of the repository, built with it, and the
   one that runs in the browser: a table, a tree, a `QGraphicsScene` of shapes, menus and a
-  dialog.
+  dialog, and settings to choose the theme, its fill and where it smooths.
 
 ## API overview
 
@@ -268,7 +279,8 @@ All of hpq is in the namespace `hpq`.
 - **`Theme`** (`<hpq/Theme.h>`): make a theme of your own from a `QPalette`, a `QFont`,
   `RoughOptions` (roughness, number of strokes, largest offset, gap and angle of the hachures),
   a `FillStyle`, a `Medium` (`Pencil`, `Chalk`, `Ink` or `Watercolor`), a `TextInk` (`Visible`
-  or `Invisible`) and the marker of the labels.
+  or `Invisible`) and the marker of the labels. `with_antialiasing_mode` gives the same theme
+  with another `AntialiasingMode` (`Always`, `OnlyWhenAsked` or `Never`).
 - **`GeometryEngine`** and **`RoughGeometryEngine`** (`<hpq/RoughGeometryEngine.h>`): how
   shapes are made rough. `RoughGeometryEngine()` takes a random seed, each engine has its own
   hand; `RoughGeometryEngine(seed)` draws the same paths every time. Derive from

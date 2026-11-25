@@ -42,4 +42,14 @@ QBrush Theme::label_marker() const {
     return m_label_marker;
 }
 
+AntialiasingMode Theme::antialiasing_mode() const {
+    return m_antialiasing_mode;
+}
+
+Theme Theme::with_antialiasing_mode(AntialiasingMode mode) const {
+    Theme theme = *this;
+    theme.m_antialiasing_mode = mode;
+    return theme;
+}
+
 }  // namespace hpq
