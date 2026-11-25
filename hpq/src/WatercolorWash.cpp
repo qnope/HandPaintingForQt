@@ -238,6 +238,8 @@ std::size_t byte_count_of(const QRect &device_rect) {
 
 }  // namespace
 
+double wash_reach() { return WashReach; }
+
 void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind,
                 PaintCache *cache) {
     const double ratio = painter.device()->devicePixelRatioF();
