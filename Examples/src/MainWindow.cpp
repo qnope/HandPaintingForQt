@@ -5,6 +5,7 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
+#include <hpq/AntialiasingMode.h>
 #include <hpq/BlueprintTheme.h>
 #include <hpq/ChinaInkTheme.h>
 #include <hpq/HighlighterTheme.h>
@@ -75,6 +76,24 @@ std::optional<hpq::Theme> theme_for(int index, hpq::FillStyle fill_style)
     }
 }
 
+constexpr int NeverIndex = 0;
+constexpr int AlwaysIndex = 1;
+constexpr int OnlyWhenAskedIndex = 2;
+
+// The smoothing of an entry of the antialiasing combo box: smoothed everywhere when `index`
+// is not one of its entries.
+hpq::AntialiasingMode antialiasing_mode_for(int index)
+{
+    switch (index) {
+    case NeverIndex:
+        return hpq::AntialiasingMode::Never;
+    case OnlyWhenAskedIndex:
+        return hpq::AntialiasingMode::OnlyWhenAsked;
+    default:
+        return hpq::AntialiasingMode::Always;
+    }
+}
+
 QGraphicsScene *create_shapes_scene(QObject *parent)
 {
     auto *scene = new QGraphicsScene(parent);
@@ -142,9 +161,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->graphicsView->setScene(create_shapes_scene(this));
 
     m_ui->checkBox->setText("Hachures");
+    m_ui->antialiasingComboBox->addItems({"Never", "Always", "Only when asked by Qt"});
+    m_ui->antialiasingComboBox->setCurrentIndex(AlwaysIndex);
     connect(m_ui->comboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &MainWindow::update_theme);
     connect(m_ui->checkBox, &QCheckBox::toggled, this, &MainWindow::update_theme);
+    connect(m_ui->antialiasingComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &MainWindow::update_theme);
     connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::show_about);
     update_theme();
 }
@@ -153,15 +176,17 @@ void MainWindow::update_theme()
 {
     const hpq::FillStyle fill_style =
         m_ui->checkBox->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
-    const std::optional<hpq::Theme> theme = theme_for(m_ui->comboBox->currentIndex(), fill_style);
-    if (!theme) {
+    const std::optional<hpq::Theme> listed_theme = theme_for(m_ui->comboBox->currentIndex(), fill_style);
+    if (!listed_theme) {
         m_window_theming.reset();
         hpq::remove_theme(*this);
         return;
     }
+    const hpq::Theme theme =
+        listed_theme->with_antialiasing_mode(antialiasing_mode_for(m_ui->antialiasingComboBox->currentIndex()));
     const auto geometry_engine = std::make_shared<const hpq::RoughGeometryEngine>();
-    hpq::apply_theme(*this, *theme, geometry_engine);
-    m_window_theming.emplace(*theme, geometry_engine);
+    hpq::apply_theme(*this, theme, geometry_engine);
+    m_window_theming.emplace(theme, geometry_engine);
     QApplication::instance()->installEventFilter(&*m_window_theming);
 }
 

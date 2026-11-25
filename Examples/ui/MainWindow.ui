@@ -54,6 +54,23 @@
        <item row="2" column="1">
         <widget class="QFontComboBox" name="fontComboBox"/>
        </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="antialiasingLabel">
+         <property name="text">
+          <string>Antialiasing</string>
+         </property>
+         <property name="buddy">
+          <cstring>antialiasingComboBox</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="antialiasingComboBox">
+         <property name="toolTip">
+          <string>Where the lines and the fills are smoothed</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>

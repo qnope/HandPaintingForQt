@@ -20,8 +20,9 @@ namespace hpq {
 
 // Paint engine that draws each primitive it receives on a target QPainter,
 // changed by a GeometryEngine and drawn as a Theme says.
-// It smooths every line and every fill, as if the painter had the Antialiasing hint. It writes
-// the text in the font of the theme, bold or italic when the font of the painter is.
+// It smooths the lines and the fills where the AntialiasingMode of the theme says: by default
+// all of them, as if the painter had the Antialiasing hint. It writes the text in the font of
+// the theme, bold or italic when the font of the painter is.
 // With a cache, it keeps there the rough paths and the washes that it makes, and takes them
 // back when it draws the same shape again: the drawing is the same, made faster. The cache
 // must serve this theme and this geometry engine only, and outlive the engine.
@@ -110,6 +111,9 @@ private:
     // Whether nothing drawn within `margin` pixels of `bounds`, in device coordinates, can
     // show: the target cannot paint there. What is out of sight is not drawn at all.
     bool is_out_of_sight(const QRectF &bounds, double margin) const;
+    // Whether what is drawn now is smoothed, as the AntialiasingMode of the theme and the device
+    // painter say.
+    bool is_smoothed() const;
     // Whether the target strokes a line of `pen` in one pass: the line is at most one of its pixels wide.
     bool is_thin(const QPen &pen) const;
     // What `tool` marks along `stroke`: its ribbon, or the stroke itself when it has none.
@@ -144,12 +148,14 @@ private:
     QPointF line_origin(const QPainterPath &logical_line) const;
     double target_pixel_ratio() const;
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
-    // It is always smoothed. Without a pen, `path` is an area of `tiling`, filled in pieces.
+    // It is smoothed when is_smoothed(). Without a pen, a smoothed `path` is an area of `tiling`,
+    // filled in pieces.
     // The system clip is grown by `system_clip_margin`.
     void draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush, Tiling tiling,
                         int system_clip_margin = 0);
     // Fills `area` on the target with `brush` as a paint brush leaves watercolor: with a smooth
-    // edge, and as a glaze that darkens what is under it, when the target can do that.
+    // edge unless the theme never smooths, and as a glaze that darkens what is under it, when
+    // the target can do that.
     void glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin);
     // Fills `area` with `brush` and the state of the target, which it moves to m_origin: on the
     // raster engine, which smooths a large path slowly, in the pieces of `tiling`.

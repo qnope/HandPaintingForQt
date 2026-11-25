@@ -6,6 +6,7 @@ class GeometryEngine;
 class RoughGeometryEngine;
 struct RoughOptions;
 class Theme;
+enum class AntialiasingMode;
 enum class FillStyle;
 enum class Medium;
 enum class TextInk;

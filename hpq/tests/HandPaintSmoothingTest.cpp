@@ -1,3 +1,5 @@
+#include <hpq/AntialiasingMode.h>
+#include <hpq/FillStyle.h>
 #include <hpq/HandPaintDevice.h>
 #include <hpq/PaintCache.h>
 #include <hpq/RoughGeometryEngine.h>
@@ -12,9 +14,9 @@
 #include <cstdint>
 #include <functional>
 
-// A rough shape is always smoothed, whether the device painter asks for it, with
+// By default, a rough shape is always smoothed, whether the device painter asks for it, with
 // QPainter::Antialiasing, or not: its edges have pixels between the color of the pen and the
-// paper.
+// paper. The AntialiasingMode of the theme can smooth it only where the painter asks, or never.
 
 namespace {
 
@@ -101,6 +103,52 @@ TEST_F(HandPaintSmoothingTest, WideOutlineIsSmoothedWithoutACache) {
 TEST_F(HandPaintSmoothingTest, FillIsSmoothedWhetherThePainterAsksForItOrNot) {
     EXPECT_GT(grey_pixels(paint_by_hand(true, fill_ellipse)), 300);
     EXPECT_EQ(paint_by_hand(false, fill_ellipse), paint_by_hand(true, fill_ellipse));
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeSmoothsAlwaysUnlessToldOtherwise) {
+    EXPECT_EQ(m_theme.antialiasing_mode(), hpq::AntialiasingMode::Always);
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeWithAnotherModeKeepsAllElse) {
+    const hpq::Theme hatched = hpq::sketch_theme(hpq::FillStyle::Hachure);
+    const hpq::Theme never = hatched.with_antialiasing_mode(hpq::AntialiasingMode::Never);
+
+    EXPECT_EQ(never.antialiasing_mode(), hpq::AntialiasingMode::Never);
+    EXPECT_EQ(hatched.antialiasing_mode(), hpq::AntialiasingMode::Always);
+    EXPECT_EQ(never.palette(), hatched.palette());
+    EXPECT_EQ(never.font(), hatched.font());
+    EXPECT_EQ(never.fill_style(), hatched.fill_style());
+    EXPECT_EQ(never.medium(), hatched.medium());
+    EXPECT_EQ(never.text_ink(), hatched.text_ink());
+    EXPECT_EQ(never.label_marker(), hatched.label_marker());
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeThatNeverSmoothsDoesNotSmoothWhenThePainterAsks) {
+    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::Never);
+    hpq::PaintCache cache;
+
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, draw_line)), 0);
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, draw_wide_outline)), 0);
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, draw_wide_outline, &cache)), 0);
+    EXPECT_EQ(grey_pixels(paint_by_hand(true, fill_ellipse)), 0);
+}
+
+TEST_F(HandPaintSmoothingTest, ThemeThatSmoothsOnlyWhenAskedSmoothsWhereThePainterAsks) {
+    const QImage always = paint_by_hand(true, draw_line);
+    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked);
+
+    EXPECT_EQ(paint_by_hand(true, draw_line), always);
+    EXPECT_GT(grey_pixels(paint_by_hand(true, fill_ellipse)), 300);
+    EXPECT_EQ(grey_pixels(paint_by_hand(false, draw_line)), 0);
+    EXPECT_EQ(grey_pixels(paint_by_hand(false, fill_ellipse)), 0);
+}
+
+TEST_F(HandPaintSmoothingTest, WideOutlineKeptByTheCacheIsSmoothedOnlyWhenAsked) {
+    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked);
+    hpq::PaintCache cache;
+
+    EXPECT_EQ(grey_pixels(paint_by_hand(false, draw_wide_outline, &cache)), 0);
+    EXPECT_GT(grey_pixels(paint_by_hand(true, draw_wide_outline, &cache)), 500);
 }
 
 TEST_F(HandPaintSmoothingTest, SmoothedFillLeavesNoSeamBetweenItsPieces) {

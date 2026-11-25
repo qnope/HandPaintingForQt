@@ -1,5 +1,6 @@
 #include <hpq/HandPaintEngine.h>
 
+#include <hpq/AntialiasingMode.h>
 #include <hpq/FillStyle.h>
 #include <hpq/GeometryEngine.h>
 #include <hpq/RoughOptions.h>
@@ -522,6 +523,18 @@ bool HandPaintEngine::is_out_of_sight(const QRectF &bounds, double margin) const
     return paintable_pixels(m_target, bounds.adjusted(-margin, -margin, margin, margin)).isEmpty();
 }
 
+bool HandPaintEngine::is_smoothed() const {
+    switch (m_theme.antialiasing_mode()) {
+    case AntialiasingMode::Never:
+        return false;
+    case AntialiasingMode::OnlyWhenAsked:
+        return painter()->testRenderHint(QPainter::Antialiasing);
+    case AntialiasingMode::Always:
+        break;
+    }
+    return true;
+}
+
 bool HandPaintEngine::is_thin(const QPen &pen) const {
     if (pen.isCosmetic()) {
         return true;
@@ -636,10 +649,9 @@ double HandPaintEngine::target_pixel_ratio() const {
 void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush, Tiling tiling,
                                      int system_clip_margin) {
     save_target_in_device_coordinates(system_clip_margin);
-    // Always smoothed, whatever the device painter asks: a rough line wobbles, and without
-    // smoothing its slopes turn into stairs of pixels.
-    m_target.setRenderHint(QPainter::Antialiasing);
-    if (pen.style() == Qt::NoPen) {
+    const bool smoothed = is_smoothed();
+    m_target.setRenderHint(QPainter::Antialiasing, smoothed);
+    if (pen.style() == Qt::NoPen && smoothed) {
         fill_in_pieces(path, brush, tiling);
     } else {
         set_target_to_content(path, pen, brush);
@@ -650,11 +662,18 @@ void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, 
 
 void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin) {
     save_target_in_device_coordinates(system_clip_margin);
-    m_target.setRenderHint(QPainter::Antialiasing);
     if (m_target.paintEngine()->hasFeature(QPaintEngine::BlendModes)) {
         m_target.setCompositionMode(QPainter::CompositionMode_Darken);
     }
-    fill_in_pieces(area, brush, Tiling::Stroke);
+    // The smooth edge of watercolor is the one of its medium: lost only when the theme never smooths.
+    if (m_theme.antialiasing_mode() != AntialiasingMode::Never) {
+        m_target.setRenderHint(QPainter::Antialiasing);
+        fill_in_pieces(area, brush, Tiling::Stroke);
+    } else {
+        m_target.setRenderHint(QPainter::Antialiasing, false);
+        set_target_to_content(area, Qt::NoPen, brush);
+        m_target.drawPath(area);
+    }
     m_target.restore();
 }
 
