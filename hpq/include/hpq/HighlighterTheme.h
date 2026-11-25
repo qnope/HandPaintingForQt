@@ -8,7 +8,8 @@ namespace hpq {
 // Notes written with a black pen on white paper, and marked with fluorescent highlighters:
 // yellow for the selection and the text of the labels, green for the buttons and the headers,
 // pink for the frames and a light pass of blue for the alternate rows.
-// Registers the embedded "Architects Daughter" font in QFontDatabase.
+// Registers the embedded "Architects Daughter" font in QFontDatabase: make the theme once the
+// QApplication exists.
 // A highlighter lets what is under it show: its colors are translucent, and the text of a
 // selection stays the one of the pen.
 // With FillStyle::Hachure the colors are opaque, so that the fills are hatched, and the
