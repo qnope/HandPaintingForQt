@@ -1,7 +1,8 @@
 name: Pages
 
 # Builds the example application with Qt for WebAssembly, checks that it starts in a browser
-# and that text can be typed in it on a phone and, on main, publishes it on GitHub Pages.
+# and that text can be typed in it on a phone and, on main, publishes it on GitHub Pages with
+# the teaser video of the README (docs/teaser/teaser.mp4, rendered by tools/teaser).
 # The repository setting "Pages > Build and deployment > Source" must be "GitHub Actions".
 
 on:
@@ -96,6 +97,7 @@ jobs:
           cp -r build/Examples/index.html build/Examples/fonts \
             build/Examples/HandPaintingExample.js build/Examples/HandPaintingExample.wasm \
             build/Examples/qtloader.js _site/
+          cp docs/teaser/teaser.mp4 _site/
           ls -lR _site
 
       # Without asyncify the application starts as well, but exec() of a dialog or a menu never returns.

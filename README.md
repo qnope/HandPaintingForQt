@@ -12,7 +12,9 @@ drawn by hand too.
 
 **Try it in your browser: https://qnope.github.io/HandPaintingForQt/**
 
-![The window of the integration example in the nine themes](docs/images/themes.png)
+[![The teaser: a Qt window drawn by hand in the nine themes, while a pointer uses its widgets](docs/teaser/teaser.gif)](https://qnope.github.io/HandPaintingForQt/teaser.mp4)
+
+The teaser in 1080p: [teaser.mp4](https://qnope.github.io/HandPaintingForQt/teaser.mp4).
 
 - [Features](#features)
 - [Quick start](#quick-start)
@@ -82,6 +84,8 @@ target_link_libraries(MyApplication PRIVATE hpq::hpq)
 
 ## Themes
 
+![The window of the integration example in the nine themes](docs/images/themes.png)
+
 Each theme is a function of the library, in its own header, that takes the fill style:
 `hpq::FillStyle::Solid` (the default) or `hpq::FillStyle::Hachure`.
 
@@ -101,6 +105,12 @@ The images are the window of [`Examples/Integration`](Examples/Integration), ren
 [`tools/screenshots`](tools/screenshots/ThemeScreenshots.cpp):
 `QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`. The CI
 renders them on Linux for each pull request (artifact `theme-screenshots`).
+
+The teaser at the top of this page is rendered frame by frame by
+[`tools/teaser`](tools/teaser/TeaserVideo.cpp), with ffmpeg in `PATH`:
+`QT_QPA_PLATFORM=offscreen build/tools/teaser/HpqTeaserVideo docs/teaser` writes `teaser.mp4`
+and its preview `teaser.gif`. The `Pages` workflow publishes `teaser.mp4` with the site. The
+teaser is rendered again before a release, when what hpq draws has changed.
 
 ## Use hpq in your project
 
@@ -216,7 +226,7 @@ endif()
 | Option | Default | Effect |
 | --- | --- | --- |
 | `HPQ_BUILD_TESTS` | `ON`, `OFF` in a subproject | The tests (GoogleTest, from vcpkg) |
-| `HPQ_BUILD_EXAMPLES` | `ON`, `OFF` in a subproject | The example application and the screenshot tool |
+| `HPQ_BUILD_EXAMPLES` | `ON`, `OFF` in a subproject | The example application, the screenshot tool and the teaser tool |
 | `HPQ_INSTALL` | `ON` | The install rules and the CMake package |
 | `HPQ_BUILD_BENCH` | `OFF` | The repaint benchmark ([`bench`](bench/README.md)), with the examples |
 
@@ -319,7 +329,7 @@ The example is linked with asyncify (`-sASYNCIFY -Os`, in `Examples/CMakeLists.t
 
 On a phone, Qt opens the virtual keyboard by giving the focus to a text field it keeps hidden in the page. `index.html` keeps the browser from moving this focus after a tap, which closed the keyboard at once in Safari on iOS, and switches off the corrections of the keyboard in this field, which Qt does not follow. A double tap on a cell of the table or of the tree opens its editor without a tap on the editor itself, so Qt does not ask for the keyboard: `ItemEditorInputPanel` (`Examples/src`) asks for it when the tap is released.
 
-The `Pages` workflow (`.github/workflows/pages.yml`) does this build, checks with `.github/scripts/WasmSmokeTest.cjs` that the application starts in a browser, with `.github/scripts/WasmMobileInputTest.cjs` that text can be typed in the line edit and in a cell of the table in a browser emulating a phone and, on `main`, deploys the site to GitHub Pages. The repository setting Pages > Build and deployment > Source must be "GitHub Actions".
+The `Pages` workflow (`.github/workflows/pages.yml`) does this build, checks with `.github/scripts/WasmSmokeTest.cjs` that the application starts in a browser, with `.github/scripts/WasmMobileInputTest.cjs` that text can be typed in the line edit and in a cell of the table in a browser emulating a phone and, on `main`, deploys the site to GitHub Pages, with the teaser video of the README (`docs/teaser/teaser.mp4`). The repository setting Pages > Build and deployment > Source must be "GitHub Actions".
 
 ## Versions and changelog
 
