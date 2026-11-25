@@ -42,6 +42,7 @@ target_sources(HpqTests PRIVATE InvisibleInkThemeTest.cpp InvisibleTextInkTest.c
 target_sources(HpqTests PRIVATE ScrolledViewTest.cpp)
 target_sources(HpqTests PRIVATE PaintCacheTest.cpp HandPaintCacheTest.cpp)
 target_sources(HpqTests PRIVATE HandPaintOutOfSightTest.cpp)
+target_sources(HpqTests PRIVATE PartialRenderTest.cpp)
 target_sources(HpqTests PRIVATE HighlighterThemeTest.cpp)
 target_sources(HpqTests PRIVATE LabelMarkerTest.cpp LabelMarkerThemeTest.cpp)
 target_sources(HpqTests PRIVATE MovingHighlightTest.cpp)
