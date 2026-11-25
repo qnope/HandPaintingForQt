@@ -13,6 +13,19 @@ All notable changes to Hand Painting for Qt are written here. The format follows
   a pointer uses its widgets. `tools/teaser` (`HpqTeaserVideo`) renders it frame by frame,
   offscreen, with ffmpeg, and the `Pages` workflow publishes it with the site.
 
+### Changed
+
+- A repaint of a part of a window, such as a hovered button or the blinking cursor of a field,
+  draws only the shapes, texts and images that reach that part: the others are not made rough
+  nor sent to the paint engine of Qt. Such a repaint is 2 to 3 times faster; the drawing is the
+  same.
+- When Qt repaints a part of a window, `HandPaintEffect` renders only the widgets close to that
+  part, instead of the whole window: a hovered button is repainted in 0.1 to 0.3 ms instead of
+  0.7 to 1 ms. A widget without children, the viewport of a view and a widget that fills its
+  background with a color of its own are painted whole; a widget of the application that holds
+  other widgets and draws something else than a frame or a plain background must draw the same
+  shapes whatever part of it is repainted.
+
 ### Fixed
 
 - The opacity of a `QPainter` (`setOpacity`) reaches the hand-painted drawing: a shape, a
@@ -30,6 +43,12 @@ All notable changes to Hand Painting for Qt are written here. The format follows
   in Fusion the fields, the check boxes, the radio buttons and the slider, are smoothed.
 - A bold or an italic text stays bold or italic in the font of the theme: for example, the
   header of a view writes in bold the columns of the selected row, as Qt does.
+- A view that scrolls no longer leaves traces. Qt moves the pixels it already painted and
+  repaints only what comes into view, but the slate and the paper stay where they are and a
+  line along the scroll keeps its wobble: the slate and the watercolor showed seams in the
+  ground, the other themes bits of lines. `HandPaintEffect` now repaints a scroll area whole,
+  with what its scroll bars draw past its edges, when it scrolls or when a scroll bar changes,
+  shows or hides.
 
 ## [0.1.0] - 2026-11-24
 

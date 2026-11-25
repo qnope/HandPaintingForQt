@@ -35,4 +35,7 @@ enum class WashKind {
 void paint_wash(QPainter &painter, const QPainterPath &area, const QColor &pigment, WashKind kind,
                 PaintCache *cache = nullptr);
 
+// How far past its area, in logical pixels of the painter, a wash can change a pixel.
+double wash_reach();
+
 }  // namespace hpq
