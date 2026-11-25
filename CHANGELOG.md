@@ -19,6 +19,11 @@ All notable changes to Hand Painting for Qt are written here. The format follows
   their light gradient.
 - A theme made before the `QApplication` no longer crashes in `QFontDatabase`: it warns and has
   no font family, and the themes made once the application exists get their font.
+- A painter with the `QPainter::Antialiasing` hint gets a smooth drawing, as Qt draws it: the
+  hint no longer stops at the hand-painted engine. The shapes of the example application, and
+  in Fusion the fields, the check boxes, the radio buttons and the slider, are smoothed.
+- A bold or an italic text stays bold or italic in the font of the theme: for example, the
+  header of a view writes in bold the columns of the selected row, as Qt does.
 
 ## [0.1.0] - 2026-11-24
 

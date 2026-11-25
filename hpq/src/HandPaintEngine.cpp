@@ -575,9 +575,17 @@ double HandPaintEngine::target_pixel_ratio() const {
 void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush,
                                      int system_clip_margin) {
     save_target_in_device_coordinates(system_clip_margin);
+    // Smoothed where the device painter asks for it, as Qt draws.
+    const bool smoothed = painter()->testRenderHint(QPainter::Antialiasing);
+    m_target.setRenderHint(QPainter::Antialiasing, smoothed);
     m_target.setPen(pen);
     m_target.setBrush(brush);
-    m_target.drawPath(path.translated(m_origin));
+    const QPainterPath placed = path.translated(m_origin);
+    if (smoothed && pen.style() == Qt::NoPen) {
+        fill_in_tiles(placed);
+    } else {
+        m_target.drawPath(placed);
+    }
     m_target.restore();
 }
 
@@ -589,19 +597,22 @@ void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &br
     }
     m_target.setPen(Qt::NoPen);
     m_target.setBrush(brush);
-    const QPainterPath glaze = area.translated(m_origin);
+    fill_in_tiles(area.translated(m_origin));
+    m_target.restore();
+}
+
+void HandPaintEngine::fill_in_tiles(const QPainterPath &area) {
     // The raster engine of Qt smooths a path in bands, and goes over the whole path for each
     // band: a long line takes as many passes as it is long. Cut in tiles, it takes one pass a
     // tile. Another engine might smooth each tile on its own, and show the cuts.
     if (m_target.paintEngine()->type() == QPaintEngine::Raster) {
-        const QRect paintable = paintable_pixels(m_target, glaze.boundingRect());
-        for (const QPainterPath &piece : path_tiles(glaze, m_target.deviceTransform(), paintable)) {
+        const QRect paintable = paintable_pixels(m_target, area.boundingRect());
+        for (const QPainterPath &piece : path_tiles(area, m_target.deviceTransform(), paintable)) {
             m_target.drawPath(piece);
         }
     } else {
-        m_target.drawPath(glaze);
+        m_target.drawPath(area);
     }
-    m_target.restore();
 }
 
 void HandPaintEngine::save_target_in_device_coordinates(int system_clip_margin) {
@@ -660,8 +671,15 @@ void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &tex
     if (!shows_text(m_pen.color())) {
         return;
     }
+    const QFont &text_font = text_item.font();
     QFont font = m_theme.font();
-    font.setPixelSize(pixel_size(text_item.font(), *paintDevice()));
+    font.setPixelSize(pixel_size(text_font, *paintDevice()));
+    // The text keeps its emphasis in the font of the theme: bold, unless the theme writes
+    // bolder, and italic.
+    font.setWeight(std::max(font.weight(), text_font.weight()));
+    if (text_font.italic()) {
+        font.setItalic(true);
+    }
     save_target_in_logical_coordinates();
     m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text, content_origin()) : m_pen);
     m_target.setFont(font);
