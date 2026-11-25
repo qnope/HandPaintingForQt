@@ -21,6 +21,9 @@ namespace hpq {
 // that it paints. A widget that holds others is asked to paint only a part of itself: it must
 // draw the same shapes whatever that part, as the containers of Qt do (a frame, the paper of
 // the window).
+// Installed on the widget it is a child of, it repaints whole each scroll area that the widget
+// holds then, when the area scrolls or a scroll bar changes: Qt would move the pixels already
+// painted, but the theme does not draw a scrolled view as it was moved.
 class HPQ_EXPORT HandPaintEffect : public QGraphicsEffect {
     Q_OBJECT
 
@@ -31,6 +34,7 @@ public:
 
 protected:
     void draw(QPainter *painter) override;
+    void sourceChanged(ChangeFlags flags) override;
 
 private:
     Theme m_theme;

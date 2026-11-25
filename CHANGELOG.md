@@ -37,6 +37,12 @@ All notable changes to Hand Painting for Qt are written here. The format follows
   in Fusion the fields, the check boxes, the radio buttons and the slider, are smoothed.
 - A bold or an italic text stays bold or italic in the font of the theme: for example, the
   header of a view writes in bold the columns of the selected row, as Qt does.
+- A view that scrolls no longer leaves traces. Qt moves the pixels it already painted and
+  repaints only what comes into view, but the slate and the paper stay where they are and a
+  line along the scroll keeps its wobble: the slate and the watercolor showed seams in the
+  ground, the other themes bits of lines. `HandPaintEffect` now repaints a scroll area whole,
+  with what its scroll bars draw past its edges, when it scrolls or when a scroll bar changes,
+  shows or hides.
 
 ## [0.1.0] - 2026-11-24
 

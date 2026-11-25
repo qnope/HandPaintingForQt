@@ -2,10 +2,13 @@
 #include <hpq/HandPaintEffect.h>
 
 #include <QAbstractScrollArea>
+#include <QEvent>
 #include <QPaintEngine>
 #include <QPainter>
+#include <QPointer>
 #include <QRegion>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QTransform>
 #include <QWidget>
 
@@ -87,6 +90,58 @@ void add_whole_widgets(const QWidget &widget, const QWidget &source, const QRect
     });
 }
 
+// How far past what Qt repaints the widgets are rendered: past their edges, what they draw
+// reaches no farther.
+int render_margin(const Theme &theme) {
+    return RenderMargin + static_cast<int>(std::ceil(theme.rough_options().max_offset));
+}
+
+// Repaints a scroll area whole, with its frame, its headers, its scroll bars and what they
+// draw past its edges, each time it scrolls and each time a scroll bar changes, for as long as
+// it lives. Qt moves the pixels already painted and repaints only what comes into view, but
+// the theme does not draw a scrolled view as it was moved: the slate and the paper stay where
+// they are, a line along the scroll keeps its wobble, the handle of a scroll bar is drawn a
+// little past the bar.
+class ScrollAreaRepainter : public QObject {
+public:
+    // `area` is `source` or one of its descendants.
+    ScrollAreaRepainter(QWidget &source, QAbstractScrollArea &area, int margin, QObject &parent)
+        : QObject(&parent), m_source(&source), m_area(&area), m_margin(margin) {
+        for (QScrollBar *bar : {area.horizontalScrollBar(), area.verticalScrollBar()}) {
+            connect(bar, &QAbstractSlider::valueChanged, this, [this] { repaint(); });
+            // The handle changes its length.
+            connect(bar, &QAbstractSlider::rangeChanged, this, [this] { repaint(); });
+            // Shown or hidden once the area lays out its scroll bars again.
+            bar->installEventFilter(this);
+        }
+    }
+
+    bool eventFilter(QObject *, QEvent *event) override {
+        if (event->type() == QEvent::Show || event->type() == QEvent::Hide) {
+            repaint();
+        }
+        return false;
+    }
+
+private:
+    void repaint() const {
+        if (m_source.isNull() || m_area.isNull()) {
+            return;
+        }
+        if (m_area.data() == m_source.data()) {
+            m_source->update();
+        } else if (m_source->isAncestorOf(m_area)) {
+            // The parent of the area would cut the margin at its own edges.
+            const QRect area(m_area->mapTo(m_source, QPoint()), m_area->size());
+            m_source->update(area.adjusted(-m_margin, -m_margin, m_margin, m_margin));
+        }
+    }
+
+    QPointer<QWidget> m_source;
+    QPointer<QAbstractScrollArea> m_area;
+    int m_margin;
+};
+
 }  // namespace
 
 HandPaintEffect::HandPaintEffect(Theme theme,
@@ -110,7 +165,7 @@ void HandPaintEffect::draw(QPainter *painter) {
     }
     // Only the widgets close enough to what Qt repaints to draw there, each painted whole or in
     // a part that does not change what it draws.
-    const int margin = RenderMargin + static_cast<int>(std::ceil(m_theme.rough_options().max_offset));
+    const int margin = render_margin(m_theme);
     const QRect near_repainted = repainted.adjusted(-margin, -margin, margin, margin).intersected(widget->rect());
     if (near_repainted.isEmpty()) {
         return;
@@ -123,6 +178,20 @@ void HandPaintEffect::draw(QPainter *painter) {
     add_whole_widgets(*widget, *widget, near_repainted, widget->rect(), m_theme.palette(), rendered);
     // Rendering starts at the given offset: the top left corner of the rendered region stays in its place.
     widget->render(&hand_painter, rendered.boundingRect().topLeft(), rendered);
+}
+
+void HandPaintEffect::sourceChanged(ChangeFlags flags) {
+    auto *widget = qobject_cast<QWidget *>(parent());
+    if (!flags.testFlag(SourceAttached) || widget == nullptr || widget->graphicsEffect() != this) {
+        return;
+    }
+    const int margin = render_margin(m_theme);
+    if (auto *area = qobject_cast<QAbstractScrollArea *>(widget)) {
+        new ScrollAreaRepainter(*widget, *area, margin, *this);
+    }
+    for (QAbstractScrollArea *area : widget->findChildren<QAbstractScrollArea *>()) {
+        new ScrollAreaRepainter(*widget, *area, margin, *this);
+    }
 }
 
 }  // namespace hpq
