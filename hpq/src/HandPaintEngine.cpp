@@ -179,6 +179,28 @@ bool is_plain_line(const QPen &pen) {
     return pen.style() == Qt::SolidLine && pen.brush().style() == Qt::SolidPattern;
 }
 
+// `brush` of the device painter, as it is laid on the device: a gradient given in the logical
+// coordinates of the painter follows its transform and its brush origin, as Qt places it.
+QBrush on_device(QBrush brush, const QTransform &transform, const QPointF &brush_origin) {
+    const QGradient *gradient = brush.gradient();
+    if (gradient != nullptr && gradient->coordinateMode() == QGradient::LogicalMode) {
+        brush.setTransform(brush.transform() * QTransform::fromTranslate(brush_origin.x(), brush_origin.y()) *
+                           transform);
+    }
+    return brush;
+}
+
+// `pen` of the device painter, as it strokes on the device: as wide as the transform makes it,
+// unless it is cosmetic, with its brush on the device.
+QPen on_device(QPen pen, const QTransform &transform, const QPointF &brush_origin) {
+    if (!pen.isCosmetic()) {
+        // How much the transform scales a length, whatever its direction.
+        pen.setWidthF(pen.widthF() * std::sqrt(std::abs(transform.determinant())));
+    }
+    pen.setBrush(on_device(pen.brush(), transform, brush_origin));
+    return pen;
+}
+
 }  // namespace
 
 // A shape whose paths are all kept needs no seed: its seed is made only when it is asked for.
@@ -210,24 +232,24 @@ bool HandPaintEngine::begin(QPaintDevice *) { return true; }
 
 bool HandPaintEngine::end() { return true; }
 
-void HandPaintEngine::updateState(const QPaintEngineState &state) {
-    const DirtyFlags flags = state.state();
+void HandPaintEngine::updateState(const QPaintEngineState &new_state) {
+    const DirtyFlags flags = new_state.state();
     if (flags & DirtyPen) {
-        m_pen = state.pen();
+        m_pen = new_state.pen();
     }
     if (flags & DirtyBrush) {
-        m_brush = state.brush();
+        m_brush = new_state.brush();
     }
     if (flags & DirtyTransform) {
-        m_transform = state.transform();
+        m_transform = new_state.transform();
     }
     if (flags & (DirtyClipPath | DirtyClipRegion | DirtyClipEnabled)) {
         // QPainter::clipPath() is in the current logical coordinates: map it back to the device
         // with the engine's transform. Unlike QPainter::combinedTransform(), it includes the
         // redirection offset of a child widget rendered through a shared painter.
-        const QPainter &painter = *state.painter();
-        m_clipping = painter.hasClipping();
-        m_clip = m_clipping ? state.transform().map(painter.clipPath()) : QPainterPath();
+        const QPainter &device_painter = *new_state.painter();
+        m_clipping = device_painter.hasClipping();
+        m_clip = m_clipping ? new_state.transform().map(device_painter.clipPath()) : QPainterPath();
     }
 }
 
@@ -321,9 +343,10 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
         fill_shape(shape, kind, options, shape_seed);
     }
     if (m_pen.style() != Qt::NoPen) {
+        const QPen pen = on_device(m_pen, m_transform, painter()->brushOrigin());
         // A rectangle with no area is a line: it frames nothing.
         const bool is_frame = kind == ShapeKind::Rectangle && !filled && !shape.boundingRect().isEmpty();
-        const Tool tool = tool_of(m_pen, StrokeKind::Outline);
+        const Tool tool = tool_of(pen, StrokeKind::Outline);
         const std::vector<QPainterPath> outlines = kept_paths(
             is_frame ? PaintCache::PathKind::FrameOutline : PaintCache::PathKind::Outline, shape, tool, [&] {
                 std::vector<QPainterPath> made;
@@ -338,7 +361,7 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
                 return made;
             });
         for (const QPainterPath &outline : outlines) {
-            draw_marked(outline, m_pen, tool);
+            draw_marked(outline, pen, tool);
         }
     }
 }
@@ -352,8 +375,9 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, cons
         return std::vector<QPainterPath>{
             m_geometry_engine.fill_area(shape, options, is_watercolor ? seed ^ WashSeedMask : seed)};
     }).front();
-    if (is_hatched(m_brush)) {
-        const QPen pen(m_brush, HachureWidth, Qt::SolidLine, Qt::RoundCap);
+    const QBrush brush = on_device(m_brush, m_transform, painter()->brushOrigin());
+    if (is_hatched(brush)) {
+        const QPen pen(brush, HachureWidth, Qt::SolidLine, Qt::RoundCap);
         const Tool tool = tool_of(pen, StrokeKind::Hachure);
         // What the tool marks along the hachures, in a list of one path; none when the shape
         // cannot be hatched.
@@ -369,7 +393,7 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, cons
             return;
         }
     }
-    lay_on_target(area, m_brush, kind == ShapeKind::Rectangle && m_pen.style() == Qt::NoPen);
+    lay_on_target(area, brush, kind == ShapeKind::Rectangle && m_pen.style() == Qt::NoPen);
 }
 
 void HandPaintEngine::lay_on_target(const QPainterPath &area, const QBrush &brush, bool is_band) {
@@ -582,6 +606,8 @@ void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &br
 
 void HandPaintEngine::save_target_in_device_coordinates(int system_clip_margin) {
     m_target.save();
+    // What the device painter draws is as opaque as it says, as Qt draws it.
+    m_target.setOpacity(m_target.opacity() * painter()->opacity());
     // Intersect keeps the clip the target painter already has.
     // The system clip is the area of the widget Qt is rendering through a shared painter:
     // styles draw past it (for example the fill of a selected tab) and rely on it to cut.

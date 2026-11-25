@@ -25,27 +25,27 @@ bool RecordingPaintEngine::begin(QPaintDevice *) { return true; }
 
 bool RecordingPaintEngine::end() { return true; }
 
-void RecordingPaintEngine::updateState(const QPaintEngineState &state) {
-    const DirtyFlags flags = state.state();
+void RecordingPaintEngine::updateState(const QPaintEngineState &new_state) {
+    const DirtyFlags flags = new_state.state();
     if (flags & DirtyPen) {
-        m_pen = state.pen();
+        m_pen = new_state.pen();
     }
     if (flags & DirtyBrush) {
-        m_brush = state.brush();
+        m_brush = new_state.brush();
     }
     if (flags & DirtyTransform) {
-        m_transform = state.transform();
+        m_transform = new_state.transform();
     }
     if (flags & DirtyClipEnabled) {
-        m_clip_enabled = state.isClipEnabled();
+        m_clip_enabled = new_state.isClipEnabled();
     }
     if (flags & (DirtyClipPath | DirtyClipRegion)) {
-        m_clip_enabled = state.clipOperation() != Qt::NoClip;
+        m_clip_enabled = new_state.clipOperation() != Qt::NoClip;
         m_clip_path = QPainterPath();
         if (flags & DirtyClipPath) {
-            m_clip_path = state.clipPath();
+            m_clip_path = new_state.clipPath();
         } else {
-            m_clip_path.addRegion(state.clipRegion());
+            m_clip_path.addRegion(new_state.clipRegion());
         }
     }
 }

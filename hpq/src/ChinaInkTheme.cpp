@@ -1,8 +1,9 @@
 #include <hpq/ChinaInkTheme.h>
 
+#include "EmbeddedFont.h"
+
 #include <QColor>
-#include <QFontDatabase>
-#include <QStringList>
+#include <QtGlobal>
 
 // Where hpq is a static library (Qt for WebAssembly), its resource must be initialized by
 // hand, outside any namespace. In the shared library, the call does nothing more.
@@ -14,17 +15,11 @@ namespace hpq {
 
 namespace {
 
-constexpr auto BrushFontResource = ":/hpq/fonts/KaushanScript-Regular.ttf";
-
-// The family of the embedded brush font, registered in QFontDatabase by the first call.
+// The family of the embedded brush font, registered in QFontDatabase by the first call made
+// once the QGuiApplication exists.
 QString brush_font_family() {
-    static const QString family = [] {
-        init_hpq_china_ink_fonts_resource();
-        const int font_id = QFontDatabase::addApplicationFont(BrushFontResource);
-        const QStringList families = QFontDatabase::applicationFontFamilies(font_id);
-        return families.isEmpty() ? QString() : families.first();
-    }();
-    return family;
+    return embedded_font_family(QStringLiteral(":/hpq/fonts/KaushanScript-Regular.ttf"),
+                                init_hpq_china_ink_fonts_resource);
 }
 
 // One color for each role of a color group.

@@ -30,7 +30,7 @@ public:
 
     bool begin(QPaintDevice *device) override;
     bool end() override;
-    void updateState(const QPaintEngineState &state) override;
+    void updateState(const QPaintEngineState &new_state) override;
     void drawPath(const QPainterPath &path) override;
     void drawRects(const QRectF *rects, int count) override;
     // The integer overloads of QPaintEngine convert to the floating point ones below.

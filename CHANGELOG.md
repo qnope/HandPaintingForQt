@@ -7,6 +7,19 @@ All notable changes to Hand Painting for Qt are written here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- The opacity of a `QPainter` (`setOpacity`) reaches the hand-painted drawing: a shape, a
+  line, a text or an image drawn at 30 % no longer comes out opaque.
+- A pen that is not cosmetic is as wide as the transform of the painter makes it, as Qt draws
+  it: a pen of 2 pixels under `scale(3, 3)` is 6 pixels wide, no longer 2.
+- A gradient follows the transform and the brush origin of the painter: a widget that is not
+  at the origin of its window, or a translated painter, no longer gets its gradient at the
+  wrong place. The inactive tabs, the progress bars and the check boxes of Fusion get back
+  their light gradient.
+- A theme made before the `QApplication` no longer crashes in `QFontDatabase`: it warns and has
+  no font family, and the themes made once the application exists get their font.
+
 ## [0.1.0] - 2026-11-24
 
 The first release.

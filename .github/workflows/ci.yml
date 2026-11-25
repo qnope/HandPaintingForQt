@@ -134,3 +134,12 @@ jobs:
             "-DCMAKE_PREFIX_PATH=$QT_PREFIX"
           cmake --build build-fetch-content --config Debug --parallel 4
           ctest --test-dir build-fetch-content -C Debug --output-on-failure --timeout 120
+
+      # The same application with this checkout added by add_subdirectory, as a git submodule would be.
+      - name: Integration with add_subdirectory
+        run: |
+          cmake -S Examples/Integration -B build-add-subdirectory -DCMAKE_BUILD_TYPE=Debug \
+            -DGALLERY_HPQ_SOURCE=add_subdirectory \
+            "-DCMAKE_PREFIX_PATH=$QT_PREFIX"
+          cmake --build build-add-subdirectory --config Debug --parallel 4
+          ctest --test-dir build-add-subdirectory -C Debug --output-on-failure --timeout 120
