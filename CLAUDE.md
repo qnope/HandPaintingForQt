@@ -57,6 +57,7 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 3. `hpq` est une bibliothèque dynamique (`SHARED`), statique seulement en WebAssembly (Qt for WebAssembly est statique). Sous Windows, `hpq.dll` et les exécutables sont construits dans `build/bin` (`hpq_set_runtime_directory`)
 4. Les avertissements (`-Wall -Wextra`, `/W4`) sont `PRIVATE` à chaque cible du projet (`hpq_set_warnings`) : une application qui lie hpq garde les siens
 5. Le projet doit rester utilisable comme sous-projet (`FetchContent`, `add_subdirectory`) : en sous-projet, `HPQ_BUILD_TESTS` et `HPQ_BUILD_EXAMPLES` valent `OFF`. Les règles `install()` et l'export `hpq::hpq` (`HPQ_INSTALL`) sont dans `hpq/CMakeLists.txt`
+6. Les sources d'une cible sont listées dans son `CMakeLists.txt`, une par ligne et par ordre alphabétique (`hpq/CMakeLists.txt` : en-têtes publics puis sources). Un exécutable du projet se crée avec `hpq_add_executable(nom sources…)`, qui lui donne moc, les avertissements et le répertoire de sortie
 
 ## Consideration for code
 
