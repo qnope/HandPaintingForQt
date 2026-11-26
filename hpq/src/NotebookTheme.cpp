@@ -1,7 +1,8 @@
 #include <hpq/NotebookTheme.h>
 
-#include "SchoolFont.h"
+#include "Fonts.h"
 #include "SeyesPaper.h"
+#include "ThemePalette.h"
 
 #include <QBrush>
 #include <QColor>
@@ -9,23 +10,6 @@
 namespace hpq {
 
 namespace {
-
-// One brush or color for each role of a color group.
-struct GroupColors {
-    QBrush sheet;
-    QColor paper;
-    QColor see_through;
-    QColor wash;
-    QColor ink;
-    QColor ink_light;
-    QColor ink_pale;
-    QColor highlight;
-    QColor link;
-    QColor placeholder;
-    QColor sticky_note;
-};
-
-constexpr QPalette::ColorGroup PaletteGroups[] = {QPalette::Active, QPalette::Inactive, QPalette::Disabled};
 
 constexpr QColor Paper(0xfd, 0xfd, 0xf9);
 constexpr QColor Pencil(0x9c, 0x9c, 0xa2);
@@ -46,81 +30,31 @@ QBrush sheet_brush() {
     return brush;
 }
 
-GroupColors colors_for(QPalette::ColorGroup group, FillStyle fill_style) {
-    GroupColors colors{
-        sheet_brush(),                   // sheet
-        Paper,                           // paper
-        QColor(0xfd, 0xfd, 0xf9, 0),     // see_through
-        QColor(0x2b, 0x4a, 0xc0, 0x26),  // wash
-        QColor(0x1d, 0x35, 0x9a),        // ink
-        QColor(0x4f, 0x69, 0xc6),        // ink_light
-        QColor(0x93, 0xa4, 0xde),        // ink_pale
-        QColor(0xff, 0xe0, 0x2a, 0xc0),  // highlight
-        QColor(0xcf, 0x2a, 0x2a),        // link
-        Pencil,                          // placeholder
-        QColor(0xff, 0xf4, 0x9c),        // sticky_note
-    };
-    // What is disabled is written with a pencil.
-    if (group == QPalette::Disabled) {
-        colors.ink = Pencil;
-        colors.ink_light = PencilLight;
-        colors.ink_pale = PencilLight;
-        colors.highlight = QColor(0xd9, 0xd9, 0xd4, 0xb4);
-        colors.link = QColor(0xd8, 0xa9, 0xa9);
-        colors.wash = QColor(0x80, 0x80, 0x88, 0x1c);
-    }
+// What is disabled is written with a pencil.
+PaletteColors notebook_colors(bool is_disabled, FillStyle fill_style) {
+    const QColor ink = is_disabled ? Pencil : QColor(0x1d, 0x35, 0x9a);
+    const QColor ink_light = is_disabled ? PencilLight : QColor(0x4f, 0x69, 0xc6);
+    const QColor ink_pale = is_disabled ? PencilLight : QColor(0x93, 0xa4, 0xde);
+    // The ruling of the sheet shows through a field and a button.
+    const QColor see_through(0xfd, 0xfd, 0xf9, 0);
+    const QColor wash = is_disabled ? QColor(0x80, 0x80, 0x88, 0x1c) : QColor(0x2b, 0x4a, 0xc0, 0x26);
+    const QColor highlighter = is_disabled ? QColor(0xd9, 0xd9, 0xd4, 0xb4) : QColor(0xff, 0xe0, 0x2a, 0xc0);
+    const QColor colored_pencil = is_disabled ? PencilLight : QColor(0xf2, 0xa9, 0x00);
+    const QColor sticky_note(0xff, 0xf4, 0x9c);
+
+    PaletteColors colors(Paper, ink);
+    colors.window = sheet_brush();
+    colors.base = colors.button = see_through;
+    colors.tool_tip_base = sticky_note;
+    colors.alternate_base = colors.midlight = wash;
+    colors.mid = ink_pale;
+    colors.dark = ink_light;
     // A hatched fill is opaque: the highlighter gives way to a colored pencil, whose thin lines
     // show on the paper.
-    if (fill_style == FillStyle::Hachure) {
-        colors.highlight = group == QPalette::Disabled ? PencilLight : QColor(0xf2, 0xa9, 0x00);
-    }
+    colors.highlight = fill_style == FillStyle::Hachure ? colored_pencil : highlighter;
+    colors.link = is_disabled ? QColor(0xd8, 0xa9, 0xa9) : QColor(0xcf, 0x2a, 0x2a);
+    colors.placeholder_text = Pencil;
     return colors;
-}
-
-QBrush brush_for(QPalette::ColorRole role, const GroupColors &colors) {
-    switch (role) {
-    case QPalette::Window:
-        return colors.sheet;
-    case QPalette::Base:
-    case QPalette::Button:
-        return colors.see_through;
-    case QPalette::Light:
-    case QPalette::BrightText:
-        return colors.paper;
-    case QPalette::ToolTipBase:
-        return colors.sticky_note;
-    case QPalette::AlternateBase:
-    case QPalette::Midlight:
-        return colors.wash;
-    case QPalette::Mid:
-        return colors.ink_pale;
-    case QPalette::Dark:
-        return colors.ink_light;
-    case QPalette::Highlight:
-#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)  // The accent role appeared in Qt 6.6.
-    case QPalette::Accent:
-#endif
-        return colors.highlight;
-    case QPalette::Link:
-    case QPalette::LinkVisited:
-        return colors.link;
-    case QPalette::PlaceholderText:
-        return colors.placeholder;
-    default:  // WindowText, Text, ButtonText, HighlightedText, ToolTipText, Shadow and any later text role.
-        return colors.ink;
-    }
-}
-
-QPalette notebook_palette(FillStyle fill_style) {
-    QPalette palette;
-    for (const QPalette::ColorGroup group : PaletteGroups) {
-        const GroupColors colors = colors_for(group, fill_style);
-        for (int role = 0; role < QPalette::NColorRoles; ++role) {
-            const auto color_role = static_cast<QPalette::ColorRole>(role);
-            palette.setBrush(group, color_role, brush_for(color_role, colors));
-        }
-    }
-    return palette;
 }
 
 // A pen draws one line, and a pupil draws it with care.
@@ -145,7 +79,8 @@ QFont handwriting_font() {
 }  // namespace
 
 Theme notebook_theme(FillStyle fill_style) {
-    return Theme(notebook_palette(fill_style), handwriting_font(), PenRoughOptions, fill_style);
+    return Theme(make_palette(notebook_colors(false, fill_style), notebook_colors(true, fill_style)), handwriting_font(),
+                 PenRoughOptions, fill_style);
 }
 
 }  // namespace hpq

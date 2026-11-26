@@ -71,6 +71,7 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 * function_names: `snake_case`
 * constant names: `PascalCase` ; no k in front of it
 * attribute names: `m_snake_case` ; prefix `m_` 
+* A theme gives its colors by role with `PaletteColors` and `make_palette` (`hpq/src/ThemePalette.h`); the embedded fonts come from `hpq/src/Fonts.h` (one Qt resource, `hpq_fonts`)
 
 ## Images du README
 
