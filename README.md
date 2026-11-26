@@ -1,51 +1,98 @@
-# Hand Painting for Qt
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/logo-dark.png">
+    <img src="docs/logo/logo.png" width="560" alt="Hand Painting for Qt">
+  </picture>
+</h1>
 
-[![CI](https://github.com/qnope/HandPaintingForQt/actions/workflows/ci.yml/badge.svg)](https://github.com/qnope/HandPaintingForQt/actions/workflows/ci.yml)
-[![Pages](https://github.com/qnope/HandPaintingForQt/actions/workflows/pages.yml/badge.svg)](https://qnope.github.io/HandPaintingForQt/)
-[![Release](https://img.shields.io/github/v/release/qnope/HandPaintingForQt)](https://github.com/qnope/HandPaintingForQt/releases)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/qnope/HandPaintingForQt/actions/workflows/ci.yml"><img src="https://github.com/qnope/HandPaintingForQt/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://qnope.github.io/HandPaintingForQt/"><img src="https://github.com/qnope/HandPaintingForQt/actions/workflows/pages.yml/badge.svg?branch=main" alt="Pages"></a>
+  <a href="https://github.com/qnope/HandPaintingForQt/releases"><img src="https://img.shields.io/github/v/release/qnope/HandPaintingForQt" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+</p>
 
-Hand-drawn themes for Qt widgets, à la [Rough.js](https://roughjs.com). One call gives a window
-and every widget in it the look of a pencil sketch, of chalk on a slate, of watercolor or of a
-blueprint. The widgets keep their behavior, and what your own code paints with `QPainter` is
-drawn by hand too.
+Hand Painting for Qt (hpq) is a C++ library that gives the widgets of a Qt application a
+hand-drawn look, à la [Rough.js](https://roughjs.com). One call themes a window and every widget
+in it:
 
-**Try it in your browser: https://qnope.github.io/HandPaintingForQt/**
+```cpp
+#include <hpq/Hpq.h>
+
+MainWindow window;
+hpq::apply_theme(window, hpq::sketch_theme());
+window.show();
+```
+
+The same window, as Qt draws it and after this call:
+
+<p align="center">
+  <img src="docs/images/plain.png" width="49%" alt="The window drawn by Qt">
+  <img src="docs/images/sketch.png" width="49%" alt="The same window drawn by hand with the sketch theme">
+</p>
+
+The widgets keep their behavior, and what your own code paints with `QPainter` is drawn by hand
+too. There are nine themes: pencil sketch, China ink, chalk on a slate, school notebook,
+whiteboard markers, watercolor, blueprint, invisible ink and highlighter.
+
+You can try them in your browser: https://qnope.github.io/HandPaintingForQt/
 
 [![The teaser: a Qt window drawn by hand in the nine themes, while a pointer uses its widgets](docs/teaser/teaser.gif)](https://qnope.github.io/HandPaintingForQt/teaser.mp4)
 
 The teaser in 1080p: [teaser.mp4](https://qnope.github.io/HandPaintingForQt/teaser.mp4).
 
+## Contents
+
 - [Features](#features)
 - [Quick start](#quick-start)
 - [Themes](#themes)
+- [Paint by hand with QPainter](#paint-by-hand-with-qpainter)
 - [Use hpq in your project](#use-hpq-in-your-project)
 - [Examples](#examples)
 - [API overview](#api-overview)
-- [Build from source and run the tests](#build-from-source-and-run-the-tests)
+- [Build, test and contribute](#build-test-and-contribute)
 - [Versions and changelog](#versions-and-changelog)
 - [License](#license)
 
 ## Features
 
-- **Nine themes**, each with a solid or a hatched fill: sketch, China ink, black slate and
-  chalk, school notebook, Velleda, watercolor, blueprint, invisible ink and highlighter.
-- **The standard widgets**: buttons, check boxes, radio buttons, line edits, combo boxes, spin
-  boxes, sliders, scroll bars, progress bars, tabs, group boxes, tables, trees, headers, and
-  the menus, dialogs, tooltips and lists that open as windows of their own.
-- **Your own painting**: the `paintEvent` of your widgets and the items of a `QGraphicsScene`
-  are hand-drawn with the theme, without a change to their code.
-- **A steady hand**: a shape keeps its wobble between repaints and when a view scrolls. A
-  theme draws the same window every time, and another seed gives it another hand.
-- **Fast repaints**: the rough paths of the shapes are kept between repaints, and a repaint of
+- Nine themes, each with a solid or a hatched fill.
+- The standard widgets are drawn by hand: buttons, check boxes, radio buttons, line edits, combo
+  boxes, spin boxes, sliders, scroll bars, progress bars, tabs, group boxes, tables, trees and
+  headers. So are the menus, dialogs, tooltips and lists that open as windows of their own.
+- Your own painting is drawn by hand too: the `paintEvent` of your widgets and the items of a
+  `QGraphicsScene` take the theme without a change to their code.
+- The hand is steady. A shape keeps its wobble between repaints and when a view scrolls. A theme
+  draws the same window every time, and another seed gives it another hand.
+- Repaints are fast. The rough paths of the shapes are kept between repaints, and a repaint of
   a part of a window (a hovered button, the cursor of a field) draws only what is close to it.
-- **Fonts included**: the handwritten fonts of the themes are embedded in the library.
-- **Everywhere Qt runs**: a shared library on Windows (MSVC), Linux (gcc, clang) and macOS
+- The handwritten fonts of the themes are embedded in the library.
+- It runs where Qt runs: a shared library on Windows (MSVC), Linux (gcc, clang) and macOS
   (clang), a static one with Qt for WebAssembly.
-- **Easy to integrate**: the CMake target `hpq::hpq`, from `find_package`, `FetchContent` or
-  `add_subdirectory`.
+- It is one CMake target, `hpq::hpq`, that you get with `FetchContent`, `add_subdirectory` or
+  `find_package`.
 
 ## Quick start
+
+You need Qt 6 with the Widgets module, a C++17 compiler and CMake 3.16 or newer.
+
+In your `CMakeLists.txt`, let CMake download hpq and build it with your application:
+
+```cmake
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+include(FetchContent)
+FetchContent_Declare(HandPaintingForQt
+  GIT_REPOSITORY https://github.com/qnope/HandPaintingForQt.git
+  GIT_TAG v0.2.0
+  GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(HandPaintingForQt)
+
+qt_add_executable(MyApplication main.cpp)
+target_link_libraries(MyApplication PRIVATE Qt6::Widgets hpq::hpq)
+```
+
+In your `main.cpp`, make a theme and give it to the window:
 
 ```cpp
 #include <hpq/Hpq.h>
@@ -54,9 +101,9 @@ The teaser in 1080p: [teaser.mp4](https://qnope.github.io/HandPaintingForQt/teas
 
 int main(int argc, char *argv[]) {
     QApplication application(argc, argv);
-    MyWindow window;
+    MainWindow window;
 
-    const hpq::Theme theme = hpq::sketch_theme();  // or sketch_theme(hpq::FillStyle::Hachure)
+    const hpq::Theme theme = hpq::sketch_theme();
 
     // The window and every widget in it.
     hpq::apply_theme(window, theme);
@@ -71,34 +118,36 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-```cmake
-target_link_libraries(MyApplication PRIVATE hpq::hpq)
-```
+`apply_theme` themes the widgets that the window has when you call it. Call it once they are
+built (after `setupUi`), and again after you add widgets. Calling it with another theme switches
+the theme, and `hpq::remove_theme(window)` gives the window back its original look.
 
-`apply_theme` themes the widgets the window has: call it once they are built (after
-`setupUi`), and again after you add widgets. Calling it with another theme switches the theme;
-`hpq::remove_theme(window)` gives the window back its original look.
+The other ways to get hpq, and the notes for Windows and macOS, are in
+[Use hpq in your project](#use-hpq-in-your-project).
 
 ## Themes
 
 ![The window of the integration example in the nine themes](docs/images/themes.png)
 
-Each theme is a function of `<hpq/Themes.h>` that takes the fill style:
-`hpq::FillStyle::Solid` (the default) or `hpq::FillStyle::Hachure`. It returns a `hpq::Theme`,
-a plain value: change the fields that you want before you apply it.
+Each theme is a function of `<hpq/Themes.h>`. It takes the fill style,
+`hpq::FillStyle::Solid` (the default) or `hpq::FillStyle::Hachure`, and returns a `hpq::Theme`.
+A theme is a plain value: change the fields that you want before you apply it.
 
 ```cpp
-hpq::Theme theme = hpq::sketch_theme();
+hpq::Theme theme = hpq::watercolor_theme(hpq::FillStyle::Hachure);
 theme.rough_options.roughness = 0.5;                             // a steadier hand
 theme.rough_options.seed = std::random_device()();               // another hand at each run
 theme.antialiasing_mode = hpq::AntialiasingMode::OnlyWhenAsked;  // smooth as Qt does
 hpq::apply_theme(window, theme);
 ```
 
-Every line and every fill is smoothed. `Theme::antialiasing_mode` says otherwise:
+The seed is the hand that draws. It is 0 unless you change it, so a theme draws the same window
+at every run.
+
+By default every line and every fill is smoothed. `Theme::antialiasing_mode` chooses between
 `hpq::AntialiasingMode::Always` (the default), `OnlyWhenAsked` (where the painter asks for it
-with `QPainter::Antialiasing`, as Qt draws) or `Never`. Smoothing costs time: a full repaint of
-a window can take 2 to 3 times longer, a hovered button stays well under a millisecond.
+with `QPainter::Antialiasing`, as Qt draws) and `Never`. Smoothing costs time: a full repaint of
+a window can take 2 to 3 times longer, and a hovered button stays well under a millisecond.
 
 | Theme | Solid | Hachures |
 | --- | --- | --- |
@@ -113,23 +162,36 @@ a window can take 2 to 3 times longer, a hovered button stays well under a milli
 | **Highlighter**<br>`highlighter_theme`<br><br>Fluorescent highlighters over notes in black pen. | <img src="docs/images/highlighter.png" width="380" alt="Highlighter"> | <img src="docs/images/highlighter-hachure.png" width="380" alt="Highlighter with hachures"> |
 
 The images are the window of [`Examples/Integration`](Examples/Integration), rendered by
-[`tools/screenshots`](tools/screenshots/ThemeScreenshots.cpp):
-`QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`. The CI
-renders them on Linux for each pull request (artifact `theme-screenshots`).
+[`tools/screenshots`](tools/screenshots/ThemeScreenshots.cpp).
 
-The teaser at the top of this page is rendered frame by frame by
-[`tools/teaser`](tools/teaser/TeaserVideo.cpp), with ffmpeg in `PATH`:
-`QT_QPA_PLATFORM=offscreen build/tools/teaser/HpqTeaserVideo docs/teaser` writes `teaser.mp4`
-and its preview `teaser.gif`. The `Pages` workflow publishes `teaser.mp4` with the site. The
-teaser is rendered again before a release, when what hpq draws has changed.
+## Paint by hand with QPainter
+
+In a themed window, the `paintEvent` of your widgets is drawn by hand without a change. Outside
+of the widgets, `hpq::HandPaintDevice` does the same for any `QPainter`, on a `QImage` for
+instance:
+
+```cpp
+QImage image(400, 300, QImage::Format_ARGB32_Premultiplied);
+image.fill(Qt::white);
+QPainter target(&image);
+hpq::HandPaintDevice device(target, hpq::sketch_theme());
+
+QPainter painter(&device);
+painter.setPen(QPen(QColor("#2a6fdb"), 2));
+painter.setBrush(QColor("#aed6f1"));
+painter.drawEllipse(50, 50, 300, 200);
+```
+
+The logo at the top of this page is drawn this way, by [`tools/logo`](tools/logo/Logo.cpp):
+the same drawing with the sketch theme on a light page, and with the slate theme on a dark one.
 
 ## Use hpq in your project
 
-Requirements: Qt 6 with the Widgets module (the CI uses Qt 6.8; Qt 6.4 works too), a C++17
-compiler and CMake 3.16 or newer.
+The requirements are Qt 6 with the Widgets module (the CI uses Qt 6.8, and Qt 6.4 works too), a
+C++17 compiler and CMake 3.16 or newer.
 
-In the three ways below, your application links the same target, `hpq::hpq`, which brings the
-headers, C++17 and `Qt6::Widgets`:
+There are three ways to get hpq. In each of them your application links the same target,
+`hpq::hpq`, which brings the headers, C++17 and `Qt6::Widgets`:
 
 ```cmake
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
@@ -139,24 +201,25 @@ target_link_libraries(MyApplication PRIVATE Qt6::Widgets hpq::hpq)
 ```
 
 [`Examples/Integration`](Examples/Integration/CMakeLists.txt) is a complete application that
-does it in each of the three ways; the CI builds and runs it on every platform.
+does it in each of the three ways. The CI builds it and runs it on every platform.
 
 ### With FetchContent
 
-CMake downloads the release and builds hpq with your application:
+CMake downloads the release and builds hpq with your application, as in the
+[quick start](#quick-start):
 
 ```cmake
 include(FetchContent)
 FetchContent_Declare(HandPaintingForQt
   GIT_REPOSITORY https://github.com/qnope/HandPaintingForQt.git
-  GIT_TAG v0.1.0
+  GIT_TAG v0.2.0
   GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(HandPaintingForQt)
 ```
 
 As a subproject, HandPaintingForQt builds only the library: its tests, examples and tools are
-off, and it does not need GoogleTest. To build it from a copy you already have, configure with
-`-DFETCHCONTENT_SOURCE_DIR_HANDPAINTINGFORQT=<path of the copy>`.
+off, and it does not need GoogleTest. To build it from a copy that you already have, configure
+with `-DFETCHCONTENT_SOURCE_DIR_HANDPAINTINGFORQT=<path of the copy>`.
 
 ### With add_subdirectory
 
@@ -181,18 +244,18 @@ Then find it in your project, with `<prefix>` in `CMAKE_PREFIX_PATH`
 (`-DCMAKE_PREFIX_PATH="<prefix>;<qt>"`):
 
 ```cmake
-find_package(HandPaintingForQt 0.1 REQUIRED)
+find_package(HandPaintingForQt 0.2 REQUIRED)
 ```
 
-The package finds Qt itself. Before 1.0, `find_package(HandPaintingForQt 0.1)` accepts the
-versions 0.1.x only: a minor version may change the API.
+The package finds Qt itself. Before 1.0, `find_package(HandPaintingForQt 0.2)` accepts the
+versions 0.2.x only, because a minor version may change the API.
 
 The install holds:
 
 | Path | Content |
 | --- | --- |
 | `include/hpq/` | The headers, with the generated `hpq/Version.h` |
-| `lib/libhpq.so.0.1.0`, `lib/libhpq.0.1.0.dylib`, `bin/hpq.dll` and `lib/hpq.lib` | The library (`hpqd.dll` and `hpqd.lib` in Debug with MSVC: a Debug and a Release build can share a prefix) |
+| `lib/libhpq.so.0.2.0`, `lib/libhpq.0.2.0.dylib`, `bin/hpq.dll` and `lib/hpq.lib` | The library (`hpqd.dll` and `hpqd.lib` in Debug with MSVC, so that a Debug and a Release build can share a prefix) |
 | `lib/cmake/HandPaintingForQt/` | The CMake package: `HandPaintingForQtConfig.cmake`, its version file and the target `hpq::hpq` |
 | `share/doc/HandPaintingForQt/` | The license of hpq and those of its fonts |
 
@@ -217,8 +280,8 @@ project also builds `hpq.dll` in the directory of your executables. To ship the 
 
 ### On macOS with Qt 6.8 and Xcode 26
 
-Not an issue of hpq, but one you may meet: Qt 6.8 links the AGL framework, which the macOS SDK
-of Xcode 26 no longer has, and the link fails with `framework 'AGL' not found`. Before
+This is not an issue of hpq, but you may meet it: Qt 6.8 links the AGL framework, which the
+macOS SDK of Xcode 26 no longer has, and the link fails with `framework 'AGL' not found`. Before
 `find_package(Qt6)`, link the OpenGL framework in its place, as this project and
 `Examples/Integration` do:
 
@@ -237,19 +300,19 @@ endif()
 | Option | Default | Effect |
 | --- | --- | --- |
 | `HPQ_BUILD_TESTS` | `ON`, `OFF` in a subproject | The tests (GoogleTest, from vcpkg) |
-| `HPQ_BUILD_EXAMPLES` | `ON`, `OFF` in a subproject | The example application, the screenshot tool and the teaser tool |
+| `HPQ_BUILD_EXAMPLES` | `ON`, `OFF` in a subproject | The example application and the tools that render the logo, the screenshots and the teaser |
 | `HPQ_INSTALL` | `ON` | The install rules and the CMake package |
 | `HPQ_BUILD_BENCH` | `OFF` | The repaint benchmark ([`bench`](bench/README.md)), with the examples |
 
 ### Version
 
-`<hpq/Version.h>` gives the version the code is compiled with (`HPQ_VERSION_MAJOR`,
+`<hpq/Version.h>` gives the version that the code is compiled with (`HPQ_VERSION_MAJOR`,
 `HPQ_VERSION_MINOR`, `HPQ_VERSION_PATCH`, `HPQ_VERSION_STRING`), and `hpq::version()`
 (`<hpq/Hpq.h>`) the version of the library loaded at run time.
 
 ## Examples
 
-- [`Examples/Integration`](Examples/Integration): a small application, a separate CMake project
+- [`Examples/Integration`](Examples/Integration) is a small application, a separate CMake project
   as yours is, with a gallery of widgets and of shapes painted in `paintEvent`, and a combo box
   to change the theme. `GALLERY_HPQ_SOURCE` chooses how it gets hpq: `find_package` (the
   default), `FetchContent` or `add_subdirectory`.
@@ -259,98 +322,52 @@ endif()
   cmake --build build/gallery
   ```
 
-- [`Examples`](Examples): the example application of the repository, built with it, and the
-  one that runs in the browser: a table, a tree, a `QGraphicsScene` of shapes, menus and a
-  dialog, and settings to choose the theme, its fill and where it smooths.
+- [`Examples`](Examples) is the example application of the repository, built with it, and the
+  one that [runs in the browser](https://qnope.github.io/HandPaintingForQt/): a table, a tree, a
+  `QGraphicsScene` of shapes, menus and a dialog, and settings to choose the theme, its fill and
+  where it smooths.
 
 ## API overview
 
 All of hpq is in the namespace `hpq`, and `<hpq/Hpq.h>` includes all of it.
 
-- **Themes** (`<hpq/Themes.h>`): `sketch_theme`, `china_ink_theme`, `slate_theme`,
-  `notebook_theme`, `velleda_theme`, `watercolor_theme`, `blueprint_theme`,
-  `invisible_ink_theme` and `highlighter_theme` each return a `Theme`.
-- **`apply_theme(window, theme)`** and **`remove_theme(window)`** (`<hpq/Theming.h>`): theme a
-  window and its widgets, or give them back their look. A theme is a palette and a font, a
-  `HandPaintStyle` on each widget and a `HandPaintEffect` on the window.
-- **`WindowTheming`** (`<hpq/Theming.h>`): the event filter that themes the menus, dialogs and
-  tooltips of the application.
-- **`Theme`** (`<hpq/Theme.h>`): a struct, to change a theme or to make one of your own. Its
-  fields are a `QPalette`, a `QFont`, `RoughOptions` (roughness, number of strokes, largest
-  offset, gap and angle of the hachures, and the seed of the hand), a `FillStyle`, a `Medium`
-  (`Pencil`, `Chalk`, `Ink` or `Watercolor`), a `TextInk` (`Visible` or `Invisible`), the
-  marker of the labels and an `AntialiasingMode` (`Always`, `OnlyWhenAsked` or `Never`).
-- **`rough_outline`**, **`rough_frame_outline`**, **`rough_fill_area`** and **`rough_hachure`**
-  (`<hpq/RoughGeometry.h>`): how shapes are made rough, as four functions of a shape, of
-  `RoughOptions` and of the seed of the shape. The same `RoughOptions::seed` draws the same
-  paths every time: it is 0 unless you give a theme another one.
-- **`HandPaintDevice`** (`<hpq/HandPaintDevice.h>`): hand-paint what a `QPainter` draws,
-  outside of the widgets, on a `QImage` for instance:
+| Header | What it gives |
+| --- | --- |
+| `<hpq/Themes.h>` | The nine themes: `sketch_theme`, `china_ink_theme`, `slate_theme`, `notebook_theme`, `velleda_theme`, `watercolor_theme`, `blueprint_theme`, `invisible_ink_theme` and `highlighter_theme`. Each returns a `Theme`. |
+| `<hpq/Theming.h>` | `apply_theme(window, theme)` and `remove_theme(window)` theme a window and its widgets, or give them back their look. `WindowTheming` is the event filter that themes the menus, dialogs and tooltips of the application. |
+| `<hpq/Theme.h>` | `Theme`, a struct, to change a theme or to make one of your own. Its fields are a `QPalette`, a `QFont`, `RoughOptions` (roughness, number of strokes, largest offset, gap and angle of the hachures, and the seed of the hand), a `FillStyle`, a `Medium` (`Pencil`, `Chalk`, `Ink` or `Watercolor`), a `TextInk` (`Visible` or `Invisible`), the marker of the labels and an `AntialiasingMode`. |
+| `<hpq/HandPaintDevice.h>` | `HandPaintDevice` hand-paints what a `QPainter` draws, outside of the widgets. See [Paint by hand with QPainter](#paint-by-hand-with-qpainter). |
+| `<hpq/HandPaintEffect.h>` | `HandPaintEffect`, the `QGraphicsEffect` that hand-paints a widget and its children, for a single widget. |
+| `<hpq/HandPaintStyle.h>` | `HandPaintStyle`, the `QStyle` that `apply_theme` gives to each widget. |
+| `<hpq/RoughGeometry.h>` | `rough_outline`, `rough_frame_outline`, `rough_fill_area` and `rough_hachure`: how shapes are made rough, as four functions of a shape, of `RoughOptions` and of the seed of the shape. The same seed draws the same paths every time. |
+| `<hpq/PaintCache.h>` | `PaintCache` keeps the rough paths of the shapes between repaints. A `HandPaintEffect` has one, and a `HandPaintDevice` can be given one. |
+| `<hpq/Version.h>` | The version that the code is compiled with. |
 
-  ```cpp
-  QImage image(400, 300, QImage::Format_ARGB32_Premultiplied);
-  image.fill(Qt::white);
-  QPainter target(&image);
-  hpq::HandPaintDevice device(target, hpq::sketch_theme());
-  QPainter painter(&device);
-  painter.drawEllipse(50, 50, 300, 200);
-  ```
+What `apply_theme` does is a palette and a font on the window, a `HandPaintStyle` on each
+widget and a `HandPaintEffect` on the window.
 
-- **`HandPaintEffect`** (`<hpq/HandPaintEffect.h>`): the `QGraphicsEffect` that hand-paints a
-  widget and its children, for a single widget.
+An application written for hpq 0.1 moves to 0.2 with the table at the top of the
+[changelog](CHANGELOG.md).
 
-## Build from source and run the tests
+## Build, test and contribute
 
 With Qt, and vcpkg next to the repository (`../vcpkg`) for GoogleTest:
 
-```
+```sh
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=<qt>
 cmake --build build --config Debug
 ctest --test-dir build -C Debug --output-on-failure
 ```
 
-Or define them in a local `CMakeUserPresets.json` and use `cmake --preset debug`,
-`cmake --build --preset debug`, `ctest --preset debug`.
-
-The local presets use the Ninja generator (`build/debug`, Debug). The `release` preset builds in `build/release`: `cmake --preset release`, `cmake --build --preset release`, `ctest --preset release`. Without presets, add `-G Ninja` to the first command.
-
-### Shared library
-
-`hpq` is built as a shared library (`hpq.dll`, `libhpq.so`, `libhpq.dylib`). Only what its headers mark with `HPQ_EXPORT` (`hpq/Export.h`) is visible outside it: its public classes and functions.
-
-On Linux and macOS the executables of the build find the library by RPATH. Windows has no RPATH, so `hpq.dll` and the executables are all built in `build/bin` there.
-
-With Qt for WebAssembly, which is static, `hpq` stays a static library.
-
-### WebAssembly
-
-The example application also builds with Qt for WebAssembly. With the Emscripten release matching the Qt version activated (3.1.56 for Qt 6.8):
-
-```
-cmake -S . -B build/wasm -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=<qt>/wasm_singlethread/lib/cmake/Qt6/qt.toolchain.cmake -DQT_HOST_PATH=<qt>/gcc_64 -DHPQ_BUILD_TESTS=OFF
-cmake --build build/wasm
-```
-
-`build/wasm/Examples` then holds the site: `index.html` (from `Examples/web`), `HandPaintingExample.js`, `HandPaintingExample.wasm`, `qtloader.js` and `fonts`. Serve it over HTTP, for instance `python3 -m http.server -d build/wasm/Examples`.
-
-`HPQ_BUILD_TESTS=OFF` leaves the tests, and so GoogleTest, out of the build.
-
-The example is linked with asyncify (`-sASYNCIFY -Os`, in `Examples/CMakeLists.txt`), so that calls reentering the event loop, such as `QDialog::exec()` or `QMenu::exec()`, return as they do on the desktop. It makes the `.wasm` file larger; `open()` and `show()` need no asyncify.
-
-On a phone, Qt opens the virtual keyboard by giving the focus to a text field it keeps hidden in the page. `index.html` keeps the browser from moving this focus after a tap, which closed the keyboard at once in Safari on iOS, and switches off the corrections of the keyboard in this field, which Qt does not follow. A double tap on a cell of the table or of the tree opens its editor without a tap on the editor itself, so Qt does not ask for the keyboard: `ItemEditorInputPanel` (`Examples/src`) asks for it when the tap is released.
-
-The `Pages` workflow (`.github/workflows/pages.yml`) does this build, checks with `.github/scripts/WasmSmokeTest.cjs` that the application starts in a browser, with `.github/scripts/WasmMobileInputTest.cjs` that text can be typed in the line edit and in a cell of the table in a browser emulating a phone and, on `main`, deploys the site to GitHub Pages, with the teaser video of the README (`docs/teaser/teaser.mp4`). The repository setting Pages > Build and deployment > Source must be "GitHub Actions".
+[CONTRIBUTING.md](CONTRIBUTING.md) tells the rest: the presets, the WebAssembly build and its
+site, how the images, the logo and the teaser of this page are rendered, and how a version is
+published.
 
 ## Versions and changelog
 
 hpq follows [Semantic Versioning](https://semver.org): before 1.0, a minor version (0.1 to
 0.2) may change the API and the ABI, a patch version does not. The changes of each version are
 in [CHANGELOG.md](CHANGELOG.md).
-
-To publish a version: set it in `project()` (`CMakeLists.txt`) and in `vcpkg.json`, move the
-changes of `[Unreleased]` to its section in `CHANGELOG.md` (the `HpqVersionsAgree` test checks
-that the three agree), merge, then push the tag `v<version>`. The `Release` workflow
-(`.github/workflows/release.yml`) creates the GitHub release with the notes of the changelog.
 
 ## License
 
