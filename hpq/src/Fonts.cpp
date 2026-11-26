@@ -1,4 +1,4 @@
-#include "EmbeddedFont.h"
+#include "Fonts.h"
 
 #include <QCoreApplication>
 #include <QFontDatabase>
@@ -8,9 +8,18 @@
 #include <QMutexLocker>
 #include <QStringList>
 
+// Where hpq is a static library (Qt for WebAssembly), its resource must be initialized by
+// hand, outside any namespace. In the shared library, the call does nothing more.
+static void init_fonts_resource() {
+    Q_INIT_RESOURCE(hpq_fonts);
+}
+
 namespace hpq {
 
-QString embedded_font_family(const QString &resource, void (*init_resource)()) {
+namespace {
+
+// The family of the font embedded at `resource`, registered by the first call.
+QString embedded_font_family(const QString &resource) {
     static QMutex mutex;
     // The family of each font registered so far, by its resource.
     static QHash<QString, QString> families;
@@ -25,11 +34,25 @@ QString embedded_font_family(const QString &resource, void (*init_resource)()) {
                  qPrintable(resource));
         return QString();
     }
-    init_resource();
+    init_fonts_resource();
     const QStringList font_families = QFontDatabase::applicationFontFamilies(QFontDatabase::addApplicationFont(resource));
     const QString family = font_families.isEmpty() ? QString() : font_families.first();
     families.insert(resource, family);
     return family;
+}
+
+}  // namespace
+
+QString hand_font_family() {
+    return embedded_font_family(QStringLiteral(":/hpq/fonts/ArchitectsDaughter-Regular.ttf"));
+}
+
+QString school_font_family() {
+    return embedded_font_family(QStringLiteral(":/hpq/fonts/PlaywriteFRModerne-Regular.ttf"));
+}
+
+QString brush_font_family() {
+    return embedded_font_family(QStringLiteral(":/hpq/fonts/KaushanScript-Regular.ttf"));
 }
 
 }  // namespace hpq

@@ -56,13 +56,11 @@ target_sources(hpq PRIVATE
   src/ChalkTexture.cpp
   src/ChalkTexture.h
   src/ChinaInkTheme.cpp
-  src/EmbeddedFont.cpp
-  src/EmbeddedFont.h
+  src/Fonts.cpp
+  src/Fonts.h
   src/GeometryEngine.cpp
   src/GrainNoise.cpp
   src/GrainNoise.h
-  src/HandFont.cpp
-  src/HandFont.h
   src/HandPaintDevice.cpp
   src/HandPaintEffect.cpp
   src/HandPaintEngine.cpp
@@ -75,8 +73,6 @@ target_sources(hpq PRIVATE
   src/PathTiles.cpp
   src/PathTiles.h
   src/RoughGeometryEngine.cpp
-  src/SchoolFont.cpp
-  src/SchoolFont.h
   src/SeyesPaper.cpp
   src/SeyesPaper.h
   src/SketchTheme.cpp
@@ -84,6 +80,8 @@ target_sources(hpq PRIVATE
   src/StrokeRibbon.cpp
   src/StrokeRibbon.h
   src/Theme.cpp
+  src/ThemePalette.cpp
+  src/ThemePalette.h
   src/Theming.cpp
   src/TileBrush.cpp
   src/TileBrush.h
@@ -129,28 +127,21 @@ target_link_libraries(hpq PUBLIC Qt6::Widgets)
 # C++ standard: PUBLIC, the headers of hpq need C++17.
 target_compile_features(hpq PUBLIC cxx_std_17)
 
-# The fonts are embedded in the library. In a static hpq, Qt compiles each resource in an object
-# library of its own (hpq_resources_<n>), which is installed and exported with hpq.
-# Architects Daughter font (SIL OFL 1.1) and its license, embedded as ":/hpq/fonts/...".
+# The fonts (SIL OFL 1.1) and their licenses are embedded in the library, as ":/hpq/fonts/...":
+# Architects Daughter, Playwrite FR Moderne for the school notebook theme and Kaushan Script for
+# the China ink theme. In a static hpq, Qt compiles the resource in an object library of its
+# own (hpq_resources_1), which is installed and exported with hpq.
 qt_add_resources(hpq "hpq_fonts"
-    PREFIX "/hpq"
-    BASE resources
-    FILES resources/fonts/ArchitectsDaughter-Regular.ttf resources/fonts/OFL.txt
-    OUTPUT_TARGETS hpq_font_targets)
-
-# Playwrite FR Moderne font (SIL OFL 1.1) and its license, for the school notebook theme.
-qt_add_resources(hpq "hpq_school_fonts"
-    PREFIX "/hpq"
-    BASE resources
-    FILES resources/fonts/PlaywriteFRModerne-Regular.ttf resources/fonts/OFL-PlaywriteFRModerne.txt
-    OUTPUT_TARGETS hpq_school_font_targets)
-
-# Kaushan Script font (SIL OFL 1.1) and its license, for the China ink theme.
-qt_add_resources(hpq "hpq_china_ink_fonts"
-    PREFIX "/hpq"
-    BASE resources
-    FILES resources/fonts/KaushanScript-Regular.ttf resources/fonts/OFL-KaushanScript.txt
-    OUTPUT_TARGETS hpq_china_ink_font_targets)
+  PREFIX "/hpq"
+  BASE resources
+  FILES
+    resources/fonts/ArchitectsDaughter-Regular.ttf
+    resources/fonts/KaushanScript-Regular.ttf
+    resources/fonts/OFL-KaushanScript.txt
+    resources/fonts/OFL-PlaywriteFRModerne.txt
+    resources/fonts/OFL.txt
+    resources/fonts/PlaywriteFRModerne-Regular.ttf
+  OUTPUT_TARGETS hpq_font_targets)
 
 if(HPQ_BUILD_TESTS)
   add_subdirectory(tests)
@@ -161,7 +152,7 @@ if(HPQ_INSTALL)
   include(CMakePackageConfigHelpers)
   set(hpq_config_dir ${CMAKE_INSTALL_LIBDIR}/cmake/HandPaintingForQt)
 
-  install(TARGETS hpq ${hpq_font_targets} ${hpq_school_font_targets} ${hpq_china_ink_font_targets}
+  install(TARGETS hpq ${hpq_font_targets}
     EXPORT HandPaintingForQtTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

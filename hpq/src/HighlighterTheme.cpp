@@ -1,29 +1,13 @@
 #include <hpq/HighlighterTheme.h>
 
-#include "HandFont.h"
+#include "Fonts.h"
+#include "ThemePalette.h"
 
 #include <QColor>
 
 namespace hpq {
 
 namespace {
-
-// One color for each role of a color group.
-struct GroupColors {
-    QColor paper;
-    QColor pen;
-    QColor pencil;
-    QColor selection;
-    QColor button;
-    QColor button_pressed;
-    QColor alternate_row;
-    QColor frame;
-    QColor link;
-    QColor placeholder;
-    QColor sticky_note;
-};
-
-constexpr QPalette::ColorGroup PaletteGroups[] = {QPalette::Active, QPalette::Inactive, QPalette::Disabled};
 
 // The highlighters of the pencil case.
 constexpr QColor Yellow(0xff, 0xf0, 0x00);
@@ -51,86 +35,34 @@ QColor passed(QColor highlighter, int opacity) {
     return highlighter;
 }
 
-GroupColors colors_for(QPalette::ColorGroup group, FillStyle fill_style) {
-    GroupColors colors{
-        QColor(0xff, 0xff, 0xff),   // paper
-        QColor(0x1a, 0x1a, 0x20),   // pen
-        QColor(0x8e, 0x90, 0x98),   // pencil
-        passed(Yellow, TwoPasses),  // selection
-        passed(Green, OnePass),     // button
-        passed(Green, TwoPasses),   // button_pressed
-        passed(Blue, LightPass),    // alternate_row
-        passed(Pink, OnePass),      // frame
-        QColor(0xd9, 0x1a, 0x7c),   // link: a pink felt pen
-        QColor(0x9a, 0x9c, 0xa4),   // placeholder
-        QColor(0xfd, 0xff, 0x8c),   // sticky_note
-    };
-    const bool is_disabled = group == QPalette::Disabled;
-    // What is disabled is written with a pencil, and marked by highlighters that have run dry.
-    if (is_disabled) {
-        colors.pen = QColor(0xa6, 0xa8, 0xae);
-        colors.pencil = QColor(0xc4, 0xc6, 0xcc);
-        colors.selection = passed(DryYellow, TwoPasses);
-        colors.button = passed(DryGreen, OnePass);
-        colors.button_pressed = passed(DryGreen, TwoPasses);
-        colors.frame = passed(DryPink, OnePass);
-        colors.link = QColor(0xe0, 0xa8, 0xc6);
-    }
-    // Only an opaque fill is hatched. The thin lines of the yellow highlighter would not show
-    // on the paper: the orange one marks the selection.
-    if (fill_style == FillStyle::Hachure) {
-        colors.selection = is_disabled ? DryOrange : Orange;
-        colors.button = is_disabled ? DryGreen : Green;
-        colors.button_pressed = colors.button;
-        colors.alternate_row = PaleBlue;
-    }
+// What is disabled is written with a pencil, and marked by highlighters that have run dry.
+PaletteColors highlighter_colors(bool is_disabled, FillStyle fill_style) {
+    const QColor paper(0xff, 0xff, 0xff);
+    const QColor pen = is_disabled ? QColor(0xa6, 0xa8, 0xae) : QColor(0x1a, 0x1a, 0x20);
+    const QColor pencil = is_disabled ? QColor(0xc4, 0xc6, 0xcc) : QColor(0x8e, 0x90, 0x98);
+    const QColor yellow = is_disabled ? DryYellow : Yellow;
+    const QColor green = is_disabled ? DryGreen : Green;
+    const QColor pink = is_disabled ? DryPink : Pink;
+    const QColor orange = is_disabled ? DryOrange : Orange;
+    // Only an opaque fill is hatched.
+    const bool is_hatched = fill_style == FillStyle::Hachure;
+
+    PaletteColors colors(paper, pen);
+    colors.button = is_hatched ? green : passed(green, OnePass);
+    // A pressed button.
+    colors.midlight = is_hatched ? green : passed(green, TwoPasses);
+    colors.alternate_base = is_hatched ? PaleBlue : passed(Blue, LightPass);
+    colors.tool_tip_base = QColor(0xfd, 0xff, 0x8c);  // A sticky note.
+    colors.mid = pencil;
+    // The frames.
+    colors.dark = passed(pink, OnePass);
+    // The thin lines of the yellow highlighter would not show on the paper: the orange one
+    // hatches the selection.
+    colors.highlight = is_hatched ? orange : passed(yellow, TwoPasses);
+    // A pink felt pen.
+    colors.link = is_disabled ? QColor(0xe0, 0xa8, 0xc6) : QColor(0xd9, 0x1a, 0x7c);
+    colors.placeholder_text = QColor(0x9a, 0x9c, 0xa4);
     return colors;
-}
-
-QColor color_for(QPalette::ColorRole role, const GroupColors &colors) {
-    switch (role) {
-    case QPalette::Window:
-    case QPalette::Base:
-    case QPalette::Light:
-    case QPalette::BrightText:
-        return colors.paper;
-    case QPalette::Button:
-        return colors.button;
-    case QPalette::Midlight:
-        return colors.button_pressed;
-    case QPalette::AlternateBase:
-        return colors.alternate_row;
-    case QPalette::ToolTipBase:
-        return colors.sticky_note;
-    case QPalette::Mid:
-        return colors.pencil;
-    case QPalette::Dark:
-        return colors.frame;
-    case QPalette::Highlight:
-#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)  // The accent role appeared in Qt 6.6.
-    case QPalette::Accent:
-#endif
-        return colors.selection;
-    case QPalette::Link:
-    case QPalette::LinkVisited:
-        return colors.link;
-    case QPalette::PlaceholderText:
-        return colors.placeholder;
-    default:  // Shadow, WindowText, Text, ButtonText, HighlightedText, ToolTipText and any later text role.
-        return colors.pen;
-    }
-}
-
-QPalette highlighter_palette(FillStyle fill_style) {
-    QPalette palette;
-    for (const QPalette::ColorGroup group : PaletteGroups) {
-        const GroupColors colors = colors_for(group, fill_style);
-        for (int role = 0; role < QPalette::NColorRoles; ++role) {
-            const auto color_role = static_cast<QPalette::ColorRole>(role);
-            palette.setColor(group, color_role, color_for(color_role, colors));
-        }
-    }
-    return palette;
 }
 
 // The tip of a highlighter glides on the paper: three strokes that stay close to each other
@@ -146,8 +78,9 @@ QBrush label_marker() {
 }  // namespace
 
 Theme highlighter_theme(FillStyle fill_style) {
-    return Theme(highlighter_palette(fill_style), QFont(hand_font_family()), HighlighterRoughOptions, fill_style,
-                 Medium::Pencil, TextInk::Visible, label_marker());
+    return Theme(make_palette(highlighter_colors(false, fill_style), highlighter_colors(true, fill_style)),
+                 QFont(hand_font_family()), HighlighterRoughOptions, fill_style, Medium::Pencil, TextInk::Visible,
+                 label_marker());
 }
 
 }  // namespace hpq
