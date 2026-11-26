@@ -28,7 +28,6 @@ target_sources(hpq PRIVATE
   include/hpq/GeometryEngine.h
   include/hpq/HandPaintDevice.h
   include/hpq/HandPaintEffect.h
-  include/hpq/HandPaintEngine.h
   include/hpq/HandPaintStyle.h
   include/hpq/HighlighterTheme.h
   include/hpq/Hpq.h
@@ -49,13 +48,11 @@ target_sources(hpq PRIVATE
   include/hpq/WindowTheming.h
 
   src/BlueprintTheme.cpp
-  src/BrushStroke.cpp
-  src/BrushStroke.h
-  src/ChalkStroke.cpp
-  src/ChalkStroke.h
   src/ChalkTexture.cpp
   src/ChalkTexture.h
   src/ChinaInkTheme.cpp
+  src/ContentOrigin.cpp
+  src/ContentOrigin.h
   src/Fonts.cpp
   src/Fonts.h
   src/GeometryEngine.cpp
@@ -64,6 +61,7 @@ target_sources(hpq PRIVATE
   src/HandPaintDevice.cpp
   src/HandPaintEffect.cpp
   src/HandPaintEngine.cpp
+  src/HandPaintEngine.h
   src/HandPaintStyle.cpp
   src/HighlighterTheme.cpp
   src/Hpq.cpp
@@ -73,12 +71,18 @@ target_sources(hpq PRIVATE
   src/PathTiles.cpp
   src/PathTiles.h
   src/RoughGeometryEngine.cpp
+  src/SavedPainter.h
   src/SeyesPaper.cpp
   src/SeyesPaper.h
   src/SketchTheme.cpp
   src/SlateTheme.cpp
+  src/SmoothCurve.h
   src/StrokeRibbon.cpp
   src/StrokeRibbon.h
+  src/StrokeTool.cpp
+  src/StrokeTool.h
+  src/Target.cpp
+  src/Target.h
   src/Theme.cpp
   src/ThemePalette.cpp
   src/ThemePalette.h

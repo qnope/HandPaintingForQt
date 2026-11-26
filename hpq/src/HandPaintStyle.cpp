@@ -1,5 +1,7 @@
 #include <hpq/HandPaintStyle.h>
 
+#include "SavedPainter.h"
+
 #include <QAbstractSpinBox>
 #include <QFontMetrics>
 #include <QLabel>
@@ -7,6 +9,7 @@
 #include <QPolygonF>
 #include <QStyleFactory>
 #include <QStyleOption>
+#include <QStyleOptionComboBox>
 #include <QStyleOptionMenuItem>
 #include <QStyleOptionSlider>
 #include <QStyleOptionSpinBox>
@@ -58,16 +61,20 @@ QColor grid_line_color(const QPalette &palette) {
                   blended(window.blue(), mid.blue(), GridLineBlend));
 }
 
+// A rectangle drawn with `pen` and filled with `brush`, its outline on the last pixels inside
+// `rect`: the flat shape that stands for what Fusion draws from a cached pixmap.
+void draw_flat_rectangle(QPainter &painter, const QRect &rect, const QPen &pen, const QBrush &brush) {
+    const SavedPainter saved(painter);
+    painter.setPen(pen);
+    painter.setBrush(brush);
+    painter.drawRect(rect.adjusted(0, 0, -1, -1));
+}
+
 // Flat push button: Button fill when raised, Midlight fill when sunken or on, Dark outline.
 void draw_button_panel(const QStyleOption &option, QPainter &painter) {
     const bool is_pressed = option.state & (QStyle::State_Sunken | QStyle::State_On);
     const QPalette::ColorRole fill_role = is_pressed ? QPalette::Midlight : QPalette::Button;
-
-    painter.save();
-    painter.setBrush(option.palette.color(fill_role));
-    painter.setPen(option.palette.color(QPalette::Dark));
-    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
-    painter.restore();
+    draw_flat_rectangle(painter, option.rect, option.palette.color(QPalette::Dark), option.palette.color(fill_role));
 }
 
 // The triangle of an arrow, centered in the rectangle, whose tip points to the given side.
@@ -92,41 +99,29 @@ QPolygonF arrow_triangle(QStyle::PrimitiveElement arrow, const QRectF &rect) {
 
 // One filled triangle in the ButtonText color, no pixmap.
 void draw_arrow(QStyle::PrimitiveElement arrow, const QStyleOption &option, QPainter &painter) {
-    painter.save();
+    const SavedPainter saved(painter);
     painter.setPen(Qt::NoPen);
     painter.setBrush(option.palette.color(QPalette::ButtonText));
     painter.drawPolygon(arrow_triangle(arrow, option.rect));
-    painter.restore();
 }
 
 // One rectangle outline inside the option rectangle, in the palette Dark color, without fill.
 void draw_group_box_frame(const QStyleOption &option, QPainter &painter) {
-    painter.save();
-    painter.setPen(option.palette.color(QPalette::Dark));
-    painter.setBrush(Qt::NoBrush);
-    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
-    painter.restore();
+    draw_flat_rectangle(painter, option.rect, option.palette.color(QPalette::Dark), Qt::NoBrush);
 }
 
 // A header section as a flat rectangle: Button fill, Dark outline, no cached pixmap.
 void draw_header_section(const QStyleOption &option, QPainter &painter) {
-    painter.save();
-    painter.setPen(option.palette.color(QPalette::Dark));
-    painter.setBrush(option.palette.color(QPalette::Button));
-    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
-    painter.restore();
+    draw_flat_rectangle(painter, option.rect, option.palette.color(QPalette::Dark),
+                        option.palette.color(QPalette::Button));
 }
 
 // A flat spin box: Base fill with a Dark outline, and the up and down arrows of the style
 // in their buttons, instead of Fusion's cached pixmap.
 void draw_spin_box(const QStyle &style, const QStyleOptionSpinBox &option, QPainter &painter,
                    const QWidget *widget) {
-    painter.save();
-    painter.setPen(option.frame ? QPen(option.palette.color(QPalette::Dark)) : QPen(Qt::NoPen));
-    painter.setBrush(option.palette.color(QPalette::Base));
-    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
-    painter.restore();
-
+    draw_flat_rectangle(painter, option.rect, option.frame ? QPen(option.palette.color(QPalette::Dark)) : QPen(Qt::NoPen),
+                        option.palette.color(QPalette::Base));
     if (option.buttonSymbols == QAbstractSpinBox::NoButtons) {
         return;
     }
@@ -201,19 +196,122 @@ QBrush lighter_marker(QBrush marker) {
     return marker;
 }
 
-}  // namespace
-
-// QProxyStyle takes the ownership of the base style.
-HandPaintStyle::HandPaintStyle(Theme theme)
-    : QProxyStyle(QStyleFactory::create(BaseStyleName)), m_theme(std::move(theme)) {}
+// One line of the marker along each line of text, drawn with the flat tip of a highlighter.
+// It is a line and not a fill: a hand paint engine draws it by hand, lets it go past the label
+// and does not hatch it.
+void draw_label_marker(const QLabel &label, QPainter &painter) {
+    const QBrush marker = label_marker(label);
+    if (marker.style() == Qt::NoBrush || label.text().isEmpty()) {
+        return;
+    }
+    const SavedPainter saved(painter);
+    for (const QRectF &line : label_text_lines(label)) {
+        const double overshoot = MarkerOvershootPerLine * line.height();
+        const double y = line.center().y() + MarkerDropPerLine * line.height();
+        painter.setPen(QPen(label.isEnabled() ? marker : lighter_marker(marker), MarkerHeightPerLine * line.height(),
+                            Qt::SolidLine, Qt::FlatCap));
+        painter.drawLine(QPointF(line.left() - overshoot, y), QPointF(line.right() + overshoot, y));
+    }
+}
 
 // How many pixels a hand-drawn highlight goes past its rectangle: its rough edge wobbles out by
 // up to the largest offset of the theme, and the line around it is about as wide. A view
 // repaints only the rectangles of the entries a highlight leaves and reaches: what went past
 // them would stay on the screen.
-int HandPaintStyle::highlight_overflow() const {
-    return static_cast<int>(std::ceil(2.0 * m_theme.rough_options().max_offset));
+int highlight_overflow(const Theme &theme) {
+    return static_cast<int>(std::ceil(2.0 * theme.rough_options().max_offset));
 }
+
+// Fusion caches the groove and the handle in pixmaps: draw them as flat shapes instead,
+// and let Fusion, the base of `style`, draw the tick marks, which it draws with lines.
+void draw_slider(const QProxyStyle &style, const QStyleOptionSlider &option, QPainter &painter,
+                 const QWidget *widget) {
+    const QRect groove = style.subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderGroove, widget);
+    const QRect handle = style.subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderHandle, widget);
+    const QPalette &palette = option.palette;
+    {
+        const SavedPainter saved(painter);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(palette.color(QPalette::Dark));
+        if (option.subControls & QStyle::SC_SliderGroove) {
+            QRectF track = groove;
+            if (option.orientation == Qt::Horizontal) {
+                track.setHeight(SliderTrackThickness);
+            } else {
+                track.setWidth(SliderTrackThickness);
+            }
+            track.moveCenter(QRectF(groove).center());
+            painter.setBrush(palette.color(QPalette::Mid));
+            painter.drawRect(track);
+        }
+        if (option.subControls & QStyle::SC_SliderHandle) {
+            painter.setBrush(palette.color(QPalette::Button));
+            painter.drawRect(fitted_handle(handle, option).adjusted(0.5, 0.5, -0.5, -0.5));
+        }
+    }
+    if (option.subControls & QStyle::SC_SliderTickmarks) {
+        QStyleOptionSlider tick_marks = option;
+        tick_marks.subControls = QStyle::SC_SliderTickmarks;
+        style.baseStyle()->drawComplexControl(QStyle::CC_Slider, &tick_marks, &painter, widget);
+    }
+}
+
+// Fusion caches the combobox in a pixmap: draw a flat frame (Base fill when editable, Button
+// fill otherwise, Dark outline) and the down arrow of `style` instead.
+void draw_combo_box(const QStyle &style, const QStyleOptionComboBox &option, QPainter &painter,
+                    const QWidget *widget) {
+    const QPalette::ColorRole fill_role = option.editable ? QPalette::Base : QPalette::Button;
+    draw_flat_rectangle(painter, option.rect, option.palette.color(QPalette::Dark), option.palette.color(fill_role));
+    if (option.subControls & QStyle::SC_ComboBoxArrow) {
+        QStyleOption arrow = option;
+        arrow.rect = style.subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxArrow, widget);
+        style.drawPrimitive(QStyle::PE_IndicatorArrowDown, &arrow, &painter, widget);
+    }
+}
+
+// A line button of a scroll bar, when `option` shows it: the flat panel of `style`, sunken
+// when the button is pressed, and its vector arrow.
+void draw_scroll_bar_line_button(const QStyle &style, const QStyleOptionSlider &option, QStyle::SubControl button,
+                                 QStyle::PrimitiveElement arrow, QPainter &painter, const QWidget *widget) {
+    if (!(option.subControls & button)) {
+        return;
+    }
+    QStyleOption button_option = option;
+    button_option.rect = style.subControlRect(QStyle::CC_ScrollBar, &option, button, widget);
+    const bool is_pressed = (option.activeSubControls & button) && (option.state & QStyle::State_Sunken);
+    button_option.state &= ~(QStyle::State_Sunken | QStyle::State_On);
+    if (is_pressed) {
+        button_option.state |= QStyle::State_Sunken;
+    }
+    style.drawPrimitive(QStyle::PE_PanelButtonCommand, &button_option, &painter, widget);
+    style.drawPrimitive(arrow, &button_option, &painter, widget);
+}
+
+// Fusion draws the arrows of the line buttons from a cached pixmap: let Fusion, the base of
+// `style`, draw the rest, then draw each line button as a flat panel with a vector arrow.
+// Fusion shades the groove and the handle from the Button color. They are not buttons: they
+// get the color of the window, so that a theme that colors its buttons keeps a plain scroll bar.
+void draw_scroll_bar(const QProxyStyle &style, const QStyleOptionSlider &option, QPainter &painter,
+                     const QWidget *widget) {
+    QStyleOptionSlider without_line_buttons = option;
+    without_line_buttons.subControls &= ~(QStyle::SC_ScrollBarSubLine | QStyle::SC_ScrollBarAddLine);
+    without_line_buttons.palette.setBrush(QPalette::Button, option.palette.window());
+    style.baseStyle()->drawComplexControl(QStyle::CC_ScrollBar, &without_line_buttons, &painter, widget);
+
+    const bool is_horizontal = option.orientation == Qt::Horizontal;
+    draw_scroll_bar_line_button(style, option, QStyle::SC_ScrollBarSubLine,
+                                is_horizontal ? QStyle::PE_IndicatorArrowLeft : QStyle::PE_IndicatorArrowUp, painter,
+                                widget);
+    draw_scroll_bar_line_button(style, option, QStyle::SC_ScrollBarAddLine,
+                                is_horizontal ? QStyle::PE_IndicatorArrowRight : QStyle::PE_IndicatorArrowDown, painter,
+                                widget);
+}
+
+}  // namespace
+
+// QProxyStyle takes the ownership of the base style.
+HandPaintStyle::HandPaintStyle(Theme theme)
+    : QProxyStyle(QStyleFactory::create(BaseStyleName)), m_theme(std::move(theme)) {}
 
 void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *option, QPainter *painter,
                                  const QWidget *widget) const {
@@ -225,7 +323,7 @@ void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *opt
     // for what goes past it.
     if (element == CE_MenuItem) {
         if (const auto *menu_item = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
-            const int overflow = highlight_overflow();
+            const int overflow = highlight_overflow(m_theme);
             QStyleOptionMenuItem inner = *menu_item;
             inner.rect.adjust(overflow, overflow, -overflow, -overflow);
             QProxyStyle::drawControl(element, &inner, painter, widget);
@@ -239,25 +337,6 @@ void HandPaintStyle::drawControl(ControlElement element, const QStyleOption *opt
         }
     }
     QProxyStyle::drawControl(element, option, painter, widget);
-}
-
-// One line of the marker along each line of text, drawn with the flat tip of a highlighter.
-// It is a line and not a fill: a HandPaintEngine draws it by hand, lets it go past the label
-// and does not hatch it.
-void HandPaintStyle::draw_label_marker(const QLabel &label, QPainter &painter) const {
-    const QBrush marker = label_marker(label);
-    if (marker.style() == Qt::NoBrush || label.text().isEmpty()) {
-        return;
-    }
-    painter.save();
-    for (const QRectF &line : label_text_lines(label)) {
-        const double overshoot = MarkerOvershootPerLine * line.height();
-        const double y = line.center().y() + MarkerDropPerLine * line.height();
-        painter.setPen(QPen(label.isEnabled() ? marker : lighter_marker(marker), MarkerHeightPerLine * line.height(),
-                            Qt::SolidLine, Qt::FlatCap));
-        painter.drawLine(QPointF(line.left() - overshoot, y), QPointF(line.right() + overshoot, y));
-    }
-    painter.restore();
 }
 
 void HandPaintStyle::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter,
@@ -285,7 +364,7 @@ QSize HandPaintStyle::sizeFromContents(ContentsType type, const QStyleOption *op
                                        const QWidget *widget) const {
     QSize result = QProxyStyle::sizeFromContents(type, option, size, widget);
     if (type == CT_MenuItem) {
-        const int overflow = highlight_overflow();
+        const int overflow = highlight_overflow(m_theme);
         result += QSize(2 * overflow, 2 * overflow);
     }
     return result;
@@ -303,19 +382,19 @@ void HandPaintStyle::drawComplexControl(ComplexControl control, const QStyleOpti
                                         QPainter *painter, const QWidget *widget) const {
     if (control == CC_Slider) {
         if (const auto *slider = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
-            draw_slider(*slider, *painter, widget);
+            draw_slider(*this, *slider, *painter, widget);
             return;
         }
     }
     if (control == CC_ComboBox) {
         if (const auto *combo_box = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
-            draw_combo_box(*combo_box, *painter, widget);
+            draw_combo_box(*this, *combo_box, *painter, widget);
             return;
         }
     }
     if (control == CC_ScrollBar) {
         if (const auto *scroll_bar = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
-            draw_scroll_bar(*scroll_bar, *painter, widget);
+            draw_scroll_bar(*this, *scroll_bar, *painter, widget);
             return;
         }
     }
@@ -326,95 +405,6 @@ void HandPaintStyle::drawComplexControl(ComplexControl control, const QStyleOpti
         }
     }
     QProxyStyle::drawComplexControl(control, option, painter, widget);
-}
-
-// Fusion caches the groove and the handle in pixmaps: draw them as flat shapes instead,
-// and let Fusion draw the tick marks, which it draws with lines.
-void HandPaintStyle::draw_slider(const QStyleOptionSlider &option, QPainter &painter,
-                                 const QWidget *widget) const {
-    const QRect groove = subControlRect(CC_Slider, &option, SC_SliderGroove, widget);
-    const QRect handle = subControlRect(CC_Slider, &option, SC_SliderHandle, widget);
-    const QPalette &palette = option.palette;
-
-    painter.save();
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(palette.color(QPalette::Dark));
-    if (option.subControls & SC_SliderGroove) {
-        QRectF track = groove;
-        if (option.orientation == Qt::Horizontal) {
-            track.setHeight(SliderTrackThickness);
-        } else {
-            track.setWidth(SliderTrackThickness);
-        }
-        track.moveCenter(QRectF(groove).center());
-        painter.setBrush(palette.color(QPalette::Mid));
-        painter.drawRect(track);
-    }
-    if (option.subControls & SC_SliderHandle) {
-        painter.setBrush(palette.color(QPalette::Button));
-        painter.drawRect(fitted_handle(handle, option).adjusted(0.5, 0.5, -0.5, -0.5));
-    }
-    painter.restore();
-
-    if (option.subControls & SC_SliderTickmarks) {
-        QStyleOptionSlider tick_marks = option;
-        tick_marks.subControls = SC_SliderTickmarks;
-        QProxyStyle::drawComplexControl(CC_Slider, &tick_marks, &painter, widget);
-    }
-}
-
-// Fusion caches the combobox in a pixmap: draw a flat frame (Base fill when editable, Button
-// fill otherwise, Dark outline) and the down arrow instead.
-void HandPaintStyle::draw_combo_box(const QStyleOptionComboBox &option, QPainter &painter,
-                                    const QWidget *widget) const {
-    const QPalette::ColorRole fill_role = option.editable ? QPalette::Base : QPalette::Button;
-
-    painter.save();
-    painter.setPen(option.palette.color(QPalette::Dark));
-    painter.setBrush(option.palette.color(fill_role));
-    painter.drawRect(option.rect.adjusted(0, 0, -1, -1));
-    painter.restore();
-
-    if (option.subControls & SC_ComboBoxArrow) {
-        QStyleOption arrow = option;
-        arrow.rect = subControlRect(CC_ComboBox, &option, SC_ComboBoxArrow, widget);
-        drawPrimitive(PE_IndicatorArrowDown, &arrow, &painter, widget);
-    }
-}
-
-// Fusion draws the arrows of the line buttons from a cached pixmap: let Fusion draw the rest,
-// then draw each line button as a flat panel with a vector arrow.
-// Fusion shades the groove and the handle from the Button color. They are not buttons: they
-// get the color of the window, so that a theme that colors its buttons keeps a plain scroll bar.
-void HandPaintStyle::draw_scroll_bar(const QStyleOptionSlider &option, QPainter &painter,
-                                     const QWidget *widget) const {
-    QStyleOptionSlider without_line_buttons = option;
-    without_line_buttons.subControls &= ~(SC_ScrollBarSubLine | SC_ScrollBarAddLine);
-    without_line_buttons.palette.setBrush(QPalette::Button, option.palette.window());
-    QProxyStyle::drawComplexControl(CC_ScrollBar, &without_line_buttons, &painter, widget);
-
-    const bool is_horizontal = option.orientation == Qt::Horizontal;
-    const PrimitiveElement sub_arrow = is_horizontal ? PE_IndicatorArrowLeft : PE_IndicatorArrowUp;
-    const PrimitiveElement add_arrow = is_horizontal ? PE_IndicatorArrowRight : PE_IndicatorArrowDown;
-    draw_scroll_bar_line_button(option, SC_ScrollBarSubLine, sub_arrow, painter, widget);
-    draw_scroll_bar_line_button(option, SC_ScrollBarAddLine, add_arrow, painter, widget);
-}
-
-void HandPaintStyle::draw_scroll_bar_line_button(const QStyleOptionSlider &option, SubControl button,
-                                                 PrimitiveElement arrow, QPainter &painter,
-                                                 const QWidget *widget) const {
-    if (!(option.subControls & button)) {
-        return;
-    }
-    QStyleOption button_option = option;
-    button_option.rect = subControlRect(CC_ScrollBar, &option, button, widget);
-    const bool is_pressed = (option.activeSubControls & button) && (option.state & State_Sunken);
-    button_option.state &= ~(State_Sunken | State_On);
-    if (is_pressed) {
-        button_option.state |= State_Sunken;
-    }
-    drawPrimitive(PE_PanelButtonCommand, &button_option, &painter, widget);
-    drawPrimitive(arrow, &button_option, &painter, widget);
 }
 
 }  // namespace hpq

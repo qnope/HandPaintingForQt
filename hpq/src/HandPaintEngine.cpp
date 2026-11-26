@@ -1,25 +1,23 @@
-#include <hpq/HandPaintEngine.h>
+#include "HandPaintEngine.h"
+
+#include "ChalkTexture.h"
+#include "ContentOrigin.h"
+#include "SavedPainter.h"
+#include "Target.h"
+#include "WatercolorTexture.h"
+#include "WatercolorWash.h"
 
 #include <hpq/AntialiasingMode.h>
 #include <hpq/FillStyle.h>
 #include <hpq/GeometryEngine.h>
+#include <hpq/Medium.h>
 #include <hpq/RoughOptions.h>
+#include <hpq/TextInk.h>
 #include <hpq/Theme.h>
 
-#include "BrushStroke.h"
-#include "ChalkStroke.h"
-#include "ChalkTexture.h"
-#include "PathTiles.h"
-#include "WatercolorTexture.h"
-#include "WatercolorWash.h"
-
-#include <QAbstractItemView>
-#include <QAbstractScrollArea>
 #include <QPaintDevice>
 #include <QPainter>
-#include <QPainterPathStroker>
 #include <QRegion>
-#include <QScrollBar>
 #include <QTextItem>
 #include <QWidget>
 
@@ -73,136 +71,8 @@ std::uint32_t path_seed(const QPainterPath &path) {
     return seed;
 }
 
-// Chalk is blunt: its line is this much wider, in pixels, than the pen it stands for.
-constexpr double ChalkExtraWidth = 1.2;
-// A chalk ribbon is at most this many times wider than its width.
-constexpr double ChalkWidestPressure = 2.0;
-
-// Width, in pixels, of the chalk line drawn for `pen`; a cosmetic pen is one pixel wide.
-double chalk_width(const QPen &pen) {
-    return std::max(pen.widthF(), 1.0) + ChalkExtraWidth;
-}
-
-// A brush is soft: the line of an outline is this much wider, in pixels, than the pen it
-// stands for. A hachure is drawn with the tip of the brush, and keeps the width of its pen.
-constexpr double BrushExtraWidth = 1.0;
-// A brush ribbon is at most this many times wider than its width.
-constexpr double BrushWidestPressure = 2.2;
-
-// Width, in pixels, of the brush line drawn for `pen`; a cosmetic pen is one pixel wide.
-double brush_width(const QPen &pen, bool is_outline) {
-    return std::max(pen.widthF(), 1.0) + (is_outline ? BrushExtraWidth : 0.0);
-}
-
-// A hachure of watercolor is one stroke of a small flat brush: it is this much wider, in
-// pixels, than the pen it stands for.
-constexpr double WatercolorHachureExtraWidth = 1.0;
-
-// The miter limit of a pen that was given none.
-constexpr double DefaultMiterLimit = 2.0;
-
 // A wash does not follow the outline of its shape: it gets another seed than the outline.
 constexpr std::uint32_t WashSeedMask = 0x5bd1e995u;
-
-// `brush` with its image moved by `offset`: the image follows what is drawn there.
-QBrush moved(QBrush brush, const QPointF &offset) {
-    brush.setTransform(brush.transform() * QTransform::fromTranslate(offset.x(), offset.y()));
-    return brush;
-}
-
-// `brush` laid on a shape whose control points are in `bounds`, on a device of `device_size`,
-// with its gradient in the logical coordinates of the painter, as Qt lays a gradient given in
-// the coordinates of the shape or of the device: drawn in pieces, or with the painter moved, the
-// shape keeps its gradient.
-QBrush laid_on(const QBrush &brush, const QRectF &bounds, const QSizeF &device_size) {
-    const QGradient *gradient = brush.gradient();
-    if (gradient == nullptr || gradient->coordinateMode() == QGradient::LogicalMode) {
-        return brush;
-    }
-    const QRectF stretch =
-        gradient->coordinateMode() == QGradient::StretchToDeviceMode ? QRectF(QPointF(), device_size) : bounds;
-    const QTransform to_logical(stretch.width(), 0.0, 0.0, stretch.height(), stretch.x(), stretch.y());
-    QGradient logical = *gradient;
-    logical.setCoordinateMode(QGradient::LogicalMode);
-    QBrush laid(logical);
-    // As QPainter stretches a gradient: in ObjectMode, the transform of the brush is in the
-    // coordinates of the shape; in the other modes, in those of the gradient.
-    laid.setTransform(gradient->coordinateMode() == QGradient::ObjectMode ? brush.transform() * to_logical
-                                                                          : to_logical * brush.transform());
-    return laid;
-}
-
-// Reads the scroll offsets of a view of items, which QAbstractItemView keeps protected: a
-// pointer to a member, taken through a derived class, calls them on any view. They are in
-// pixels, also when the view scrolls by items.
-class ItemViewOffsets : public QAbstractItemView {
-public:
-    static QPointF of(const QAbstractItemView &view) {
-        return QPointF((view.*&ItemViewOffsets::horizontalOffset)(), (view.*&ItemViewOffsets::verticalOffset)());
-    }
-};
-
-// The widget that `device` is; null when it is another device.
-const QWidget *widget_of(const QPaintDevice *device) {
-    if (device == nullptr || device->devType() != QInternal::Widget) {
-        return nullptr;
-    }
-    return static_cast<const QWidget *>(device);
-}
-
-// The scroll area whose viewport is `widget`; null when it is not a viewport.
-const QAbstractScrollArea *scroll_area_of(const QWidget &widget) {
-    const auto *area = qobject_cast<const QAbstractScrollArea *>(widget.parentWidget());
-    return area != nullptr && area->viewport() == &widget ? area : nullptr;
-}
-
-// How far the content shown by `device` is scrolled: none, unless it is the viewport of a
-// scroll area.
-QPointF scroll_offset(const QPaintDevice *device) {
-    const QWidget *widget = widget_of(device);
-    const QAbstractScrollArea *area = widget != nullptr ? scroll_area_of(*widget) : nullptr;
-    if (area == nullptr) {
-        return QPointF();
-    }
-    if (const auto *view = qobject_cast<const QAbstractItemView *>(area)) {
-        return ItemViewOffsets::of(*view);
-    }
-    return QPointF(area->horizontalScrollBar()->value(), area->verticalScrollBar()->value());
-}
-
-// Where `widget` may draw, in its coordinates: up to `margin` past its rectangle, but not past
-// the viewport of a scroll area that shows it. A viewport cuts what it shows at its edges:
-// past them is the frame of its scroll area, and what is around it.
-QRect drawable_rect(const QWidget &widget, int margin) {
-    QRect drawable = widget.rect().adjusted(-margin, -margin, margin, margin);
-    for (const QWidget *ancestor = &widget; !ancestor->isWindow(); ancestor = ancestor->parentWidget()) {
-        if (scroll_area_of(*ancestor) != nullptr) {
-            drawable &= QRect(widget.mapFrom(ancestor, QPoint()), ancestor->size());
-        }
-    }
-    return drawable;
-}
-
-// The pixels of the device of `painter` that it can paint in `area`: those in its clip, and in
-// the system clip of its engine.
-QRect paintable_pixels(const QPainter &painter, const QRectF &area) {
-    const QTransform to_device = painter.deviceTransform();
-    QRect pixels = to_device.mapRect(area).toAlignedRect();
-    if (painter.hasClipping()) {
-        pixels &= to_device.mapRect(painter.clipBoundingRect()).toAlignedRect();
-    }
-    const QRegion system_clip = painter.paintEngine()->systemClip();
-    if (!system_clip.isEmpty()) {
-        pixels &= system_clip.boundingRect();
-    }
-    return pixels;
-}
-
-// True when `pen` draws a plain line of one color, which chalk or a brush can follow with
-// uneven pressure.
-bool is_plain_line(const QPen &pen) {
-    return pen.style() == Qt::SolidLine && pen.brush().style() == Qt::SolidPattern;
-}
 
 // `brush` of the device painter, as it is laid on the device: a gradient given in the logical
 // coordinates of the painter follows its transform and its brush origin, as Qt places it.
@@ -273,8 +143,9 @@ void HandPaintEngine::updateState(const QPaintEngineState &new_state) {
         // with the engine's transform. Unlike QPainter::combinedTransform(), it includes the
         // redirection offset of a child widget rendered through a shared painter.
         const QPainter &device_painter = *new_state.painter();
-        m_clipping = device_painter.hasClipping();
-        m_clip = m_clipping ? new_state.transform().map(device_painter.clipPath()) : QPainterPath();
+        m_clip = device_painter.hasClipping()
+                     ? std::optional<QPainterPath>(new_state.transform().map(device_painter.clipPath()))
+                     : std::nullopt;
     }
 }
 
@@ -321,70 +192,66 @@ void HandPaintEngine::drawPolygon(const QPointF *points, int count, PolygonDrawM
 
 // Images reach the target unchanged.
 void HandPaintEngine::drawPixmap(const QRectF &rect, const QPixmap &pixmap, const QRectF &source_rect) {
-    if (is_out_of_sight(m_transform.mapRect(rect), SmoothingReach)) {
-        return;
-    }
-    save_target_in_logical_coordinates();
-    m_target.drawPixmap(rect, pixmap, source_rect);
-    m_target.restore();
+    draw_unchanged(rect, [&] { m_target.drawPixmap(rect, pixmap, source_rect); });
 }
 
 void HandPaintEngine::drawImage(const QRectF &rect, const QImage &image, const QRectF &source_rect,
                                 Qt::ImageConversionFlags flags) {
-    if (is_out_of_sight(m_transform.mapRect(rect), SmoothingReach)) {
-        return;
-    }
-    save_target_in_logical_coordinates();
-    m_target.drawImage(rect, image, source_rect, flags);
-    m_target.restore();
+    draw_unchanged(rect, [&] { m_target.drawImage(rect, image, source_rect, flags); });
 }
 
 void HandPaintEngine::drawTiledPixmap(const QRectF &rect, const QPixmap &pixmap, const QPointF &offset) {
-    if (is_out_of_sight(m_transform.mapRect(rect), SmoothingReach)) {
+    draw_unchanged(rect, [&] { m_target.drawTiledPixmap(rect, pixmap, offset); });
+}
+
+template <typename Draw>
+void HandPaintEngine::draw_unchanged(const QRectF &logical_bounds, Draw draw) {
+    if (is_out_of_sight(m_transform.mapRect(logical_bounds), SmoothingReach)) {
         return;
     }
-    save_target_in_logical_coordinates();
-    m_target.drawTiledPixmap(rect, pixmap, offset);
-    m_target.restore();
+    const SavedPainter saved(m_target);
+    follow_device_painter_in_logical_coordinates();
+    draw();
 }
 
 QPaintEngine::Type HandPaintEngine::type() const { return QPaintEngine::User; }
 
 template <typename Make>
 std::vector<QPainterPath> HandPaintEngine::kept_paths(PaintCache::PathKind kind, const QPainterPath &shape,
-                                                      const Tool &tool, Make make) {
+                                                      const StrokeTool &tool, Make make) {
     if (m_cache == nullptr) {
         return make();
     }
-    // The values of the cap styles and of the join styles are bits of their own, above the ribbons.
-    const int tool_number = static_cast<int>(tool.ribbon) | static_cast<int>(tool.cap_style) |
-                            static_cast<int>(tool.join_style);
     // Without a ribbon the paths are the strokes themselves, whatever the width of their pen.
     const double width = tool.ribbon == Ribbon::None ? 0.0 : tool.width;
-    return m_cache->paths(kind, shape, tool_number, width, make);
+    return m_cache->paths(kind, shape, cache_number(tool), width, make);
 }
 
 void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind kind) {
     const bool filled = m_brush.style() != Qt::NoBrush;
     const bool outlined = m_pen.style() != Qt::NoPen;
     const QPen pen = outlined ? on_device(m_pen, m_transform, painter()->brushOrigin()) : QPen(Qt::NoPen);
-    const Tool tool = outlined ? tool_of(pen, StrokeKind::Outline) : Tool();
+    // The tool of the outline; none for a shape without outline.
+    const std::optional<StrokeTool> outline_tool =
+        outlined ? std::optional<StrokeTool>(stroke_tool(pen, StrokeKind::Outline, m_theme, m_target)) : std::nullopt;
     // A shape that cannot show is not drawn: its rough paths are not even looked for.
     if (is_out_of_sight(m_transform.mapRect(logical_shape.controlPointRect()),
-                        ink_reach(outlined ? &tool : nullptr, filled && kind != ShapeKind::Open))) {
+                        ink_reach(outline_tool, filled && kind != ShapeKind::Open))) {
         return;
     }
     // The shape is made rough in the coordinates of the content, then drawn where the content
     // is on the device: a shape keeps its rough paths when its view scrolls, and two shapes at
     // two places of the content get two seeds.
-    m_origin = kind == ShapeKind::Open ? line_origin(logical_shape) : content_origin();
+    m_origin = kind == ShapeKind::Open ? line_origin(*painter(), m_transform, logical_shape)
+                                       : content_origin(*painter(), m_transform);
     const QPainterPath shape = m_transform.map(logical_shape).translated(-m_origin);
     const RoughOptions options = m_theme.rough_options();
     ShapeSeed shape_seed(shape);
     if (kind != ShapeKind::Open && filled) {
         fill_shape(shape, kind, options, shape_seed);
     }
-    if (outlined) {
+    if (outline_tool) {
+        const StrokeTool &tool = *outline_tool;
         // A rectangle with no area is a line: it frames nothing.
         const bool is_frame = kind == ShapeKind::Rectangle && !filled && !shape.boundingRect().isEmpty();
         const std::vector<QPainterPath> outlines = kept_paths(
@@ -410,7 +277,7 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, cons
                                  ShapeSeed &shape_seed) {
     const bool is_watercolor = m_theme.medium() == Medium::Watercolor;
     // One area, in a list of one path.
-    const QPainterPath area = kept_paths(PaintCache::PathKind::FillArea, shape, Tool(), [&] {
+    const QPainterPath area = kept_paths(PaintCache::PathKind::FillArea, shape, StrokeTool(), [&] {
         const std::uint32_t seed = shape_seed.value();
         return std::vector<QPainterPath>{
             m_geometry_engine.fill_area(shape, options, is_watercolor ? seed ^ WashSeedMask : seed)};
@@ -418,7 +285,7 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, cons
     const QBrush brush = on_device(m_brush, m_transform, painter()->brushOrigin());
     if (is_hatched(brush)) {
         const QPen pen(brush, HachureWidth, Qt::SolidLine, Qt::RoundCap);
-        const Tool tool = tool_of(pen, StrokeKind::Hachure);
+        const StrokeTool tool = stroke_tool(pen, StrokeKind::Hachure, m_theme, m_target);
         // What the tool marks along the hachures, in a list of one path; none when the shape
         // cannot be hatched.
         const std::vector<QPainterPath> hachures = kept_paths(PaintCache::PathKind::Hachure, shape, tool, [&] {
@@ -441,14 +308,14 @@ void HandPaintEngine::lay_on_target(const QPainterPath &area, const QBrush &brus
         draw_on_target(area, Qt::NoPen, seen_through_medium(brush), Tiling::Area);
         return;
     }
-    save_target_in_device_coordinates();
+    const SavedPainter saved(m_target);
+    follow_device_painter();
     // The wash settles from the origin of the painter: moved to the origin of the content, by
     // whole pixels, it scrolls with the content.
     const QPointF origin = m_origin.toPoint();
     m_target.translate(origin);
     paint_wash(m_target, area.translated(m_origin - origin), brush.color(), is_band ? WashKind::Band : WashKind::Patch,
                m_cache);
-    m_target.restore();
 }
 
 bool HandPaintEngine::is_wash(const QBrush &brush) const {
@@ -468,48 +335,15 @@ bool HandPaintEngine::is_hatched(const QBrush &brush) const {
     return brush.style() != Qt::SolidPattern || brush.color() != paper.color();
 }
 
-HandPaintEngine::Tool HandPaintEngine::tool_of(const QPen &pen, StrokeKind kind) const {
-    const Medium medium = m_theme.medium();
-    const bool is_outline = kind == StrokeKind::Outline;
-    const bool is_chalk = medium == Medium::Chalk;
-    const bool is_watercolor = medium == Medium::Watercolor;
-    // A brush follows a plain line; a dashed line is drawn by its pen, as a pencil draws it.
-    const bool is_brush = (medium == Medium::Ink || is_watercolor) && is_plain_line(pen);
-    Tool tool;
-    if (is_brush) {
-        tool.ribbon = Ribbon::Brush;
-    } else if (is_chalk && is_plain_line(pen)) {
-        tool.ribbon = Ribbon::Chalk;
-    } else if (!is_chalk && m_target.paintEngine()->type() == QPaintEngine::Raster && is_plain_line(pen) &&
-               !is_thin(pen) && (pen.joinStyle() != Qt::MiterJoin || pen.miterLimit() == DefaultMiterLimit)) {
-        // The raster engine turns a wide line into an area each time it strokes it, and smooths
-        // that area in one piece, slowly: here the area is made once, kept with the stroke when
-        // there is a cache, and filled in pieces.
-        tool.ribbon = Ribbon::Pen;
-        tool.cap_style = pen.capStyle();
-        tool.join_style = pen.joinStyle();
-    }
-    tool.width = is_chalk   ? chalk_width(pen)
-                 : is_brush ? brush_width(pen, is_outline) +
-                                  (is_watercolor && !is_outline ? WatercolorHachureExtraWidth : 0.0)
-                            : pen.widthF();
-    // An outline wobbles up to max_offset away from the shape, and its pen is wide: a frame on
-    // the edge of a widget would be cut by the widget's area without this margin.
-    // Hachures stay inside their shape: they get no margin.
-    tool.widest = tool.width * (is_chalk ? ChalkWidestPressure : is_brush ? BrushWidestPressure : 1.0);
-    tool.system_clip_margin =
-        is_outline ? static_cast<int>(std::ceil(m_theme.rough_options().max_offset + tool.widest)) : 0;
-    return tool;
-}
-
-double HandPaintEngine::ink_reach(const Tool *outline_tool, bool filled) const {
+double HandPaintEngine::ink_reach(const std::optional<StrokeTool> &outline_tool, bool filled) const {
     const RoughOptions options = m_theme.rough_options();
     // How far past their rough paths the strokes and the fill put ink.
-    double spread = outline_tool != nullptr ? outline_tool->widest : 0.0;
+    double spread = outline_tool ? outline_tool->widest : 0.0;
     if (filled) {
         // The ends of a hachure move along it by less than a gap. A wash spreads past its area.
         if (is_hatched(m_brush)) {
-            const Tool hachure_tool = tool_of(QPen(m_brush, HachureWidth), StrokeKind::Hachure);
+            const StrokeTool hachure_tool =
+                stroke_tool(QPen(m_brush, HachureWidth), StrokeKind::Hachure, m_theme, m_target);
             spread = std::max(spread, options.hachure_gap + hachure_tool.widest);
         }
         if (is_wash(m_brush)) {
@@ -535,35 +369,7 @@ bool HandPaintEngine::is_smoothed() const {
     return true;
 }
 
-bool HandPaintEngine::is_thin(const QPen &pen) const {
-    if (pen.isCosmetic()) {
-        return true;
-    }
-    const QTransform to_device = m_target.deviceTransform();
-    return pen.widthF() * std::hypot(to_device.m11(), to_device.m12()) <= 1.0;
-}
-
-QPainterPath HandPaintEngine::marked(const QPainterPath &stroke, const Tool &tool, std::uint32_t stroke_seed) const {
-    switch (tool.ribbon) {
-    case Ribbon::Pen: {
-        QPainterPathStroker stroker;
-        stroker.setWidth(tool.width);
-        stroker.setCapStyle(tool.cap_style);
-        stroker.setJoinStyle(tool.join_style);
-        stroker.setMiterLimit(DefaultMiterLimit);
-        return stroker.createStroke(stroke);
-    }
-    case Ribbon::Chalk:
-        return chalk_ribbon(stroke, tool.width, stroke_seed);
-    case Ribbon::Brush:
-        return brush_ribbon(stroke, tool.width, stroke_seed);
-    case Ribbon::None:
-        break;
-    }
-    return stroke;
-}
-
-void HandPaintEngine::draw_marked(const QPainterPath &marked_stroke, const QPen &pen, const Tool &tool) {
+void HandPaintEngine::draw_marked(const QPainterPath &marked_stroke, const QPen &pen, const StrokeTool &tool) {
     const Medium medium = m_theme.medium();
     if (tool.ribbon == Ribbon::Brush && medium == Medium::Watercolor) {
         glaze_on_target(marked_stroke, moved(pigment_brush(pen.color(), target_pixel_ratio()), m_origin),
@@ -617,122 +423,42 @@ QPen HandPaintEngine::chalk_pen(QPen pen, ChalkGrain grain, const QPointF &origi
     return pen;
 }
 
-// The state of the device painter maps its logical coordinates to the device. Its combined
-// transform maps them to the widget being painted: the two differ by where that widget is on
-// the device.
-QPointF HandPaintEngine::widget_origin() const {
-    return m_transform.map(QPointF()) - painter()->combinedTransform().map(QPointF());
-}
-
-QPointF HandPaintEngine::content_origin() const {
-    return widget_origin() - scroll_offset(painter()->device());
-}
-
-QPointF HandPaintEngine::line_origin(const QPainterPath &logical_line) const {
-    const QPaintDevice *widget = painter()->device();
-    const QRectF line = painter()->combinedTransform().map(logical_line).boundingRect();
-    QPointF origin = content_origin();
-    // A pen of one pixel draws through the middle of the pixels: half a pixel from the edges.
-    if (line.height() == 0.0 && line.left() <= 1.0 && line.right() >= widget->width() - 1.0) {
-        origin.setX(widget_origin().x());
-    }
-    if (line.width() == 0.0 && line.top() <= 1.0 && line.bottom() >= widget->height() - 1.0) {
-        origin.setY(widget_origin().y());
-    }
-    return origin;
-}
-
 double HandPaintEngine::target_pixel_ratio() const {
     return m_target.device()->devicePixelRatioF();
 }
 
 void HandPaintEngine::draw_on_target(const QPainterPath &path, const QPen &pen, const QBrush &brush, Tiling tiling,
                                      int system_clip_margin) {
-    save_target_in_device_coordinates(system_clip_margin);
+    const SavedPainter saved(m_target);
+    follow_device_painter(system_clip_margin);
     const bool smoothed = is_smoothed();
     m_target.setRenderHint(QPainter::Antialiasing, smoothed);
     if (pen.style() == Qt::NoPen && smoothed) {
-        fill_in_pieces(path, brush, tiling);
+        fill_in_pieces(m_target, path, brush, tiling, m_origin, m_cache);
     } else {
-        set_target_to_content(path, pen, brush);
+        set_to_content(m_target, path, pen, brush, m_origin);
         m_target.drawPath(path);
     }
-    m_target.restore();
 }
 
 void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin) {
-    save_target_in_device_coordinates(system_clip_margin);
+    const SavedPainter saved(m_target);
+    follow_device_painter(system_clip_margin);
     if (m_target.paintEngine()->hasFeature(QPaintEngine::BlendModes)) {
         m_target.setCompositionMode(QPainter::CompositionMode_Darken);
     }
     // The smooth edge of watercolor is the one of its medium: lost only when the theme never smooths.
     if (m_theme.antialiasing_mode() != AntialiasingMode::Never) {
         m_target.setRenderHint(QPainter::Antialiasing);
-        fill_in_pieces(area, brush, Tiling::Stroke);
+        fill_in_pieces(m_target, area, brush, Tiling::Stroke, m_origin, m_cache);
     } else {
         m_target.setRenderHint(QPainter::Antialiasing, false);
-        set_target_to_content(area, Qt::NoPen, brush);
+        set_to_content(m_target, area, Qt::NoPen, brush, m_origin);
         m_target.drawPath(area);
     }
-    m_target.restore();
 }
 
-void HandPaintEngine::fill_in_pieces(const QPainterPath &area, const QBrush &brush, Tiling tiling) {
-    set_target_to_content(area, Qt::NoPen, brush);
-    // Another engine might smooth each piece on its own, and show the cuts.
-    if (m_target.paintEngine()->type() != QPaintEngine::Raster) {
-        m_target.drawPath(area);
-        return;
-    }
-    const QRect paintable = paintable_pixels(m_target, area.boundingRect());
-    if (paintable.isEmpty()) {
-        return;
-    }
-    const QTransform to_device = m_target.deviceTransform();
-    for (const QPainterPath &piece : pieces_of(area, to_device, paintable, tiling)) {
-        if (to_device.mapRect(piece.boundingRect()).toAlignedRect().intersects(paintable)) {
-            m_target.drawPath(piece);
-        }
-    }
-}
-
-std::vector<QPainterPath> HandPaintEngine::pieces_of(const QPainterPath &area, const QTransform &to_device,
-                                                     const QRect &paintable, Tiling tiling) {
-    if (fits_in_a_piece(to_device.mapRect(area.boundingRect()).size(), tiling)) {
-        return {area};
-    }
-    // A target that turns or skews the content gets pieces for this drawing only.
-    if (to_device.type() > QTransform::TxScale) {
-        return path_tiles(area, to_device, paintable, tiling);
-    }
-    // The pieces end between two pixels of the device. Cut from the fraction of a pixel where
-    // the content starts, they are the same wherever the content is moved by whole pixels, as
-    // when a view scrolls: they are kept for the scale and that fraction.
-    const QPointF start = to_device.map(QPointF());
-    const QPoint whole(static_cast<int>(std::floor(start.x())), static_cast<int>(std::floor(start.y())));
-    const QPointF phase = start - QPointF(whole);
-    const QTransform cut(to_device.m11(), 0.0, 0.0, to_device.m22(), phase.x(), phase.y());
-    if (m_cache == nullptr || to_device.m11() != to_device.m22()) {
-        return path_tiles(area, cut, paintable.translated(-whole), tiling);
-    }
-    return m_cache->pieces(area, static_cast<int>(tiling), to_device.m11(), phase, [&] {
-        return path_tiles(area, cut, cut.mapRect(area.boundingRect()).toAlignedRect(), tiling);
-    });
-}
-
-void HandPaintEngine::set_target_to_content(const QPainterPath &path, const QPen &pen, const QBrush &brush) {
-    const QRectF bounds = path.controlPointRect().translated(m_origin);
-    const QSizeF device_size(m_target.device()->width(), m_target.device()->height());
-    // The brushes are laid where they were before the target moved.
-    QPen moved_pen = pen;
-    moved_pen.setBrush(moved(laid_on(pen.brush(), bounds, device_size), -m_origin));
-    m_target.translate(m_origin);
-    m_target.setPen(moved_pen);
-    m_target.setBrush(moved(laid_on(brush, bounds, device_size), -m_origin));
-}
-
-void HandPaintEngine::save_target_in_device_coordinates(int system_clip_margin) {
-    m_target.save();
+void HandPaintEngine::follow_device_painter(int system_clip_margin) {
     // What the device painter draws is as opaque as it says, as Qt draws it.
     m_target.setOpacity(m_target.opacity() * painter()->opacity());
     // Intersect keeps the clip the target painter already has.
@@ -743,17 +469,18 @@ void HandPaintEngine::save_target_in_device_coordinates(int system_clip_margin) 
         QRegion clip = grown(system_clip, system_clip_margin);
         const QWidget *widget = widget_of(painter()->device());
         if (system_clip_margin > 0 && widget != nullptr) {
-            clip &= drawable_rect(*widget, system_clip_margin).translated(widget_origin().toPoint());
+            clip &= drawable_rect(*widget, system_clip_margin)
+                        .translated(widget_origin(*painter(), m_transform).toPoint());
         }
         m_target.setClipRegion(clip, Qt::IntersectClip);
     }
-    if (m_clipping) {
-        m_target.setClipPath(m_clip, Qt::IntersectClip);
+    if (m_clip) {
+        m_target.setClipPath(*m_clip, Qt::IntersectClip);
     }
 }
 
-void HandPaintEngine::save_target_in_logical_coordinates() {
-    save_target_in_device_coordinates();
+void HandPaintEngine::follow_device_painter_in_logical_coordinates() {
+    follow_device_painter();
     // Combine keeps the transform the target painter already has.
     m_target.setTransform(m_transform, true);
 }
@@ -812,11 +539,13 @@ void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &tex
     if (is_out_of_sight(m_transform.mapRect(bounds), SmoothingReach)) {
         return;
     }
-    save_target_in_logical_coordinates();
-    m_target.setPen(m_theme.medium() == Medium::Chalk ? chalk_pen(m_pen, ChalkGrain::Text, content_origin()) : m_pen);
+    const SavedPainter saved(m_target);
+    follow_device_painter_in_logical_coordinates();
+    m_target.setPen(m_theme.medium() == Medium::Chalk
+                        ? chalk_pen(m_pen, ChalkGrain::Text, content_origin(*painter(), m_transform))
+                        : m_pen);
     m_target.setFont(font);
     m_target.drawText(position, text_item.text());
-    m_target.restore();
 }
 
 }  // namespace hpq

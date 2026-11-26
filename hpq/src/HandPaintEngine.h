@@ -1,6 +1,8 @@
 #pragma once
 
-#include <hpq/Export.h>
+#include "PathTiles.h"
+#include "StrokeTool.h"
+
 #include <hpq/FwdDecls.h>
 #include <hpq/PaintCache.h>
 
@@ -11,7 +13,7 @@
 #include <QPointF>
 #include <QTransform>
 
-#include <cstdint>
+#include <optional>
 #include <vector>
 
 class QPainter;
@@ -29,10 +31,13 @@ namespace hpq {
 // A shape, a text or an image that would land out of what the target can paint (its clip, and
 // the area that Qt repaints) is not drawn: a repaint of a part of a window draws only the
 // shapes close to that part.
-class HPQ_EXPORT HandPaintEngine : public QPaintEngine {
+// This file receives the primitives of Qt and draws each as a shape, its fill then its outline.
+// Where the content of a widget is on the device is in ContentOrigin.h, the tool that a pen
+// becomes with a medium in StrokeTool.h, and what is done on the target alone in Target.h.
+class HandPaintEngine : public QPaintEngine {
 public:
-    HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
-                    PaintCache *cache = nullptr);
+    // `cache` is null when the rough paths and the washes are made at each drawing.
+    HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine, PaintCache *cache);
 
     bool begin(QPaintDevice *device) override;
     bool end() override;
@@ -57,26 +62,14 @@ public:
 
 private:
     enum class ShapeKind { Open, Closed, Rectangle };
-    // What a stroke draws: the outline of a shape, or the lines of a hatched fill.
-    enum class StrokeKind { Outline, Hachure };
-    // The area that a tool marks along a stroke, filled instead of stroking it: the uneven
-    // one of chalk or of a brush, or the even one of a pen wider than a pixel of the target.
-    enum class Ribbon { None, Chalk, Brush, Pen };
-    // How a pen draws a stroke with the medium of the theme.
-    struct Tool {
-        Ribbon ribbon = Ribbon::None;
-        // The width, in pixels, of the line that the tool draws.
-        double width = 0.0;
-        // The width, in pixels, of the line where the tool presses the most.
-        double widest = 0.0;
-        // How the ribbon of a pen ends and turns.
-        Qt::PenCapStyle cap_style = Qt::FlatCap;
-        Qt::PenJoinStyle join_style = Qt::MiterJoin;
-        // How far past the area of the widget being rendered the tool may draw.
-        int system_clip_margin = 0;
-    };
     // The seed of the shape being drawn, made when it is first asked for.
     class ShapeSeed;
+
+    // Draws on the target, as the device painter would draw it on the device, what `draw` draws
+    // there: an image that covers `logical_bounds`, in the logical coordinates of the device
+    // painter. Draws nothing when the image cannot show.
+    template <typename Draw>
+    void draw_unchanged(const QRectF &logical_bounds, Draw draw);
 
     // Draws `shape` on the target: its fill when it is not open and the brush is set,
     // then its rough outline strokes when the pen is set.
@@ -92,7 +85,7 @@ private:
     // The paths of `kind` that `tool` draws for `shape`: the ones `make` returns, or the ones
     // it returned for the same shape and the same tool when the engine has a cache.
     template <typename Make>
-    std::vector<QPainterPath> kept_paths(PaintCache::PathKind kind, const QPainterPath &shape, const Tool &tool,
+    std::vector<QPainterPath> kept_paths(PaintCache::PathKind kind, const QPainterPath &shape, const StrokeTool &tool,
                                          Make make);
     // Lays `brush` on `area` as the medium of the theme does. `is_band` tells that the area
     // is a rectangle without outline, which watercolor paints in one stroke of a flat brush.
@@ -103,25 +96,18 @@ private:
     // Whether a shape filled with `brush` gets hachures: the theme asks for them, and they
     // would show on the paper without hiding a drawing that `brush` lets through.
     bool is_hatched(const QBrush &brush) const;
-    // How `pen` draws a stroke of `kind` with the medium of the theme.
-    Tool tool_of(const QPen &pen, StrokeKind kind) const;
     // How far past a shape, in device pixels, what is drawn for it can put ink: its outline
     // drawn by `outline_tool` when it has one, and its fill when it is `filled`.
-    double ink_reach(const Tool *outline_tool, bool filled) const;
+    double ink_reach(const std::optional<StrokeTool> &outline_tool, bool filled) const;
     // Whether nothing drawn within `margin` pixels of `bounds`, in device coordinates, can
     // show: the target cannot paint there. What is out of sight is not drawn at all.
     bool is_out_of_sight(const QRectF &bounds, double margin) const;
     // Whether what is drawn now is smoothed, as the AntialiasingMode of the theme and the device
     // painter say.
     bool is_smoothed() const;
-    // Whether the target strokes a line of `pen` in one pass: the line is at most one of its pixels wide.
-    bool is_thin(const QPen &pen) const;
-    // What `tool` marks along `stroke`: its ribbon, or the stroke itself when it has none.
-    // `stroke_seed` gives a chalk stroke its pressure and its gaps, and a brush stroke its pressure.
-    QPainterPath marked(const QPainterPath &stroke, const Tool &tool, std::uint32_t stroke_seed) const;
     // Draws on the target what `tool` marked along a stroke, with `pen` and the medium of the theme.
     // A watercolor stroke has a smooth edge, and only darkens what is under it.
-    void draw_marked(const QPainterPath &marked_stroke, const QPen &pen, const Tool &tool);
+    void draw_marked(const QPainterPath &marked_stroke, const QPen &pen, const StrokeTool &tool);
     // `brush` as the medium of the theme lays it on an area: unchanged by a pencil; with chalk,
     // rubbed on the grain, or the slate itself when it has the color of the slate; with
     // watercolor, the grainy paper when it has the color of the paper.
@@ -134,18 +120,6 @@ private:
     // `pen`, drawing through the grain of the slate instead of its plain color. The grain is
     // moved to `origin`, the origin of the content: it scrolls with the content.
     QPen chalk_pen(QPen pen, ChalkGrain grain, const QPointF &origin) const;
-    // Where the origin of the widget being painted is on the device; the origin of the device
-    // when the painter does not paint a widget.
-    QPointF widget_origin() const;
-    // Where the origin of the content of the widget being painted is on the device: the origin
-    // of the widget, moved back by how far it scrolled its content when it is the viewport of a
-    // scroll area.
-    QPointF content_origin() const;
-    // The origin of `logical_line`: the one of the content, but along a horizontal or vertical
-    // line that crosses the whole widget. A view draws the lines of its grid across what it
-    // shows, not across its whole content: placed along its length in the widget, such a line
-    // does not change when the view scrolls.
-    QPointF line_origin(const QPainterPath &logical_line) const;
     double target_pixel_ratio() const;
     // Draws `path` on the target with `pen` and `brush`, leaving the target state unchanged.
     // It is smoothed when is_smoothed(). Without a pen, a smoothed `path` is an area of `tiling`,
@@ -157,26 +131,15 @@ private:
     // edge unless the theme never smooths, and as a glaze that darkens what is under it, when
     // the target can do that.
     void glaze_on_target(const QPainterPath &area, const QBrush &brush, int system_clip_margin);
-    // Fills `area` with `brush` and the state of the target, which it moves to m_origin: on the
-    // raster engine, which smooths a large path slowly, in the pieces of `tiling`.
-    void fill_in_pieces(const QPainterPath &area, const QBrush &brush, Tiling tiling);
-    // The pieces of `area` for a target that maps it to the device with `to_device`: those
-    // that reach the `paintable` pixels, and maybe others. With a cache, they are kept there.
-    std::vector<QPainterPath> pieces_of(const QPainterPath &area, const QTransform &to_device, const QRect &paintable,
-                                        Tiling tiling);
-    // Moves the target to m_origin, and gives it `pen` and `brush`, that are laid on `path`:
-    // the target then draws `path`, in the coordinates of the content, as it would draw `path`
-    // moved to m_origin.
-    void set_target_to_content(const QPainterPath &path, const QPen &pen, const QBrush &brush);
-    // Saves the target state, then intersects the target clip with the system clip and the
-    // device painter's clip.
-    // What is drawn next is in device coordinates; restore the target when done.
+    // Gives the target, saved by the caller, the opacity of the device painter, and intersects
+    // its clip with the system clip and the clip of the device painter. What is drawn next is
+    // in device coordinates.
     // The system clip (the area of the widget being rendered) is grown by `system_clip_margin`,
     // but not past the viewport of a scroll area that shows the widget.
-    void save_target_in_device_coordinates(int system_clip_margin = 0);
-    // Like save_target_in_device_coordinates, then composes the device painter's world transform,
-    // so that what is drawn next is in the device painter's logical coordinates.
-    void save_target_in_logical_coordinates();
+    void follow_device_painter(int system_clip_margin = 0);
+    // Like follow_device_painter, then composes the world transform of the device painter, so
+    // that what is drawn next is in the logical coordinates of the device painter.
+    void follow_device_painter_in_logical_coordinates();
 
     QPainter &m_target;
     const Theme &m_theme;
@@ -188,11 +151,10 @@ private:
     // The device painter's world transform: shapes are mapped by it to device coordinates
     // before the geometry engine deforms them, so that max_offset stays in device pixels.
     QTransform m_transform;
-    // The content_origin() of the shape being drawn.
+    // Where the content of the shape being drawn starts on the device.
     QPointF m_origin;
-    // The device painter's clip, in device coordinates; used only when m_clipping is true.
-    QPainterPath m_clip;
-    bool m_clipping = false;
+    // The device painter's clip, in device coordinates; none when it does not clip.
+    std::optional<QPainterPath> m_clip;
 };
 
 }  // namespace hpq

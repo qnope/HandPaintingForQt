@@ -1,7 +1,7 @@
 #include "WatercolorWash.h"
 
 #include "GrainNoise.h"
-#include "StrokeRibbon.h"
+#include "SmoothCurve.h"
 #include "WatercolorTexture.h"
 
 #include <hpq/PaintCache.h>

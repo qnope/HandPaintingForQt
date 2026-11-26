@@ -38,6 +38,12 @@ All notable changes to Hand Painting for Qt are written here. The format follows
   that the raster engine smooths quickly, and the cache keeps those pieces, up to twice 16 MB.
   `AntialiasingMode::OnlyWhenAsked` smooths only where the painter asks for it, as before.
 
+### Removed
+
+- `hpq::HandPaintEngine` and `<hpq/HandPaintEngine.h>` are no longer public: the paint engine
+  is a private part of `hpq::HandPaintDevice`, which is what an application gives to a
+  `QPainter` to hand-paint what it draws. The drawing is the same.
+
 ### Fixed
 
 - The opacity of a `QPainter` (`setOpacity`) reaches the hand-painted drawing: a shape, a

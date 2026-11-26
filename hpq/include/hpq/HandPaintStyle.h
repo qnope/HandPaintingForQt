@@ -6,14 +6,10 @@
 
 #include <QProxyStyle>
 
-class QLabel;
-class QStyleOptionComboBox;
-class QStyleOptionSlider;
-
 namespace hpq {
 
 // Fusion, with the parts Fusion draws as images drawn with flat vector primitives instead,
-// so that a HandPaintEngine can make them rough.
+// so that a HandPaintDevice can make them rough.
 class HPQ_EXPORT HandPaintStyle : public QProxyStyle {
     Q_OBJECT
 
@@ -46,14 +42,6 @@ public:
                   QStyleHintReturn *return_data = nullptr) const override;
 
 private:
-    int highlight_overflow() const;
-    void draw_label_marker(const QLabel &label, QPainter &painter) const;
-    void draw_slider(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
-    void draw_combo_box(const QStyleOptionComboBox &option, QPainter &painter, const QWidget *widget) const;
-    void draw_scroll_bar(const QStyleOptionSlider &option, QPainter &painter, const QWidget *widget) const;
-    void draw_scroll_bar_line_button(const QStyleOptionSlider &option, SubControl button, PrimitiveElement arrow,
-                                     QPainter &painter, const QWidget *widget) const;
-
     Theme m_theme;
 };
 

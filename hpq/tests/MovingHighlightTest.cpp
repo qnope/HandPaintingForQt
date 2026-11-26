@@ -12,7 +12,9 @@
 #include <QComboBox>
 #include <QImage>
 #include <QPixmap>
+#include <QPointer>
 #include <QScreen>
+#include <QStyle>
 #include <QStyleOptionMenuItem>
 #include <QWidget>
 
@@ -126,13 +128,16 @@ TEST(HighlightOverflow, ApplyThemeGivesTheWidgetAStyleOfItsTheme) {
 TEST(HighlightOverflow, AnotherThemeReplacesTheStyleAndRemoveThemeDeletesIt) {
     QWidget window;
     hpq::apply_theme(window, hpq::sketch_theme(), rough_geometry_engine());
+    const QPointer<QStyle> sketch_style = window.style();
     hpq::apply_theme(window, hpq::velleda_theme(), rough_geometry_engine());
+    const QPointer<QStyle> velleda_style = window.style();
 
-    EXPECT_EQ(window.findChildren<hpq::HandPaintStyle *>().size(), 1);
+    EXPECT_TRUE(sketch_style.isNull());
+    ASSERT_NE(qobject_cast<hpq::HandPaintStyle *>(velleda_style.data()), nullptr);
 
     hpq::remove_theme(window);
 
-    EXPECT_TRUE(window.findChildren<hpq::HandPaintStyle *>().isEmpty());
+    EXPECT_TRUE(velleda_style.isNull());
     EXPECT_EQ(qobject_cast<hpq::HandPaintStyle *>(window.style()), nullptr);
 }
 
