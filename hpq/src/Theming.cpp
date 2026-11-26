@@ -13,33 +13,13 @@
 #include <QVariant>
 #include <QWidget>
 
+#include <memory>
 #include <optional>
 #include <utility>
 #include <vector>
 
 namespace hpq {
 namespace {
-
-// The HandPaintStyles that `window` owns: the one of its theme, if it has one.
-std::vector<HandPaintStyle *> owned_styles(QWidget &window) {
-    const QList<HandPaintStyle *> styles = window.findChildren<HandPaintStyle *>(QString(), Qt::FindDirectChildrenOnly);
-    return std::vector<HandPaintStyle *>(styles.begin(), styles.end());
-}
-
-// Gives `window` and its descendants a HandPaintStyle of `theme`, owned by `window`. The style
-// of a theme given before is deleted once no widget uses it.
-void set_hand_paint_style(QWidget &window, const Theme &theme) {
-    const std::vector<HandPaintStyle *> previous_styles = owned_styles(window);
-    auto *style = new HandPaintStyle(theme);
-    style->setParent(&window);
-    window.setStyle(style);
-    for (QWidget *descendant : window.findChildren<QWidget *>()) {
-        descendant->setStyle(style);
-    }
-    for (HandPaintStyle *previous_style : previous_styles) {
-        delete previous_style;
-    }
-}
 
 // Gives the labels of `window` the marker HandPaintStyle lays under their text, or takes it
 // away from them when `marker` is Qt::NoBrush.
@@ -62,8 +42,9 @@ std::vector<QAbstractItemView *> combo_box_lists(QWidget &window) {
     return lists;
 }
 
-// The palette, font and styles a window had before its first apply_theme, kept as a child
-// of the window. An empty optional or a null style means the value was not set on the widget.
+// What apply_theme keeps for a window, as a child of the window: the palette, font and styles
+// it had before its first apply_theme, and the HandPaintStyle of its theme. An empty optional
+// or a null style means the value was not set on the widget.
 // It is a type of its own for the meta-object system: the window finds it again by its type.
 class SavedLook : public QObject {
     Q_OBJECT
@@ -86,6 +67,19 @@ public:
         }
     }
 
+    // Gives `window` and its descendants a HandPaintStyle of `theme`. The style of a theme given
+    // before is destroyed once no widget uses it.
+    void set_hand_paint_style(QWidget &window, const Theme &theme) {
+        auto style = std::make_unique<HandPaintStyle>(theme);
+        window.setStyle(style.get());
+        for (QWidget *descendant : window.findChildren<QWidget *>()) {
+            descendant->setStyle(style.get());
+        }
+        m_hand_paint_style = std::move(style);
+    }
+
+    // Gives back to `window` what it had before its first apply_theme. No widget uses the
+    // HandPaintStyle then: it is destroyed with this object.
     void restore(QWidget &window) const {
         window.setPalette(m_palette.value_or(QPalette()));
         window.setFont(m_font.value_or(QFont()));
@@ -123,10 +117,18 @@ private:
     std::optional<QFont> m_font;
     std::vector<WidgetStyle> m_styles;
     std::vector<ListPalette> m_list_palettes;
+    std::unique_ptr<HandPaintStyle> m_hand_paint_style;
 };
 
+// The look kept for `window`; null when it was never themed, or not since its last remove_theme.
 SavedLook *find_saved_look(QWidget &window) {
     return window.findChild<SavedLook *>(QString(), Qt::FindDirectChildrenOnly);
+}
+
+// The look kept for `window`: made now, from the look that the window has, when there is none.
+SavedLook &saved_look_of(QWidget &window) {
+    SavedLook *saved_look = find_saved_look(window);
+    return saved_look != nullptr ? *saved_look : *new SavedLook(window);
 }
 
 }  // namespace
@@ -135,12 +137,10 @@ void apply_theme(QWidget &window, const Theme &theme,
                  std::shared_ptr<const GeometryEngine> geometry_engine) {
     // Before anything else: asking for the lists makes them descendants of the window.
     const std::vector<QAbstractItemView *> lists = combo_box_lists(window);
-    if (!find_saved_look(window)) {
-        new SavedLook(window);
-    }
+    SavedLook &saved_look = saved_look_of(window);
     window.setPalette(theme.palette());
     window.setFont(theme.font());
-    set_hand_paint_style(window, theme);
+    saved_look.set_hand_paint_style(window, theme);
     set_label_markers(window, theme.label_marker());
     for (QAbstractItemView *list : lists) {
         // The list of a combo box is a window of its own: the effect of `window` does not draw
@@ -163,9 +163,6 @@ void remove_theme(QWidget &window) {
     set_label_markers(window, Qt::NoBrush);
     saved_look->restore(window);
     delete saved_look;
-    for (HandPaintStyle *style : owned_styles(window)) {
-        delete style;
-    }
 }
 
 }  // namespace hpq

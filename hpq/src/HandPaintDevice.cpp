@@ -1,20 +1,21 @@
 #include <hpq/HandPaintDevice.h>
 
-#include <QPainter>
+#include "HandPaintEngine.h"
 
-// Defined and exported by QtGui (friend of QPaintDevice): reads a metric of any device.
-Q_GUI_EXPORT int qt_paint_device_metric(const QPaintDevice *device, QPaintDevice::PaintDeviceMetric metric);
+#include <QPainter>
 
 namespace hpq {
 
 HandPaintDevice::HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
                                  PaintCache *cache)
-    : m_target(target), m_engine(target, theme, geometry_engine, cache) {}
+    : m_target(target), m_engine(std::make_unique<HandPaintEngine>(target, theme, geometry_engine, cache)) {}
 
-QPaintEngine *HandPaintDevice::paintEngine() const { return &m_engine; }
+HandPaintDevice::~HandPaintDevice() = default;
+
+QPaintEngine *HandPaintDevice::paintEngine() const { return m_engine.get(); }
 
 int HandPaintDevice::metric(PaintDeviceMetric metric) const {
-    const QPaintDevice *target_device = m_target.device();
+    const QPaintDevice &target_device = *m_target.device();
     switch (metric) {
     // The target painter already scales logical coordinates to device pixels: a device pixel
     // ratio above 1 here would make the painter of this device scale them a second time.
@@ -24,18 +25,30 @@ int HandPaintDevice::metric(PaintDeviceMetric metric) const {
         return 1;
     case PdmDevicePixelRatioScaled:
         return static_cast<int>(devicePixelRatioFScale());
-#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)  // The encoded ratio metrics appeared in Qt 6.8.
-    case PdmDevicePixelRatioF_EncodedA:
-    case PdmDevicePixelRatioF_EncodedB:
-        return QPaintDevice::metric(metric);
-#endif
     // So the size is in the logical coordinates of the target painter.
     case PdmWidth:
-        return qRound(qt_paint_device_metric(target_device, metric) / target_device->devicePixelRatio());
+        return qRound(target_device.width() / target_device.devicePixelRatio());
     case PdmHeight:
-        return qRound(qt_paint_device_metric(target_device, metric) / target_device->devicePixelRatio());
+        return qRound(target_device.height() / target_device.devicePixelRatio());
+    case PdmWidthMM:
+        return target_device.widthMM();
+    case PdmHeightMM:
+        return target_device.heightMM();
+    case PdmNumColors:
+        return target_device.colorCount();
+    case PdmDepth:
+        return target_device.depth();
+    case PdmDpiX:
+        return target_device.logicalDpiX();
+    case PdmDpiY:
+        return target_device.logicalDpiY();
+    case PdmPhysicalDpiX:
+        return target_device.physicalDpiX();
+    case PdmPhysicalDpiY:
+        return target_device.physicalDpiY();
+    // The encoded ratio metrics of Qt 6.8, which follow from the ratio above.
     default:
-        return qt_paint_device_metric(target_device, metric);
+        return QPaintDevice::metric(metric);
     }
 }
 

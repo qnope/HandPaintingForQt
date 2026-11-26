@@ -1,21 +1,36 @@
 #include "TileBrush.h"
 
-#include <QHash>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QPainter>
-#include <QString>
 #include <QTransform>
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <map>
+#include <tuple>
 
 namespace hpq {
 
 namespace {
 
 // The brushes of this many colors are kept; a window uses a handful of them.
-constexpr int MaxCachedBrushes = 64;
+constexpr std::size_t MaxCachedBrushes = 64;
+
+// What a kept brush was made for: its kind, its color and the device pixel ratio.
+using BrushKey = std::tuple<TileKind, QRgb, double>;
+
+// The brushes made so far, and the mutex that guards them.
+struct KeptBrushes {
+    QMutex mutex;
+    std::map<BrushKey, QBrush> brushes;
+};
+
+KeptBrushes &kept_brushes() {
+    static KeptBrushes kept;
+    return kept;
+}
 
 }  // namespace
 
@@ -36,20 +51,14 @@ int device_size(int logical_size, double device_pixel_ratio) {
     return std::max(1, static_cast<int>(std::lround(logical_size * device_pixel_ratio)));
 }
 
-QBrush tile_brush(TileKind kind, const QColor &color, double device_pixel_ratio,
-                  const std::function<QImage()> &make_tile) {
-    static QMutex mutex;
-    static QHash<QString, QBrush> brushes;
-    const QString key = QStringLiteral("%1/%2/%3").arg(static_cast<int>(kind)).arg(color.rgba()).arg(device_pixel_ratio);
-    const QMutexLocker locker(&mutex);
-    const auto found = brushes.constFind(key);
-    if (found != brushes.constEnd()) {
-        return *found;
-    }
-    if (brushes.size() >= MaxCachedBrushes) {
-        brushes.clear();
-    }
-    const QImage tile = make_tile();
+std::optional<QBrush> kept_tile_brush(TileKind kind, const QColor &color, double device_pixel_ratio) {
+    KeptBrushes &kept = kept_brushes();
+    const QMutexLocker locker(&kept.mutex);
+    const auto found = kept.brushes.find(BrushKey{kind, color.rgba(), device_pixel_ratio});
+    return found != kept.brushes.end() ? std::optional<QBrush>(found->second) : std::nullopt;
+}
+
+QBrush keep_tile_brush(TileKind kind, const QColor &color, double device_pixel_ratio, const QImage &tile) {
     const int size = device_size(tile.width(), device_pixel_ratio);
     QBrush brush(scaled_tile(tile, size));
     // The image has its own colors: the color of the brush only tells what it paints.
@@ -58,7 +67,14 @@ QBrush tile_brush(TileKind kind, const QColor &color, double device_pixel_ratio,
     // pixel of the device.
     const double scale = static_cast<double>(tile.width()) / size;
     brush.setTransform(QTransform::fromScale(scale, scale));
-    return *brushes.insert(key, brush);
+
+    KeptBrushes &kept = kept_brushes();
+    const QMutexLocker locker(&kept.mutex);
+    if (kept.brushes.size() >= MaxCachedBrushes) {
+        kept.brushes.clear();
+    }
+    kept.brushes.insert_or_assign(BrushKey{kind, color.rgba(), device_pixel_ratio}, brush);
+    return brush;
 }
 
 }  // namespace hpq
