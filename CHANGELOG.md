@@ -7,10 +7,12 @@ All notable changes to Hand Painting for Qt are written here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-26
+
 The API is simpler, and not compatible with 0.1: a theme is a struct, the geometry is four
 functions and the headers are 11 instead of 27. To move an application from 0.1:
 
-| 0.1 | Now |
+| 0.1 | 0.2 |
 | --- | --- |
 | `apply_theme(window, theme, geometry_engine)` | `apply_theme(window, theme)` |
 | `WindowTheming(theme, geometry_engine)` | `WindowTheming(theme)` |
@@ -167,5 +169,6 @@ The first release.
 - `Examples/Integration`: a stand-alone application that uses hpq in each of these three ways,
   built and run by the CI on every platform.
 
-[Unreleased]: https://github.com/qnope/HandPaintingForQt/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/qnope/HandPaintingForQt/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/qnope/HandPaintingForQt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/qnope/HandPaintingForQt/releases/tag/v0.1.0

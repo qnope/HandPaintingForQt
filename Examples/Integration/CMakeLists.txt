@@ -26,15 +26,15 @@ set_property(CACHE GALLERY_HPQ_SOURCE PROPERTY STRINGS find_package FetchContent
 
 if(GALLERY_HPQ_SOURCE STREQUAL "find_package")
   # An installed hpq: cmake --install <hpq build> --prefix <hpq prefix>, then <hpq prefix> in
-  # CMAKE_PREFIX_PATH. 0.1 accepts any 0.1.x.
-  find_package(HandPaintingForQt 0.1 REQUIRED)
+  # CMAKE_PREFIX_PATH. 0.2 accepts any 0.2.x.
+  find_package(HandPaintingForQt 0.2 REQUIRED)
 elseif(GALLERY_HPQ_SOURCE STREQUAL "FetchContent")
   # Downloads the release and builds hpq with the application. Only the library is built: its
   # tests and examples are off in a subproject.
   include(FetchContent)
   FetchContent_Declare(HandPaintingForQt
     GIT_REPOSITORY https://github.com/qnope/HandPaintingForQt.git
-    GIT_TAG v0.1.0
+    GIT_TAG v0.2.0
     GIT_SHALLOW TRUE)
   FetchContent_MakeAvailable(HandPaintingForQt)
 elseif(GALLERY_HPQ_SOURCE STREQUAL "add_subdirectory")
