@@ -1,16 +1,21 @@
+#include "ExactTheme.h"
 #include "RecordingPaintDevice.h"
 
 #include <hpq/ChinaInkTheme.h>
-#include <hpq/GeometryEngine.h>
 #include <hpq/HandPaintDevice.h>
+#include <hpq/RoughGeometryEngine.h>
 
 #include <gtest/gtest.h>
 
 #include <QPainter>
 
+#include <cstdint>
 #include <functional>
 
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -23,43 +28,14 @@ const QRectF Rectangle(40, 40, 100, 60);
 // A brush line is wider than its pen, and wider still where the hand presses: no more than this.
 constexpr double WidestBrushLine = 8.0;
 
-// Geometry engine that returns the shape unchanged.
-class IdentityGeometryEngine : public hpq::GeometryEngine {
-public:
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &,
-                                      std::uint32_t) const override {
-        return {shape};
-    }
-
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-        return shape;
-    }
-
-    QPainterPath hachure(const QPainterPath &, const hpq::RoughOptions &, std::uint32_t) const override {
-        return QPainterPath();
-    }
-};
-
-// Geometry engine that hatches every shape with its two diagonals.
-class DiagonalHachureEngine : public IdentityGeometryEngine {
-public:
-    QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-        const QRectF bounds = shape.boundingRect();
-        QPainterPath lines(bounds.topLeft());
-        lines.lineTo(bounds.bottomRight());
-        lines.moveTo(bounds.topRight());
-        lines.lineTo(bounds.bottomLeft());
-        return lines;
-    }
-};
-
-// Draws with `draw` on a HandPaintDevice of `theme` and `geometry_engine`, in its own painting
-// session, and returns the calls the target received.
-std::vector<DrawCall> calls_of(const hpq::Theme &theme, const hpq::GeometryEngine &geometry_engine,
-                               const std::function<void(QPainter &)> &draw) {
+// Draws with `draw` on a HandPaintDevice of `theme`, without the wobble of the hand, in its own
+// painting session, and returns the calls the target received.
+std::vector<DrawCall> calls_of(const hpq::Theme &theme, const std::function<void(QPainter &)> &draw) {
+    const hpq::Theme exact_theme = hpq::test::exact(theme);
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     RecordingPaintDevice target;
     QPainter target_painter(&target);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, exact_theme, geometry_engine);
     QPainter painter(&device);
     draw(painter);
     painter.end();
@@ -67,7 +43,7 @@ std::vector<DrawCall> calls_of(const hpq::Theme &theme, const hpq::GeometryEngin
 }
 
 std::vector<DrawCall> ink_calls(const std::function<void(QPainter &)> &draw) {
-    return calls_of(hpq::china_ink_theme(), IdentityGeometryEngine(), draw);
+    return calls_of(hpq::china_ink_theme(), draw);
 }
 
 void draw_line(QPainter &painter) {
@@ -192,7 +168,7 @@ TEST(InkMedium, TextKeepsThePlainPen) {
 TEST(InkMedium, HatchedFillIsThePaperUnderBrushLines) {
     const hpq::Theme theme = hpq::china_ink_theme(hpq::FillStyle::Hachure);
 
-    const std::vector<DrawCall> calls = calls_of(theme, DiagonalHachureEngine(), fill_rectangle);
+    const std::vector<DrawCall> calls = calls_of(theme, fill_rectangle);
 
     ASSERT_EQ(calls.size(), 2u);
     // The paper under the hachures.
@@ -208,23 +184,20 @@ TEST(InkMedium, HatchedFillIsThePaperUnderBrushLines) {
 // The tip of the brush draws a hachure: its line is not wider than the pen of a hachure, one
 // pixel wide, pressed at its heaviest.
 TEST(InkMedium, HachureIsDrawnWithTheTipOfTheBrush) {
-    // Hatches every shape with one horizontal line through its center.
-    class HorizontalHachureEngine : public IdentityGeometryEngine {
-    public:
-        QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-            const QRectF bounds = shape.boundingRect();
-            QPainterPath line(QPointF(bounds.left(), bounds.center().y()));
-            line.lineTo(QPointF(bounds.right(), bounds.center().y()));
-            return line;
-        }
-    };
     constexpr double WidestHachure = 2.5;
-    const hpq::Theme theme = hpq::china_ink_theme(hpq::FillStyle::Hachure);
+    // Horizontal hachures, 10 pixels apart, on a grid that starts at the origin: one of them
+    // goes through the middle of the band below.
+    hpq::RoughOptions options = hpq::china_ink_theme().rough_options();
+    options.hachure_angle = 0.0;
+    options.hachure_gap = 10.0;
+    const hpq::Theme theme = hpq::test::with_rough_options(hpq::china_ink_theme(hpq::FillStyle::Hachure), options);
+    QPainterPath band;
+    band.addRect(QRectF(0, 40, RecordingPaintDevice::Size, 10));
 
-    const std::vector<DrawCall> calls = calls_of(theme, HorizontalHachureEngine(), fill_rectangle);
+    const std::vector<DrawCall> calls = calls_of(theme, fill_rectangle);
 
     ASSERT_EQ(calls.size(), 2u);
-    const double height = calls[1].path.boundingRect().height();
+    const double height = calls[1].path.intersected(band).boundingRect().height();
     EXPECT_GT(height, 0.0);
     EXPECT_LT(height, WidestHachure);
 }

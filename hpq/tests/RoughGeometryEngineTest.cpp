@@ -161,6 +161,25 @@ TEST(RoughGeometryEngine, ZeroRoughnessKeepsTheLineGeometry)
     }
 }
 
+// A hand that does not wobble draws the shape itself: its curves are not cut into lines.
+TEST(RoughGeometryEngine, WithoutWobbleThePathsAreTheShapeItself)
+{
+    const hpq::RoughGeometryEngine engine(BaseSeed);
+    QPainterPath shape;
+    shape.addEllipse(QRectF(10, 20, 80, 40));
+    hpq::RoughOptions without_roughness = rough_options(0.0);
+    without_roughness.stroke_count = 3;
+    hpq::RoughOptions without_offset = rough_options(1.0);
+    without_offset.max_offset = 0.0;
+
+    for (const hpq::RoughOptions &options : {without_roughness, without_offset}) {
+        const std::vector<QPainterPath> strokes(static_cast<std::size_t>(options.stroke_count), shape);
+        EXPECT_EQ(engine.outline(shape, options, 42), strokes);
+        EXPECT_EQ(engine.frame_outline(shape, options, 42), strokes);
+        EXPECT_EQ(engine.fill_area(shape, options, 42), shape);
+    }
+}
+
 namespace {
 
 struct NamedShape {

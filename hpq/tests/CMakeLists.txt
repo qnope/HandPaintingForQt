@@ -10,6 +10,9 @@ hpq_add_executable(HpqTests
   ComboBoxListThemeTest.cpp
   ComboBoxTest.cpp
   DisabledButtonTest.cpp
+  EffectCache.h
+  ExactTheme.cpp
+  ExactTheme.h
   GridLineColorTest.cpp
   GroupBoxFrameTest.cpp
   HandPaintCacheTest.cpp

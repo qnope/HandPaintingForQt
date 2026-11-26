@@ -248,6 +248,12 @@ double wobble_amplitude(const RoughOptions &options)
     return std::min(options.roughness * options.max_offset, options.max_offset);
 }
 
+// The strokes of a hand that does not wobble: `shape` itself, as many times as it is drawn.
+std::vector<QPainterPath> exact_strokes(const QPainterPath &shape, const RoughOptions &options)
+{
+    return std::vector<QPainterPath>(static_cast<std::size_t>(std::max(0, options.stroke_count)), shape);
+}
+
 // What `boundary`, a rough stroke around `shape` whose subpaths are `polygons`, covers with
 // `shape`. Uniting two paths is slow. The rough boundary of a rectangle higher and wider than
 // twice the wobble never crosses itself and goes around the rectangle the same way: a
@@ -330,8 +336,10 @@ RoughGeometryEngine::RoughGeometryEngine(std::uint32_t base_seed) : m_base_seed(
 std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape, const RoughOptions &options,
                                                        std::uint32_t seed) const
 {
-    std::mt19937 generator = shape_generator(m_base_seed, seed);
     const double amplitude = wobble_amplitude(options);
+    if (amplitude == 0.0)
+        return exact_strokes(shape, options);
+    std::mt19937 generator = shape_generator(m_base_seed, seed);
     const QList<QPolygonF> polygons = flattened_subpaths(shape);
 
     std::vector<QPainterPath> strokes;
@@ -349,11 +357,13 @@ std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape
 std::vector<QPainterPath> RoughGeometryEngine::frame_outline(const QPainterPath &frame, const RoughOptions &options,
                                                              std::uint32_t seed) const
 {
+    const double amplitude = wobble_amplitude(options);
+    if (amplitude == 0.0)
+        return exact_strokes(frame, options);
     // The outline of this engine, even when a derived engine draws another one: the way of
     // its own to unite a rectangle relies on how this one wobbles.
     std::vector<QPainterPath> strokes = RoughGeometryEngine::outline(frame, options, seed);
     const QList<QPolygonF> polygons = flattened_subpaths(frame);
-    const double amplitude = wobble_amplitude(options);
     for (QPainterPath &stroke : strokes) {
         stroke.setFillRule(frame.fillRule());
         stroke = united_with_shape(stroke, frame, polygons, amplitude);
@@ -364,8 +374,10 @@ std::vector<QPainterPath> RoughGeometryEngine::frame_outline(const QPainterPath 
 QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const RoughOptions &options,
                                             std::uint32_t seed) const
 {
-    std::mt19937 generator = shape_generator(m_base_seed, seed);
     const double amplitude = wobble_amplitude(options);
+    if (amplitude == 0.0)
+        return shape;
+    std::mt19937 generator = shape_generator(m_base_seed, seed);
 
     const QList<QPolygonF> polygons = flattened_subpaths(shape);
     QPainterPath area;

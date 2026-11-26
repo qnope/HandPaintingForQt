@@ -24,4 +24,6 @@ bench/run.sh build/release/bench/HpqRepaintBench > results.csv
   `--screenshot` or `--backing-store` save it to compare two versions pixel by pixel.
 
 Each line gives the median, the 10th and 90th percentiles and the minimum of the repaint
-time, then the time spent in the geometry engine during one repaint, in milliseconds.
+time, in milliseconds, then how many times the theme had something made during one repaint:
+the paths of a shape, the pieces of an area or a wash that its cache did not keep
+(`PaintCache::made_count`). A profiler tells where the time goes, the geometry included.

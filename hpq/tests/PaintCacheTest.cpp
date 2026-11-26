@@ -211,6 +211,27 @@ TEST(PaintCacheTest, ItCountsWhatItKeepsAndForgetsItWhenCleared) {
     EXPECT_EQ(maker.call_count(), 2);
 }
 
+// What it has made tells whether a drawing found its shapes in the cache.
+TEST(PaintCacheTest, ItCountsWhatItHadMade) {
+    PaintCache cache;
+    EXPECT_EQ(cache.made_count(), 0u);
+    PathMaker maker({long_path()});
+
+    maker.get(cache, PaintCache::PathKind::Outline, rectangle_at(10.0));
+    EXPECT_EQ(cache.made_count(), 1u);
+    maker.get(cache, PaintCache::PathKind::Outline, rectangle_at(10.0));
+    EXPECT_EQ(cache.made_count(), 1u);
+
+    cache.pieces(rectangle_at(10.0), Tool, PixelRatio, QPointF(), [] { return std::vector<QPainterPath>(); });
+    cache.wash(rectangle_at(10.0), Pigment, WashKind, PixelRatio, [] { return QImage(); });
+    EXPECT_EQ(cache.made_count(), 3u);
+
+    // Cleared, it has forgotten what it kept, not what it had made.
+    cache.clear();
+    maker.get(cache, PaintCache::PathKind::Outline, rectangle_at(10.0));
+    EXPECT_EQ(cache.made_count(), 4u);
+}
+
 TEST(PaintCacheTest, ItStaysSmallWhenShapesNeverComeBack) {
     PaintCache cache;
     PathMaker maker({long_path()});

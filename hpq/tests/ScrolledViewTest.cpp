@@ -1,4 +1,5 @@
-#include <hpq/GeometryEngine.h>
+#include "EffectCache.h"
+
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/Theming.h>
@@ -18,9 +19,9 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <utility>
 #include <vector>
 
 namespace {
@@ -34,40 +35,10 @@ constexpr int ScrollStep = 23;
 // The shapes at the edges of a viewport are cut there: the compared part keeps away from them.
 constexpr int EdgeMargin = 8;
 
-// A rough geometry engine that counts the shapes it was asked to make rough.
-class CountingGeometryEngine : public hpq::GeometryEngine {
-public:
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &options,
-                                      std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.outline(shape, options, seed);
-    }
-
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &options,
-                           std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.fill_area(shape, options, seed);
-    }
-
-    QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &options,
-                         std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.hachure(shape, options, seed);
-    }
-
-    int call_count() const { return m_call_count; }
-
-private:
-    hpq::RoughGeometryEngine m_engine{BaseSeed};
-    mutable int m_call_count = 0;
-};
-
 // A window holding a table, themed with hachures, so that its rows are rough fills.
 class ThemedTable {
 public:
-    explicit ThemedTable(std::shared_ptr<const hpq::GeometryEngine> geometry_engine =
-                             std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed))
-        : m_table(new QTableView(&m_window)) {
+    ThemedTable() : m_table(new QTableView(&m_window)) {
         auto *layout = new QVBoxLayout(&m_window);
         layout->addWidget(m_table);
         auto *model = new QStandardItemModel(RowCount, ColumnCount, m_table);
@@ -80,12 +51,16 @@ public:
         m_table->setAlternatingRowColors(true);
         m_table->selectRow(3);
         m_window.resize(320, 260);
-        hpq::apply_theme(m_window, hpq::sketch_theme(hpq::FillStyle::Hachure), std::move(geometry_engine));
+        hpq::apply_theme(m_window, hpq::sketch_theme(hpq::FillStyle::Hachure),
+                         std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
         m_window.show();
         QCoreApplication::processEvents();
     }
 
     QTableView &table() { return *m_table; }
+
+    // How many times the theme had a shape of the window made rough, or cut, since it was applied.
+    std::size_t made_count() const { return hpq::test::made_count_of(m_window); }
 
     // Scrolls the table by `offset` pixels, or by `offset` rows and columns when it scrolls
     // by items.
@@ -135,35 +110,34 @@ TEST(ScrolledViewTest, ScrollingAwayAndBackGivesTheSameImage) {
 // The shapes of a view are kept by their place in its content: the ones that come back when
 // it scrolls back are drawn again as they were, without being made rough again.
 TEST(ScrolledViewTest, ScrollingBackMakesNoShapeAgain) {
-    const auto engine = std::make_shared<const CountingGeometryEngine>();
-    ThemedTable themed(engine);
+    ThemedTable themed;
     themed.table().setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     themed.table().setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     const QImage before = themed.window_image();
-    ASSERT_GT(engine->call_count(), 0);
+    ASSERT_GT(themed.made_count(), 0u);
 
     themed.scroll_by(QPoint(ScrollStep, 3 * ScrollStep));
     const QImage away = themed.window_image();
     themed.scroll_by(-QPoint(ScrollStep, 3 * ScrollStep));
-    const int calls_before_coming_back = engine->call_count();
+    const std::size_t made_before_coming_back = themed.made_count();
     const QImage back = themed.window_image();
 
     EXPECT_NE(before, away);
     EXPECT_EQ(before, back);
-    EXPECT_EQ(engine->call_count(), calls_before_coming_back);
+    EXPECT_EQ(themed.made_count(), made_before_coming_back);
 }
 
 // A window that is drawn again as it is makes no shape again.
 TEST(ScrolledViewTest, DrawingAgainMakesNoShapeAgain) {
-    const auto engine = std::make_shared<const CountingGeometryEngine>();
-    ThemedTable themed(engine);
+    ThemedTable themed;
     const QImage first = themed.window_image();
-    const int calls_of_first_drawing = engine->call_count();
+    const std::size_t made_by_first_drawing = themed.made_count();
 
     const QImage again = themed.window_image();
 
     EXPECT_EQ(first, again);
-    EXPECT_EQ(engine->call_count(), calls_of_first_drawing);
+    EXPECT_GT(made_by_first_drawing, 0u);
+    EXPECT_EQ(themed.made_count(), made_by_first_drawing);
 }
 
 TEST(ScrolledViewTest, ScrolledRowsKeepTheirDrawing) {

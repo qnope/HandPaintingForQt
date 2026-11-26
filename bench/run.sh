@@ -11,7 +11,7 @@ pin=""
 if command -v taskset >/dev/null 2>&1; then
   pin="taskset -c 2"
 fi
-echo "theme,scale,scenario,repetitions,median_ms,p10_ms,p90_ms,min_ms,geometry_ms,geometry_calls"
+echo "theme,scale,scenario,repetitions,median_ms,p10_ms,p90_ms,min_ms,made"
 for run in $(seq "$runs"); do
   for scale in 1 2; do
     for theme in none sketch sketch-hachure china-ink slate slate-hachure notebook velleda \
