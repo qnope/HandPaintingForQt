@@ -2,10 +2,8 @@
 
 namespace hpq {
 
-class GeometryEngine;
-class RoughGeometryEngine;
 struct RoughOptions;
-class Theme;
+struct Theme;
 enum class AntialiasingMode;
 enum class FillStyle;
 enum class Medium;

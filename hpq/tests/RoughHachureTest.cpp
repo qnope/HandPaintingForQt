@@ -1,4 +1,4 @@
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/RoughGeometry.h>
 
 #include <QLineF>
 #include <QPainterPath>
@@ -14,8 +14,8 @@
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
+// The seed of the hand: the tests draw the same paths at every run.
+constexpr std::uint32_t HandSeed = 2024;
 constexpr std::uint32_t Seed = 7;
 constexpr double Gap = 5.0;
 constexpr double Tolerance = 1e-6;
@@ -27,6 +27,7 @@ hpq::RoughOptions exact_options(double angle)
     options.roughness = 0.0;
     options.hachure_gap = Gap;
     options.hachure_angle = angle;
+    options.seed = HandSeed;
     return options;
 }
 
@@ -36,6 +37,7 @@ hpq::RoughOptions rough_options()
     options.roughness = 1.0;
     options.max_offset = 5.0;
     options.hachure_gap = Gap;
+    options.seed = HandSeed;
     return options;
 }
 
@@ -64,7 +66,7 @@ std::vector<QLineF> lines_of(const QPainterPath &hachure)
 std::vector<QLineF> hachure_lines(const QPainterPath &shape, const hpq::RoughOptions &options,
                                   std::uint32_t seed = Seed)
 {
-    return lines_of(hpq::RoughGeometryEngine(BaseSeed).hachure(shape, options, seed));
+    return lines_of(hpq::rough_hachure(shape, options, seed));
 }
 
 // Distance from a point to the segment [a, b].
@@ -183,21 +185,18 @@ TEST(RoughHachureTest, InnerShapeOfAWindingShapeIsHatched)
 
 TEST(RoughHachureTest, ShapeNarrowerThanFourGapsIsNotHatched)
 {
-    const hpq::RoughGeometryEngine engine(BaseSeed);
-
-    EXPECT_TRUE(engine.hachure(rectangle_shape(QRectF(0, 0, 100, 4 * Gap - 1)), rough_options(), Seed).isEmpty());
-    EXPECT_FALSE(engine.hachure(rectangle_shape(QRectF(0, 0, 100, 4 * Gap)), rough_options(), Seed).isEmpty());
+    EXPECT_TRUE(hpq::rough_hachure(rectangle_shape(QRectF(0, 0, 100, 4 * Gap - 1)), rough_options(), Seed).isEmpty());
+    EXPECT_FALSE(hpq::rough_hachure(rectangle_shape(QRectF(0, 0, 100, 4 * Gap)), rough_options(), Seed).isEmpty());
 }
 
 TEST(RoughHachureTest, SameSeedGivesTheSameHachuresAndAnotherSeedOtherOnes)
 {
-    const hpq::RoughGeometryEngine engine(BaseSeed);
     const QPainterPath shape = rectangle_shape(QRectF(10, 10, 100, 60));
 
-    const QPainterPath first = engine.hachure(shape, rough_options(), Seed);
+    const QPainterPath first = hpq::rough_hachure(shape, rough_options(), Seed);
 
-    EXPECT_EQ(first, engine.hachure(shape, rough_options(), Seed));
-    EXPECT_NE(first, engine.hachure(shape, rough_options(), Seed + 1));
+    EXPECT_EQ(first, hpq::rough_hachure(shape, rough_options(), Seed));
+    EXPECT_NE(first, hpq::rough_hachure(shape, rough_options(), Seed + 1));
 }
 
 // The cells of a selected row are filled one by one: their hachures must look like one fill.

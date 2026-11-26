@@ -7,12 +7,7 @@
 #include "WatercolorTexture.h"
 #include "WatercolorWash.h"
 
-#include <hpq/AntialiasingMode.h>
-#include <hpq/FillStyle.h>
-#include <hpq/GeometryEngine.h>
-#include <hpq/Medium.h>
-#include <hpq/RoughOptions.h>
-#include <hpq/TextInk.h>
+#include <hpq/RoughGeometry.h>
 #include <hpq/Theme.h>
 
 #include <QPaintDevice>
@@ -115,13 +110,8 @@ private:
     std::optional<std::uint32_t> m_value;
 };
 
-HandPaintEngine::HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
-                                 PaintCache *cache)
-    : QPaintEngine(QPaintEngine::AllFeatures),
-      m_target(target),
-      m_theme(theme),
-      m_geometry_engine(geometry_engine),
-      m_cache(cache) {}
+HandPaintEngine::HandPaintEngine(QPainter &target, const Theme &theme, PaintCache *cache)
+    : QPaintEngine(QPaintEngine::AllFeatures), m_target(target), m_theme(theme), m_cache(cache) {}
 
 bool HandPaintEngine::begin(QPaintDevice *) { return true; }
 
@@ -245,7 +235,7 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
     m_origin = kind == ShapeKind::Open ? line_origin(*painter(), m_transform, logical_shape)
                                        : content_origin(*painter(), m_transform);
     const QPainterPath shape = m_transform.map(logical_shape).translated(-m_origin);
-    const RoughOptions options = m_theme.rough_options();
+    const RoughOptions &options = m_theme.rough_options;
     ShapeSeed shape_seed(shape);
     if (kind != ShapeKind::Open && filled) {
         fill_shape(shape, kind, options, shape_seed);
@@ -259,8 +249,8 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
                 std::vector<QPainterPath> made;
                 std::uint32_t stroke_seed = shape_seed.value();
                 const std::vector<QPainterPath> strokes =
-                    is_frame ? m_geometry_engine.frame_outline(shape, options, shape_seed.value())
-                             : m_geometry_engine.outline(shape, options, shape_seed.value());
+                    is_frame ? rough_frame_outline(shape, options, shape_seed.value())
+                             : rough_outline(shape, options, shape_seed.value());
                 for (const QPainterPath &outline : strokes) {
                     // Each stroke of the outline gets its own seed: with chalk, its own pressure and gaps.
                     made.push_back(marked(outline, tool, ++stroke_seed));
@@ -275,12 +265,11 @@ void HandPaintEngine::draw_shape(const QPainterPath &logical_shape, ShapeKind ki
 
 void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, const RoughOptions &options,
                                  ShapeSeed &shape_seed) {
-    const bool is_watercolor = m_theme.medium() == Medium::Watercolor;
+    const bool is_watercolor = m_theme.medium == Medium::Watercolor;
     // One area, in a list of one path.
     const QPainterPath area = kept_paths(PaintCache::PathKind::FillArea, shape, StrokeTool(), [&] {
         const std::uint32_t seed = shape_seed.value();
-        return std::vector<QPainterPath>{
-            m_geometry_engine.fill_area(shape, options, is_watercolor ? seed ^ WashSeedMask : seed)};
+        return std::vector<QPainterPath>{rough_fill_area(shape, options, is_watercolor ? seed ^ WashSeedMask : seed)};
     }).front();
     const QBrush brush = on_device(m_brush, m_transform, painter()->brushOrigin());
     if (is_hatched(brush)) {
@@ -289,13 +278,13 @@ void HandPaintEngine::fill_shape(const QPainterPath &shape, ShapeKind kind, cons
         // What the tool marks along the hachures, in a list of one path; none when the shape
         // cannot be hatched.
         const std::vector<QPainterPath> hachures = kept_paths(PaintCache::PathKind::Hachure, shape, tool, [&] {
-            const QPainterPath hachure = m_geometry_engine.hachure(shape, options, shape_seed.value());
+            const QPainterPath hachure = rough_hachure(shape, options, shape_seed.value());
             return hachure.isEmpty() ? std::vector<QPainterPath>()
                                      : std::vector<QPainterPath>{marked(hachure, tool, shape_seed.value())};
         });
         if (!hachures.empty()) {
             // The paper shows between the hachures, and hides what was drawn under the shape.
-            draw_on_target(area, Qt::NoPen, seen_through_medium(m_theme.palette().window()), Tiling::Area);
+            draw_on_target(area, Qt::NoPen, seen_through_medium(m_theme.palette.window()), Tiling::Area);
             draw_marked(hachures.front(), pen, tool);
             return;
         }
@@ -319,11 +308,11 @@ void HandPaintEngine::lay_on_target(const QPainterPath &area, const QBrush &brus
 }
 
 bool HandPaintEngine::is_wash(const QBrush &brush) const {
-    return m_theme.medium() == Medium::Watercolor && brush.style() == Qt::SolidPattern && !is_ground(brush.color());
+    return m_theme.medium == Medium::Watercolor && brush.style() == Qt::SolidPattern && !is_ground(brush.color());
 }
 
 bool HandPaintEngine::is_hatched(const QBrush &brush) const {
-    if (m_theme.fill_style() != FillStyle::Hachure) {
+    if (m_theme.fill_style != FillStyle::Hachure) {
         return false;
     }
     // A brush that lets the drawing under it show is a tint: the paper must not hide that drawing.
@@ -331,12 +320,12 @@ bool HandPaintEngine::is_hatched(const QBrush &brush) const {
         return false;
     }
     // Hachures in the color of the paper would not show.
-    const QBrush paper = m_theme.palette().window();
+    const QBrush paper = m_theme.palette.window();
     return brush.style() != Qt::SolidPattern || brush.color() != paper.color();
 }
 
 double HandPaintEngine::ink_reach(const std::optional<StrokeTool> &outline_tool, bool filled) const {
-    const RoughOptions options = m_theme.rough_options();
+    const RoughOptions &options = m_theme.rough_options;
     // How far past their rough paths the strokes and the fill put ink.
     double spread = outline_tool ? outline_tool->widest : 0.0;
     if (filled) {
@@ -358,7 +347,7 @@ bool HandPaintEngine::is_out_of_sight(const QRectF &bounds, double margin) const
 }
 
 bool HandPaintEngine::is_smoothed() const {
-    switch (m_theme.antialiasing_mode()) {
+    switch (m_theme.antialiasing_mode) {
     case AntialiasingMode::Never:
         return false;
     case AntialiasingMode::OnlyWhenAsked:
@@ -370,7 +359,7 @@ bool HandPaintEngine::is_smoothed() const {
 }
 
 void HandPaintEngine::draw_marked(const QPainterPath &marked_stroke, const QPen &pen, const StrokeTool &tool) {
-    const Medium medium = m_theme.medium();
+    const Medium medium = m_theme.medium;
     if (tool.ribbon == Ribbon::Brush && medium == Medium::Watercolor) {
         glaze_on_target(marked_stroke, moved(pigment_brush(pen.color(), target_pixel_ratio()), m_origin),
                         tool.system_clip_margin);
@@ -395,7 +384,7 @@ QBrush HandPaintEngine::seen_through_medium(const QBrush &brush) const {
         return brush;
     }
     const QColor color = brush.color();
-    switch (m_theme.medium()) {
+    switch (m_theme.medium) {
     case Medium::Chalk:
         // The slate stays where it is; the chalk rubbed on a shape scrolls with the content.
         return is_ground(color) ? slate_brush(color, target_pixel_ratio())
@@ -410,7 +399,7 @@ QBrush HandPaintEngine::seen_through_medium(const QBrush &brush) const {
 // Chalk cannot paint the slate, nor watercolor the white of the paper: a fill of the color of
 // the window or of a view is the slate or the paper.
 bool HandPaintEngine::is_ground(const QColor &color) const {
-    const QPalette palette = m_theme.palette();
+    const QPalette palette = m_theme.palette;
     return color == palette.color(QPalette::Active, QPalette::Window) ||
            color == palette.color(QPalette::Active, QPalette::Base);
 }
@@ -448,7 +437,7 @@ void HandPaintEngine::glaze_on_target(const QPainterPath &area, const QBrush &br
         m_target.setCompositionMode(QPainter::CompositionMode_Darken);
     }
     // The smooth edge of watercolor is the one of its medium: lost only when the theme never smooths.
-    if (m_theme.antialiasing_mode() != AntialiasingMode::Never) {
+    if (m_theme.antialiasing_mode != AntialiasingMode::Never) {
         m_target.setRenderHint(QPainter::Antialiasing);
         fill_in_pieces(m_target, area, brush, Tiling::Stroke, m_origin, m_cache);
     } else {
@@ -508,10 +497,10 @@ int pixel_size(const QFont &font, const QPaintDevice &device) {
 
 // Qt writes the text of a selection in the HighlightedText color of the color group of its widget.
 bool HandPaintEngine::shows_text(const QColor &color) const {
-    if (m_theme.text_ink() == TextInk::Visible) {
+    if (m_theme.text_ink == TextInk::Visible) {
         return true;
     }
-    const QPalette palette = m_theme.palette();
+    const QPalette palette = m_theme.palette;
     return color == palette.color(QPalette::Active, QPalette::HighlightedText) ||
            color == palette.color(QPalette::Inactive, QPalette::HighlightedText) ||
            color == palette.color(QPalette::Disabled, QPalette::HighlightedText);
@@ -522,7 +511,7 @@ void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &tex
         return;
     }
     const QFont &text_font = text_item.font();
-    QFont font = m_theme.font();
+    QFont font = m_theme.font;
     font.setPixelSize(pixel_size(text_font, *paintDevice()));
     // The text keeps its emphasis in the font of the theme: bold, unless the theme writes
     // bolder, and italic.
@@ -541,7 +530,7 @@ void HandPaintEngine::drawTextItem(const QPointF &position, const QTextItem &tex
     }
     const SavedPainter saved(m_target);
     follow_device_painter_in_logical_coordinates();
-    m_target.setPen(m_theme.medium() == Medium::Chalk
+    m_target.setPen(m_theme.medium == Medium::Chalk
                         ? chalk_pen(m_pen, ChalkGrain::Text, content_origin(*painter(), m_transform))
                         : m_pen);
     m_target.setFont(font);

@@ -1,7 +1,6 @@
 #include <hpq/HandPaintStyle.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
 #include <hpq/Theme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -13,21 +12,15 @@
 #include <QVariant>
 #include <QWidget>
 
-#include <memory>
-
 namespace {
 
 const QBrush Marker(QColor(0xff, 0xf0, 0x00, 0x80));
 
 // The Sketch theme, with a marker for its labels.
 hpq::Theme marking_theme() {
-    const hpq::Theme sketch = hpq::sketch_theme();
-    return hpq::Theme(sketch.palette(), sketch.font(), sketch.rough_options(), sketch.fill_style(), sketch.medium(),
-                      sketch.text_ink(), Marker);
-}
-
-std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
-    return std::make_shared<const hpq::RoughGeometryEngine>();
+    hpq::Theme theme = hpq::sketch_theme();
+    theme.label_marker = Marker;
+    return theme;
 }
 
 // A window with a label in a layout, and a label nested in a child widget.
@@ -55,14 +48,14 @@ private:
 }  // namespace
 
 TEST(LabelMarkerThemeTest, ThemeHasNoLabelMarkerUnlessItIsGivenOne) {
-    EXPECT_EQ(hpq::sketch_theme().label_marker().style(), Qt::NoBrush);
-    EXPECT_EQ(marking_theme().label_marker(), Marker);
+    EXPECT_EQ(hpq::sketch_theme().label_marker.style(), Qt::NoBrush);
+    EXPECT_EQ(marking_theme().label_marker, Marker);
 }
 
 TEST(LabelMarkerThemeTest, ApplyThemeGivesEveryLabelTheMarkerOfTheTheme) {
     WindowWithLabels labels;
 
-    hpq::apply_theme(labels.window(), marking_theme(), rough_geometry_engine());
+    hpq::apply_theme(labels.window(), marking_theme());
 
     EXPECT_EQ(labels.marker().value<QBrush>(), Marker);
     EXPECT_EQ(labels.nested_marker().value<QBrush>(), Marker);
@@ -71,7 +64,7 @@ TEST(LabelMarkerThemeTest, ApplyThemeGivesEveryLabelTheMarkerOfTheTheme) {
 TEST(LabelMarkerThemeTest, ThemeWithoutMarkerGivesNoneToTheLabels) {
     WindowWithLabels labels;
 
-    hpq::apply_theme(labels.window(), hpq::sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(labels.window(), hpq::sketch_theme());
 
     EXPECT_FALSE(labels.marker().isValid());
     EXPECT_FALSE(labels.nested_marker().isValid());
@@ -79,9 +72,9 @@ TEST(LabelMarkerThemeTest, ThemeWithoutMarkerGivesNoneToTheLabels) {
 
 TEST(LabelMarkerThemeTest, ApplyingAThemeWithoutMarkerTakesTheMarkersAway) {
     WindowWithLabels labels;
-    hpq::apply_theme(labels.window(), marking_theme(), rough_geometry_engine());
+    hpq::apply_theme(labels.window(), marking_theme());
 
-    hpq::apply_theme(labels.window(), hpq::sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(labels.window(), hpq::sketch_theme());
 
     EXPECT_FALSE(labels.marker().isValid());
     EXPECT_FALSE(labels.nested_marker().isValid());
@@ -89,7 +82,7 @@ TEST(LabelMarkerThemeTest, ApplyingAThemeWithoutMarkerTakesTheMarkersAway) {
 
 TEST(LabelMarkerThemeTest, RemoveThemeTakesTheMarkersAway) {
     WindowWithLabels labels;
-    hpq::apply_theme(labels.window(), marking_theme(), rough_geometry_engine());
+    hpq::apply_theme(labels.window(), marking_theme());
 
     hpq::remove_theme(labels.window());
 

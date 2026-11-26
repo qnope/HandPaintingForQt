@@ -1,22 +1,16 @@
 #include "RecordingPaintDevice.h"
 
 #include <hpq/HandPaintDevice.h>
-#include <hpq/InvisibleInkTheme.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
 #include <QPainter>
 #include <QPalette>
 
-#include <cstdint>
 #include <vector>
 
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -32,7 +26,7 @@ protected:
     std::vector<DrawCall> write(const hpq::Theme &theme, const QColor &color) {
         RecordingPaintDevice target;
         QPainter target_painter(&target);
-        hpq::HandPaintDevice device(target_painter, theme, m_geometry_engine);
+        hpq::HandPaintDevice device(target_painter, theme);
         QPainter painter(&device);
         painter.setPen(color);
         painter.drawText(10, 30, Text);
@@ -44,7 +38,7 @@ protected:
     std::vector<DrawCall> draw_line(const hpq::Theme &theme, const QColor &color) {
         RecordingPaintDevice target;
         QPainter target_painter(&target);
-        hpq::HandPaintDevice device(target_painter, theme, m_geometry_engine);
+        hpq::HandPaintDevice device(target_painter, theme);
         QPainter painter(&device);
         painter.setPen(color);
         painter.drawLine(10, 10, 100, 10);
@@ -52,26 +46,16 @@ protected:
         return target.engine().calls();
     }
 
-    hpq::RoughGeometryEngine m_geometry_engine{BaseSeed};
 };
 
 TEST_F(InvisibleTextInkTest, AThemeWritesWithAVisibleInkUnlessToldOtherwise) {
-    const hpq::Theme theme(QPalette(), QFont(), hpq::RoughOptions{}, hpq::FillStyle::Solid);
-
-    EXPECT_EQ(theme.text_ink(), hpq::TextInk::Visible);
-    EXPECT_EQ(hpq::sketch_theme().text_ink(), hpq::TextInk::Visible);
-}
-
-TEST_F(InvisibleTextInkTest, AThemeKeepsTheTextInkItIsGiven) {
-    const hpq::Theme theme(QPalette(), QFont(), hpq::RoughOptions{}, hpq::FillStyle::Solid, hpq::Medium::Pencil,
-                           hpq::TextInk::Invisible);
-
-    EXPECT_EQ(theme.text_ink(), hpq::TextInk::Invisible);
+    EXPECT_EQ(hpq::Theme().text_ink, hpq::TextInk::Visible);
+    EXPECT_EQ(hpq::sketch_theme().text_ink, hpq::TextInk::Visible);
 }
 
 TEST_F(InvisibleTextInkTest, TextThatIsNotSelectedIsNotDrawn) {
     const hpq::Theme theme = hpq::invisible_ink_theme();
-    const QPalette palette = theme.palette();
+    const QPalette palette = theme.palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (const QPalette::ColorRole role : {QPalette::WindowText, QPalette::Text, QPalette::ButtonText}) {
@@ -86,7 +70,7 @@ TEST_F(InvisibleTextInkTest, TextOfASelectionIsDrawnInItsColor) {
     for (const hpq::FillStyle fill_style : {hpq::FillStyle::Solid, hpq::FillStyle::Hachure}) {
         const hpq::Theme theme = hpq::invisible_ink_theme(fill_style);
         for (const QPalette::ColorGroup group : Groups) {
-            const QColor color = theme.palette().color(group, QPalette::HighlightedText);
+            const QColor color = theme.palette.color(group, QPalette::HighlightedText);
 
             const std::vector<DrawCall> calls = write(theme, color);
 
@@ -102,13 +86,13 @@ TEST_F(InvisibleTextInkTest, TextOfASelectionIsDrawnInItsColor) {
 TEST_F(InvisibleTextInkTest, ShapesInTheColorOfATextAreDrawn) {
     const hpq::Theme theme = hpq::invisible_ink_theme();
 
-    EXPECT_FALSE(draw_line(theme, theme.palette().color(QPalette::Active, QPalette::Text)).empty());
+    EXPECT_FALSE(draw_line(theme, theme.palette.color(QPalette::Active, QPalette::Text)).empty());
 }
 
 TEST_F(InvisibleTextInkTest, AVisibleInkDrawsTextInAnyColor) {
     const hpq::Theme theme = hpq::sketch_theme();
 
-    EXPECT_EQ(write(theme, theme.palette().color(QPalette::Active, QPalette::Text)).size(), 1u);
+    EXPECT_EQ(write(theme, theme.palette.color(QPalette::Active, QPalette::Text)).size(), 1u);
     EXPECT_EQ(write(theme, QColor(Qt::darkRed)).size(), 1u);
 }
 

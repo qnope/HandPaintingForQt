@@ -1,4 +1,4 @@
-#include <hpq/WatercolorTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -40,8 +40,13 @@ constexpr RoughOptions PaintBrushRoughOptions{1.0, 1, 2.0, 5.5};
 }  // namespace
 
 Theme watercolor_theme(FillStyle fill_style) {
-    return Theme(make_palette(watercolor_colors(false), watercolor_colors(true)), QFont(hand_font_family()),
-                 PaintBrushRoughOptions, fill_style, Medium::Watercolor);
+    Theme theme;
+    theme.palette = make_palette(watercolor_colors(false), watercolor_colors(true));
+    theme.font = QFont(hand_font_family());
+    theme.rough_options = PaintBrushRoughOptions;
+    theme.fill_style = fill_style;
+    theme.medium = Medium::Watercolor;
+    return theme;
 }
 
 }  // namespace hpq

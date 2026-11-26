@@ -18,7 +18,7 @@ namespace hpq {
 // images of their washes. A shape that is drawn again gets them back instead of having them
 // made again, which is most of the work of a repaint.
 // What is kept depends only on the shape and on how it is drawn, not on where: a cache serves
-// one theme and one geometry engine, and the shapes of a view that scrolls find their paths.
+// one theme, and the shapes of a view that scrolls find their paths.
 // It forgets what was not drawn for a while, so that it stays small.
 class HPQ_EXPORT PaintCache {
 public:

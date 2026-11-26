@@ -1,6 +1,5 @@
 #include <hpq/HandPaintDevice.h>
-#include <hpq/NotebookTheme.h>
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -19,8 +18,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
-#include <memory>
 
 namespace {
 
@@ -33,9 +30,6 @@ constexpr QPalette::ColorGroup Groups[] = {QPalette::Active, QPalette::Inactive,
 constexpr int Square = 32;
 constexpr int Interline = 8;
 constexpr int Margin = 64;
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 // Relative luminance of a color, as defined by WCAG 2.
 double relative_luminance(const QColor &color) {
@@ -59,7 +53,7 @@ double text_contrast(const QPalette &palette, QPalette::ColorGroup group) {
 
 // The image that the window brush of the theme tiles.
 QImage sheet() {
-    return hpq::notebook_theme().palette().brush(QPalette::Active, QPalette::Window).textureImage();
+    return hpq::notebook_theme().palette.brush(QPalette::Active, QPalette::Window).textureImage();
 }
 
 // The color of the sheet at a point of a window that the sheet tiles from its top left corner.
@@ -70,7 +64,7 @@ QColor sheet_color(const QImage &sheet, int x, int y) {
 }  // namespace
 
 TEST(NotebookTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::notebook_theme().palette();
+    const QPalette palette = hpq::notebook_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -85,7 +79,7 @@ TEST(NotebookTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(NotebookTheme, WindowIsASheetOfLightPaper) {
-    const QPalette palette = hpq::notebook_theme().palette();
+    const QPalette palette = hpq::notebook_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         const QBrush window = palette.brush(group, QPalette::Window);
@@ -96,7 +90,7 @@ TEST(NotebookTheme, WindowIsASheetOfLightPaper) {
 
 TEST(NotebookTheme, SheetIsOneSquareHighAndTilesItsHorizontalLines) {
     const QImage image = sheet();
-    const QColor paper = hpq::notebook_theme().palette().color(QPalette::Active, QPalette::Window);
+    const QColor paper = hpq::notebook_theme().palette.color(QPalette::Active, QPalette::Window);
     // Between the left of the sheet and the margin line, where no vertical line is drawn.
     const int x = Margin / 2;
 
@@ -115,7 +109,7 @@ TEST(NotebookTheme, SheetIsOneSquareHighAndTilesItsHorizontalLines) {
 
 TEST(NotebookTheme, SheetHasARedMarginAndVerticalLinesAtItsRightOnly) {
     const QImage image = sheet();
-    const QColor paper = hpq::notebook_theme().palette().color(QPalette::Active, QPalette::Window);
+    const QColor paper = hpq::notebook_theme().palette.color(QPalette::Active, QPalette::Window);
     // Between two horizontal lines.
     const int y = Interline / 2;
 
@@ -137,12 +131,12 @@ TEST(NotebookTheme, SheetHasARedMarginAndVerticalLinesAtItsRightOnly) {
 // Two brushes are equal only when they share their image: without one image for every theme,
 // the palettes of two themes would differ, and a widget could not be told to have the theme.
 TEST(NotebookTheme, TwoThemesHaveTheSamePalette) {
-    EXPECT_EQ(hpq::notebook_theme().palette(), hpq::notebook_theme().palette());
-    EXPECT_NE(hpq::notebook_theme().palette(), hpq::notebook_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(hpq::notebook_theme().palette, hpq::notebook_theme().palette);
+    EXPECT_NE(hpq::notebook_theme().palette, hpq::notebook_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(NotebookTheme, ViewsAndButtonsAreSeeThrough) {
-    const QPalette palette = hpq::notebook_theme().palette();
+    const QPalette palette = hpq::notebook_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         EXPECT_EQ(palette.color(group, QPalette::Base).alpha(), 0) << "group " << group;
@@ -151,7 +145,7 @@ TEST(NotebookTheme, ViewsAndButtonsAreSeeThrough) {
 }
 
 TEST(NotebookTheme, TextIsBlueInk) {
-    const QPalette palette = hpq::notebook_theme().palette();
+    const QPalette palette = hpq::notebook_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::WindowText, QPalette::Text, QPalette::ButtonText}) {
         const QColor ink = palette.color(QPalette::Active, role);
@@ -161,7 +155,7 @@ TEST(NotebookTheme, TextIsBlueInk) {
 }
 
 TEST(NotebookTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::notebook_theme().palette();
+    const QPalette palette = hpq::notebook_theme().palette;
 
     const double active_contrast = text_contrast(palette, QPalette::Active);
     EXPECT_GE(active_contrast, 4.5);
@@ -170,14 +164,14 @@ TEST(NotebookTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 
 // What is disabled is written with a pencil: grey, without the blue of the ink.
 TEST(NotebookTheme, DisabledTextIsPencilGrey) {
-    const QColor pencil = hpq::notebook_theme().palette().color(QPalette::Disabled, QPalette::WindowText);
+    const QColor pencil = hpq::notebook_theme().palette.color(QPalette::Disabled, QPalette::WindowText);
 
     EXPECT_LT(pencil.saturation(), 30);
 }
 
 // A selection is a stroke of highlighter: the ruling and the ink show through it.
 TEST(NotebookTheme, SelectionIsATranslucentHighlighterUnderInk) {
-    const QPalette palette = hpq::notebook_theme().palette();
+    const QPalette palette = hpq::notebook_theme().palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         const QColor highlight = palette.color(group, QPalette::Highlight);
@@ -190,7 +184,7 @@ TEST(NotebookTheme, SelectionIsATranslucentHighlighterUnderInk) {
 
 // Only an opaque brush is hatched, and the paper shows between the hachures.
 TEST(NotebookTheme, HachureVariantSelectionIsOpaqueAndItsTextReadableOnPaper) {
-    const QPalette palette = hpq::notebook_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette palette = hpq::notebook_theme(hpq::FillStyle::Hachure).palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         EXPECT_EQ(palette.color(group, QPalette::Highlight).alpha(), 255) << "group " << group;
@@ -203,22 +197,22 @@ TEST(NotebookTheme, HachureVariantSelectionIsOpaqueAndItsTextReadableOnPaper) {
 }
 
 TEST(NotebookTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::notebook_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::notebook_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::notebook_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::notebook_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
 }
 
 TEST(NotebookTheme, DrawsOneStrokeWithAPen) {
     const hpq::Theme theme = hpq::notebook_theme();
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Pencil);
-    EXPECT_EQ(theme.rough_options().stroke_count, 1);
+    EXPECT_EQ(theme.medium, hpq::Medium::Pencil);
+    EXPECT_EQ(theme.rough_options.stroke_count, 1);
 }
 
 TEST(NotebookTheme, FontIsPlaywriteFrModerne) {
     const hpq::Theme theme = hpq::notebook_theme();
 
-    EXPECT_EQ(theme.font().family(), FontFamily);
-    EXPECT_EQ(QFontInfo(theme.font()).family(), FontFamily);
+    EXPECT_EQ(theme.font.family(), FontFamily);
+    EXPECT_EQ(QFontInfo(theme.font).family(), FontFamily);
 }
 
 TEST(NotebookTheme, RegistersItsFontInFontDatabase) {
@@ -238,7 +232,7 @@ TEST(NotebookTheme, EmbedsFontAndItsLicenseAsResources) {
 // application font, so that a line of text does not get twice as high.
 TEST(NotebookTheme, FontIsSmallerThanTheApplicationFont) {
     const QFont application_font = QApplication::font();
-    const QFont font = hpq::notebook_theme().font();
+    const QFont font = hpq::notebook_theme().font;
 
     if (application_font.pointSizeF() > 0) {
         EXPECT_LT(font.pointSizeF(), application_font.pointSizeF());
@@ -255,7 +249,7 @@ TEST(NotebookTheme, RulingOfTheWindowRunsUnderAView) {
     window.resize(400, 300);
     QListView view(&window);
     view.setGeometry(100, 40, 200, 200);
-    hpq::apply_theme(window, hpq::notebook_theme(), std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+    hpq::apply_theme(window, hpq::notebook_theme());
     window.show();
     QApplication::processEvents();
 
@@ -275,13 +269,12 @@ TEST(NotebookTheme, RulingOfTheWindowRunsUnderAView) {
 // window has it.
 TEST(NotebookTheme, RulingShowsBetweenTheHachuresOfAFill) {
     const hpq::Theme theme = hpq::notebook_theme(hpq::FillStyle::Hachure);
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     QImage image(200, 200, QImage::Format_ARGB32_Premultiplied);
     image.fill(Qt::black);
 
     {
         QPainter target(&image);
-        hpq::HandPaintDevice device(target, theme, geometry_engine);
+        hpq::HandPaintDevice device(target, theme);
         QPainter painter(&device);
         painter.setPen(Qt::NoPen);
         painter.setBrush(QColor(0xc0, 0x39, 0x2b));

@@ -19,33 +19,18 @@ add_library(hpq::hpq ALIAS hpq)
 
 # The public headers, then the sources and the private headers: each list in alphabetical order.
 target_sources(hpq PRIVATE
-  include/hpq/AntialiasingMode.h
-  include/hpq/BlueprintTheme.h
-  include/hpq/ChinaInkTheme.h
   include/hpq/Export.h
-  include/hpq/FillStyle.h
   include/hpq/FwdDecls.h
-  include/hpq/GeometryEngine.h
   include/hpq/HandPaintDevice.h
   include/hpq/HandPaintEffect.h
   include/hpq/HandPaintStyle.h
-  include/hpq/HighlighterTheme.h
   include/hpq/Hpq.h
-  include/hpq/InvisibleInkTheme.h
-  include/hpq/Medium.h
-  include/hpq/NotebookTheme.h
   include/hpq/PaintCache.h
-  include/hpq/RoughGeometryEngine.h
-  include/hpq/RoughOptions.h
-  include/hpq/SketchTheme.h
-  include/hpq/SlateTheme.h
-  include/hpq/TextInk.h
+  include/hpq/RoughGeometry.h
   include/hpq/Theme.h
+  include/hpq/Themes.h
   include/hpq/Theming.h
-  include/hpq/VelledaTheme.h
   include/hpq/Version.h.in
-  include/hpq/WatercolorTheme.h
-  include/hpq/WindowTheming.h
 
   src/BlueprintTheme.cpp
   src/ChalkTexture.cpp
@@ -55,7 +40,6 @@ target_sources(hpq PRIVATE
   src/ContentOrigin.h
   src/Fonts.cpp
   src/Fonts.h
-  src/GeometryEngine.cpp
   src/GrainNoise.cpp
   src/GrainNoise.h
   src/HandPaintDevice.cpp
@@ -70,7 +54,7 @@ target_sources(hpq PRIVATE
   src/PaintCache.cpp
   src/PathTiles.cpp
   src/PathTiles.h
-  src/RoughGeometryEngine.cpp
+  src/RoughGeometry.cpp
   src/SavedPainter.h
   src/SeyesPaper.cpp
   src/SeyesPaper.h
@@ -83,7 +67,6 @@ target_sources(hpq PRIVATE
   src/StrokeTool.h
   src/Target.cpp
   src/Target.h
-  src/Theme.cpp
   src/ThemePalette.cpp
   src/ThemePalette.h
   src/Theming.cpp
@@ -94,8 +77,7 @@ target_sources(hpq PRIVATE
   src/WatercolorTexture.h
   src/WatercolorTheme.cpp
   src/WatercolorWash.cpp
-  src/WatercolorWash.h
-  src/WindowTheming.cpp)
+  src/WatercolorWash.h)
 
 # hpq/Version.h: the version of the project, for the code that includes hpq.
 configure_file(include/hpq/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h @ONLY)

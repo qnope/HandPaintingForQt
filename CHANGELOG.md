@@ -7,11 +7,36 @@ All notable changes to Hand Painting for Qt are written here. The format follows
 
 ## [Unreleased]
 
+The API is simpler, and not compatible with 0.1: a theme is a struct, the geometry is four
+functions and the headers are 11 instead of 27. To move an application from 0.1:
+
+| 0.1 | Now |
+| --- | --- |
+| `apply_theme(window, theme, geometry_engine)` | `apply_theme(window, theme)` |
+| `WindowTheming(theme, geometry_engine)` | `WindowTheming(theme)` |
+| `HandPaintEffect(theme, geometry_engine)` | `HandPaintEffect(theme)` |
+| `HandPaintDevice(target, theme, geometry_engine, &cache)` | `HandPaintDevice(target, theme)` or `HandPaintDevice(target, theme, cache)` |
+| `RoughGeometryEngine(seed)` | `theme.rough_options.seed = seed` |
+| `RoughGeometryEngine()`, a random hand | `theme.rough_options.seed = std::random_device()()` |
+| `engine.outline(shape, options, seed)` | `rough_outline(shape, options, seed)`, and so on |
+| `theme.palette()`, `theme.font()`, ... | `theme.palette`, `theme.font`, ... |
+| `Theme(palette, font, options, fill_style, ...)` | a `Theme`, then its fields |
+| `<hpq/SketchTheme.h>` and the eight others | `<hpq/Themes.h>` |
+| `<hpq/RoughOptions.h>`, `<hpq/FillStyle.h>`, `<hpq/Medium.h>`, `<hpq/TextInk.h>` | `<hpq/Theme.h>` |
+| `<hpq/WindowTheming.h>` | `<hpq/Theming.h>` |
+| `<hpq/GeometryEngine.h>`, `<hpq/RoughGeometryEngine.h>` | `<hpq/RoughGeometry.h>` |
+
 ### Added
 
-- `AntialiasingMode` and `Theme::with_antialiasing_mode`: a theme smooths its lines and its
+- `AntialiasingMode` and `Theme::antialiasing_mode`: a theme smooths its lines and its
   fills `Always` (the default), `OnlyWhenAsked` by the painter with `QPainter::Antialiasing`,
   as Qt draws, or `Never`. The settings of the example application choose it.
+- `RoughOptions::seed`: the hand that draws. The same seed draws the same window every time.
+- `<hpq/RoughGeometry.h>`: `rough_outline`, `rough_frame_outline`, `rough_fill_area` and
+  `rough_hachure`, the paths that hpq draws instead of a shape, as functions of the shape, of
+  the `RoughOptions` and of the seed of the shape.
+- `<hpq/Themes.h>`: the nine themes in one header.
+- `<hpq/Hpq.h>` includes all of hpq.
 - A teaser video at the top of the README: a Qt window drawn by hand in the nine themes while
   a pointer uses its widgets. `tools/teaser` (`HpqTeaserVideo`) renders it frame by frame,
   offscreen, with ffmpeg, and the `Pages` workflow publishes it with the site.
@@ -21,10 +46,22 @@ All notable changes to Hand Painting for Qt are written here. The format follows
 
 ### Changed
 
-- Without wobble (a `roughness` or a `max_offset` of 0), `RoughGeometryEngine` returns the
-  shape itself as its outline and as its fill area: a curve stays a curve, instead of short
-  lines at the same place. The themes of hpq are not concerned: their roughness goes from 0.6
-  to 1.
+- `Theme` is a struct: its palette, font, rough options, fill style, medium, text ink, label
+  marker and antialiasing mode are fields to read and to change, in place of a constructor of
+  seven arguments and of eight accessors. `FillStyle`, `Medium`, `TextInk`, `AntialiasingMode`
+  and `RoughOptions` are declared with it, in `<hpq/Theme.h>`.
+- `apply_theme`, `WindowTheming`, `HandPaintEffect` and `HandPaintDevice` take a theme and no
+  geometry engine: the seed of the hand is in the theme. `HandPaintDevice` takes its cache by
+  reference, in a constructor of its own, and keeps a copy of the theme: a theme made in the
+  call (`HandPaintDevice device(target, hpq::sketch_theme())`) is fine.
+- A theme draws the same window at every run, because its seed is 0 unless the application
+  gives it another one. In 0.1, `RoughGeometryEngine()` took a random seed.
+  `theme.rough_options.seed = std::random_device()()` gives each run its own hand, as the
+  example application does.
+- `WindowTheming` is declared in `<hpq/Theming.h>`, with `apply_theme` and `remove_theme`.
+- Without wobble (a `roughness` or a `max_offset` of 0), the outline and the fill area of a
+  shape are the shape itself: a curve stays a curve, instead of short lines at the same place.
+  The themes of hpq are not concerned: their roughness goes from 0.6 to 1.
 - A repaint of a part of a window, such as a hovered button or the blinking cursor of a field,
   draws only the shapes, texts and images that reach that part: the others are not made rough
   nor sent to the paint engine of Qt. Such a repaint is 2 to 3 times faster; the drawing is the
@@ -47,6 +84,13 @@ All notable changes to Hand Painting for Qt are written here. The format follows
 
 ### Removed
 
+- `GeometryEngine` and `RoughGeometryEngine`: the four functions of `<hpq/RoughGeometry.h>`
+  replace the interface and its only implementation, and no `std::shared_ptr` travels with a
+  theme any more. An application can no longer give hpq a geometry of its own.
+- `Theme::with_antialiasing_mode`, the constructor and the accessors of `Theme`: set the fields.
+- The headers of one enum or of one theme (`<hpq/FillStyle.h>`, `<hpq/SketchTheme.h>`, ...),
+  `<hpq/RoughOptions.h>` and `<hpq/WindowTheming.h>`: see the table above.
+- `hpq::library_name()`, a placeholder.
 - `hpq::HandPaintEngine` and `<hpq/HandPaintEngine.h>` are no longer public: the paint engine
   is a private part of `hpq::HandPaintDevice`, which is what an application gives to a
   `QPainter` to hand-paint what it draws. The drawing is the same.

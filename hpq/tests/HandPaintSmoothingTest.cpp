@@ -1,9 +1,9 @@
-#include <hpq/AntialiasingMode.h>
-#include <hpq/FillStyle.h>
+#include "MakeDevice.h"
+
 #include <hpq/HandPaintDevice.h>
 #include <hpq/PaintCache.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Theme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -11,7 +11,6 @@
 #include <QLinearGradient>
 #include <QPainter>
 
-#include <cstdint>
 #include <functional>
 
 // By default, a rough shape is always smoothed, whether the device painter asks for it, with
@@ -19,9 +18,6 @@
 // paper. The AntialiasingMode of the theme can smooth it only where the painter asks, or never.
 
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 constexpr int TargetSize = 300;
 
@@ -67,8 +63,8 @@ protected:
         QImage image(TargetSize, TargetSize, QImage::Format_RGB32);
         image.fill(Qt::white);
         QPainter target_painter(&image);
-        hpq::HandPaintDevice device(target_painter, m_theme, m_geometry_engine, cache);
-        QPainter painter(&device);
+        const auto device = hpq::test::make_device(target_painter, m_theme, cache);
+        QPainter painter(device.get());
         painter.setRenderHint(QPainter::Antialiasing, smoothed);
         paint(painter);
         painter.end();
@@ -77,7 +73,6 @@ protected:
     }
 
     hpq::Theme m_theme = hpq::sketch_theme();
-    hpq::RoughGeometryEngine m_geometry_engine{BaseSeed};
 };
 
 TEST_F(HandPaintSmoothingTest, LineIsSmoothedWhenThePainterAsksForIt) {
@@ -106,25 +101,11 @@ TEST_F(HandPaintSmoothingTest, FillIsSmoothedWhetherThePainterAsksForItOrNot) {
 }
 
 TEST_F(HandPaintSmoothingTest, ThemeSmoothsAlwaysUnlessToldOtherwise) {
-    EXPECT_EQ(m_theme.antialiasing_mode(), hpq::AntialiasingMode::Always);
-}
-
-TEST_F(HandPaintSmoothingTest, ThemeWithAnotherModeKeepsAllElse) {
-    const hpq::Theme hatched = hpq::sketch_theme(hpq::FillStyle::Hachure);
-    const hpq::Theme never = hatched.with_antialiasing_mode(hpq::AntialiasingMode::Never);
-
-    EXPECT_EQ(never.antialiasing_mode(), hpq::AntialiasingMode::Never);
-    EXPECT_EQ(hatched.antialiasing_mode(), hpq::AntialiasingMode::Always);
-    EXPECT_EQ(never.palette(), hatched.palette());
-    EXPECT_EQ(never.font(), hatched.font());
-    EXPECT_EQ(never.fill_style(), hatched.fill_style());
-    EXPECT_EQ(never.medium(), hatched.medium());
-    EXPECT_EQ(never.text_ink(), hatched.text_ink());
-    EXPECT_EQ(never.label_marker(), hatched.label_marker());
+    EXPECT_EQ(m_theme.antialiasing_mode, hpq::AntialiasingMode::Always);
 }
 
 TEST_F(HandPaintSmoothingTest, ThemeThatNeverSmoothsDoesNotSmoothWhenThePainterAsks) {
-    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::Never);
+    m_theme.antialiasing_mode = hpq::AntialiasingMode::Never;
     hpq::PaintCache cache;
 
     EXPECT_EQ(grey_pixels(paint_by_hand(true, draw_line)), 0);
@@ -135,7 +116,7 @@ TEST_F(HandPaintSmoothingTest, ThemeThatNeverSmoothsDoesNotSmoothWhenThePainterA
 
 TEST_F(HandPaintSmoothingTest, ThemeThatSmoothsOnlyWhenAskedSmoothsWhereThePainterAsks) {
     const QImage always = paint_by_hand(true, draw_line);
-    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked);
+    m_theme.antialiasing_mode = hpq::AntialiasingMode::OnlyWhenAsked;
 
     EXPECT_EQ(paint_by_hand(true, draw_line), always);
     EXPECT_GT(grey_pixels(paint_by_hand(true, fill_ellipse)), 300);
@@ -144,7 +125,7 @@ TEST_F(HandPaintSmoothingTest, ThemeThatSmoothsOnlyWhenAskedSmoothsWhereThePaint
 }
 
 TEST_F(HandPaintSmoothingTest, WideOutlineKeptByTheCacheIsSmoothedOnlyWhenAsked) {
-    m_theme = hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked);
+    m_theme.antialiasing_mode = hpq::AntialiasingMode::OnlyWhenAsked;
     hpq::PaintCache cache;
 
     EXPECT_EQ(grey_pixels(paint_by_hand(false, draw_wide_outline, &cache)), 0);
@@ -170,11 +151,10 @@ TEST(HandPaintSmoothingGradientTest, GradientOfTheShapeSpansAllItsPieces) {
     constexpr int Width = 700;
     constexpr int Height = 100;
     const hpq::Theme theme = hpq::sketch_theme();
-    const hpq::RoughGeometryEngine geometry_engine{BaseSeed};
     QImage image(Width, Height, QImage::Format_RGB32);
     image.fill(Qt::white);
     QPainter target_painter(&image);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, theme);
     QPainter painter(&device);
     QLinearGradient gradient(0.0, 0.5, 1.0, 0.5);
     gradient.setCoordinateMode(QGradient::ObjectBoundingMode);

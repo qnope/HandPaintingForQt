@@ -1,4 +1,4 @@
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -39,7 +39,7 @@ double text_contrast(const QPalette &palette, QPalette::ColorGroup group) {
 }  // namespace
 
 TEST(SketchTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::sketch_theme().palette();
+    const QPalette palette = hpq::sketch_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -54,7 +54,7 @@ TEST(SketchTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(SketchTheme, PaletteIsLightPaperWithDarkGraphite) {
-    const QPalette palette = hpq::sketch_theme().palette();
+    const QPalette palette = hpq::sketch_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base}) {
         EXPECT_GT(palette.color(QPalette::Active, role).lightness(), 200) << "role " << role;
@@ -65,7 +65,7 @@ TEST(SketchTheme, PaletteIsLightPaperWithDarkGraphite) {
 }
 
 TEST(SketchTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::sketch_theme().palette();
+    const QPalette palette = hpq::sketch_theme().palette;
 
     const double active_contrast = text_contrast(palette, QPalette::Active);
     EXPECT_GE(active_contrast, 4.5);
@@ -75,17 +75,17 @@ TEST(SketchTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 TEST(SketchTheme, UsesSolidFillAndTwoStrokes) {
     const hpq::Theme theme = hpq::sketch_theme();
 
-    EXPECT_EQ(theme.fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(theme.rough_options().stroke_count, 2);
+    EXPECT_EQ(theme.fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(theme.rough_options.stroke_count, 2);
 }
 
 TEST(SketchTheme, HachureVariantUsesHachureFill) {
-    EXPECT_EQ(hpq::sketch_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::sketch_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
 }
 
 // The paper shows between the hachures of a selection: its text must be readable on the paper.
 TEST(SketchTheme, HachureVariantSelectionTextIsReadableOnPaper) {
-    const QPalette palette = hpq::sketch_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette palette = hpq::sketch_theme(hpq::FillStyle::Hachure).palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         const QColor text = palette.color(group, QPalette::HighlightedText);
@@ -97,7 +97,7 @@ TEST(SketchTheme, HachureVariantSelectionTextIsReadableOnPaper) {
 TEST(SketchTheme, FontIsArchitectsDaughter) {
     const hpq::Theme theme = hpq::sketch_theme();
 
-    EXPECT_EQ(theme.font().family(), FontFamily);
+    EXPECT_EQ(theme.font.family(), FontFamily);
 }
 
 TEST(SketchTheme, RegistersArchitectsDaughterInFontDatabase) {

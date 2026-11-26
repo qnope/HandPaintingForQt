@@ -7,8 +7,6 @@
 
 #include <QGraphicsEffect>
 
-#include <memory>
-
 namespace hpq {
 
 // Graphics effect that draws its source (a widget and its children) through a
@@ -28,9 +26,7 @@ class HPQ_EXPORT HandPaintEffect : public QGraphicsEffect {
     Q_OBJECT
 
 public:
-    HandPaintEffect(Theme theme,
-                    std::shared_ptr<const GeometryEngine> geometry_engine,
-                    QObject *parent = nullptr);
+    explicit HandPaintEffect(Theme theme, QObject *parent = nullptr);
 
     // What the effect keeps from a repaint to the next: how much it holds, and how many times
     // it had something made.
@@ -42,7 +38,6 @@ protected:
 
 private:
     Theme m_theme;
-    std::shared_ptr<const GeometryEngine> m_geometry_engine;
     PaintCache m_cache;
 };
 

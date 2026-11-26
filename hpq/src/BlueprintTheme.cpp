@@ -1,4 +1,4 @@
-#include <hpq/BlueprintTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -80,8 +80,12 @@ QFont lettering_font() {
 }  // namespace
 
 Theme blueprint_theme(FillStyle fill_style) {
-    return Theme(make_palette(blueprint_colors(false, fill_style), blueprint_colors(true, fill_style)), lettering_font(),
-                 DraughtsmanRoughOptions, fill_style);
+    Theme theme;
+    theme.palette = make_palette(blueprint_colors(false, fill_style), blueprint_colors(true, fill_style));
+    theme.font = lettering_font();
+    theme.rough_options = DraughtsmanRoughOptions;
+    theme.fill_style = fill_style;
+    return theme;
 }
 
 }  // namespace hpq

@@ -66,6 +66,8 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 * File names: `PascalCase`
 * Introduce FwdDecls.h
 * Public classes and free functions of `hpq/include/hpq` carry `HPQ_EXPORT` (`hpq/Export.h`): without it, they are not visible outside the shared library
+* `Theme` and `RoughOptions` are structs (`hpq/Theme.h`): fields, no accessor; the seed of the hand is `RoughOptions::seed`. The nine themes are in `hpq/Themes.h`, the rough geometry is four free functions (`hpq/RoughGeometry.h`)
+* `hpq/Hpq.h` includes every public header: a new one is added to it
 * Type Names: `PascalCase`
 * variable: `snake_case`
 * function_names: `snake_case`

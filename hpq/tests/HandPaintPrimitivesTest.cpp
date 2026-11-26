@@ -2,8 +2,7 @@
 #include "RecordingPaintDevice.h"
 
 #include <hpq/HandPaintDevice.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -14,12 +13,7 @@
 #include <cmath>
 #include <functional>
 
-#include <cstdint>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -34,9 +28,8 @@ protected:
     // Draws with `draw` on a HandPaintDevice of `theme` whose target is m_target, with a pen and
     // a brush set.
     void draw(const std::function<void(QPainter &)> &draw, const hpq::Theme &theme) {
-        const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
         QPainter target_painter(&m_target);
-        hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+        hpq::HandPaintDevice device(target_painter, theme);
         QPainter painter(&device);
         painter.setPen(QPen(Qt::red, 2.0));
         painter.setBrush(QBrush(Qt::blue));
@@ -197,8 +190,7 @@ QColor rough_star_center_color(Qt::FillRule fill_rule) {
     image.fill(Qt::white);
     QPainter target_painter(&image);
     const hpq::Theme theme = hpq::sketch_theme();
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, theme);
     QPainter painter(&device);
     painter.setPen(QPen(Qt::black, 1.0));
     painter.setBrush(QBrush(Qt::red));

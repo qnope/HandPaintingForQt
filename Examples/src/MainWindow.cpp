@@ -5,18 +5,9 @@
 #include "TreeModelFactory.h"
 #include "ui_MainWindow.h"
 
-#include <hpq/AntialiasingMode.h>
-#include <hpq/BlueprintTheme.h>
-#include <hpq/ChinaInkTheme.h>
-#include <hpq/HighlighterTheme.h>
-#include <hpq/InvisibleInkTheme.h>
-#include <hpq/NotebookTheme.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Theme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/VelledaTheme.h>
-#include <hpq/WatercolorTheme.h>
 
 #include <QAction>
 #include <QApplication>
@@ -35,6 +26,7 @@
 #include <QStandardItemModel>
 
 #include <optional>
+#include <random>
 
 namespace hpq::example {
 
@@ -182,11 +174,12 @@ void MainWindow::update_theme()
         hpq::remove_theme(*this);
         return;
     }
-    const hpq::Theme theme =
-        listed_theme->with_antialiasing_mode(antialiasing_mode_for(m_ui->antialiasingComboBox->currentIndex()));
-    const auto geometry_engine = std::make_shared<const hpq::RoughGeometryEngine>();
-    hpq::apply_theme(*this, theme, geometry_engine);
-    m_window_theming.emplace(theme, geometry_engine);
+    hpq::Theme theme = *listed_theme;
+    theme.antialiasing_mode = antialiasing_mode_for(m_ui->antialiasingComboBox->currentIndex());
+    // Another hand each time: without a seed of its own, a theme draws the same window at every run.
+    theme.rough_options.seed = std::random_device()();
+    hpq::apply_theme(*this, theme);
+    m_window_theming.emplace(theme);
     QApplication::instance()->installEventFilter(&*m_window_theming);
 }
 

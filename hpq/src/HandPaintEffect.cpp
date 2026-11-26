@@ -93,7 +93,7 @@ void add_whole_widgets(const QWidget &widget, const QWidget &source, const QRect
 // How far past what Qt repaints the widgets are rendered: past their edges, what they draw
 // reaches no farther.
 int render_margin(const Theme &theme) {
-    return RenderMargin + static_cast<int>(std::ceil(theme.rough_options().max_offset));
+    return RenderMargin + static_cast<int>(std::ceil(theme.rough_options.max_offset));
 }
 
 // Repaints a scroll area whole, with its frame, its headers, its scroll bars and what they
@@ -144,15 +144,11 @@ private:
 
 }  // namespace
 
-HandPaintEffect::HandPaintEffect(Theme theme,
-                                 std::shared_ptr<const GeometryEngine> geometry_engine,
-                                 QObject *parent)
-    : QGraphicsEffect(parent),
-      m_theme(std::move(theme)),
-      m_geometry_engine(std::move(geometry_engine)) {}
+HandPaintEffect::HandPaintEffect(Theme theme, QObject *parent)
+    : QGraphicsEffect(parent), m_theme(std::move(theme)) {}
 
 void HandPaintEffect::draw(QPainter *painter) {
-    HandPaintDevice device(*painter, m_theme, *m_geometry_engine, &m_cache);
+    HandPaintDevice device(*painter, m_theme, m_cache);
     QPainter hand_painter(&device);
     // drawSource() renders the whole source widget, and its children, whatever Qt repaints: a
     // hover on a button would paint every widget of the window again. The painter is not the
@@ -175,7 +171,7 @@ void HandPaintEffect::draw(QPainter *painter) {
         return;
     }
     QRegion rendered(near_repainted);
-    add_whole_widgets(*widget, *widget, near_repainted, widget->rect(), m_theme.palette(), rendered);
+    add_whole_widgets(*widget, *widget, near_repainted, widget->rect(), m_theme.palette, rendered);
     // Rendering starts at the given offset: the top left corner of the rendered region stays in its place.
     widget->render(&hand_painter, rendered.boundingRect().topLeft(), rendered);
 }

@@ -1,5 +1,4 @@
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -38,7 +37,7 @@ double text_contrast(const QPalette &palette, QPalette::ColorGroup group) {
 }  // namespace
 
 TEST(SlateTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::slate_theme().palette();
+    const QPalette palette = hpq::slate_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -53,7 +52,7 @@ TEST(SlateTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(SlateTheme, PaletteIsDarkSlateWithLightChalk) {
-    const QPalette palette = hpq::slate_theme().palette();
+    const QPalette palette = hpq::slate_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base, QPalette::Button}) {
         EXPECT_LT(palette.color(QPalette::Active, role).lightness(), 60) << "role " << role;
@@ -64,7 +63,7 @@ TEST(SlateTheme, PaletteIsDarkSlateWithLightChalk) {
 }
 
 TEST(SlateTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::slate_theme().palette();
+    const QPalette palette = hpq::slate_theme().palette;
 
     const double active_contrast = text_contrast(palette, QPalette::Active);
     EXPECT_GE(active_contrast, 4.5);
@@ -74,22 +73,22 @@ TEST(SlateTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 TEST(SlateTheme, DrawsOneStrokeWithChalk) {
     const hpq::Theme theme = hpq::slate_theme();
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Chalk);
-    EXPECT_EQ(theme.rough_options().stroke_count, 1);
+    EXPECT_EQ(theme.medium, hpq::Medium::Chalk);
+    EXPECT_EQ(theme.rough_options.stroke_count, 1);
 }
 
 TEST(SlateTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::slate_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::slate_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
-    EXPECT_EQ(hpq::slate_theme(hpq::FillStyle::Hachure).medium(), hpq::Medium::Chalk);
+    EXPECT_EQ(hpq::slate_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::slate_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::slate_theme(hpq::FillStyle::Hachure).medium, hpq::Medium::Chalk);
 }
 
 TEST(SlateTheme, FontIsArchitectsDaughter) {
     const hpq::Theme theme = hpq::slate_theme();
 
-    EXPECT_EQ(theme.font().family(), FontFamily);
+    EXPECT_EQ(theme.font.family(), FontFamily);
 }
 
 TEST(SketchTheme, DrawsWithAPencil) {
-    EXPECT_EQ(hpq::sketch_theme().medium(), hpq::Medium::Pencil);
+    EXPECT_EQ(hpq::sketch_theme().medium, hpq::Medium::Pencil);
 }

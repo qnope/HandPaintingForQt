@@ -2,8 +2,8 @@
 #include "RecordingPaintDevice.h"
 
 #include <hpq/HandPaintDevice.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/RoughGeometry.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -15,9 +15,6 @@
 #include <optional>
 
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -64,10 +61,9 @@ hpq::Theme hachure_theme() {
 
 // Draws Rectangle with a pen and `brush` on a HandPaintDevice, and returns the calls the target received.
 std::vector<DrawCall> draw_rectangle(const hpq::Theme &theme, const QBrush &brush) {
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     RecordingPaintDevice target;
     QPainter target_painter(&target);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, theme);
     QPainter painter(&device);
     painter.setPen(QPen(PenColor, 2.0));
     painter.setBrush(brush);
@@ -97,15 +93,14 @@ void expect_plain_fill(const std::vector<DrawCall> &calls, const QBrush &brush) 
 TEST(HandPaintHachureTest, HachureThemeFillsWithPaperThenDrawsTheHachuresInTheBrush) {
     const hpq::Theme theme = hachure_theme();
     // Without wobble, the hachures of a shape do not depend on its seed.
-    const QPainterPath hachures =
-        hpq::RoughGeometryEngine(BaseSeed).hachure(exact_rectangle(), theme.rough_options(), 0);
+    const QPainterPath hachures = hpq::rough_hachure(exact_rectangle(), theme.rough_options, 0);
 
     const std::vector<DrawCall> calls = draw_rectangle(theme, QBrush(BrushColor));
 
     ASSERT_FALSE(hachures.isEmpty());
     ASSERT_EQ(calls.size(), 3u);
     EXPECT_TRUE(calls[0].is_fill());
-    EXPECT_EQ(calls[0].brush, theme.palette().window());
+    EXPECT_EQ(calls[0].brush, theme.palette.window());
     EXPECT_EQ(calls[0].path, exact_rectangle());
     EXPECT_TRUE(calls[1].is_stroke());
     EXPECT_EQ(calls[1].pen.brush(), QBrush(BrushColor));
@@ -121,7 +116,7 @@ TEST(HandPaintHachureTest, SolidThemeFillsWithTheBrush) {
 
 TEST(HandPaintHachureTest, ShapeInThePaperColorIsNotHatched) {
     const hpq::Theme theme = hachure_theme();
-    const QBrush paper = theme.palette().window();
+    const QBrush paper = theme.palette.window();
 
     expect_plain_fill(draw_rectangle(theme, paper), paper);
 }
@@ -135,23 +130,21 @@ TEST(HandPaintHachureTest, TranslucentBrushIsNotHatched) {
 
 // A shape too small for the gap of its hachures gets none: Rectangle is 50 pixels high.
 TEST(HandPaintHachureTest, ShapeWithoutHachuresIsFilledWithTheBrush) {
-    hpq::RoughOptions options = hachure_theme().rough_options();
-    options.hachure_gap = 20.0;
+    hpq::Theme theme = hachure_theme();
+    theme.rough_options.hachure_gap = 20.0;
 
-    expect_plain_fill(draw_rectangle(hpq::test::with_rough_options(hachure_theme(), options), QBrush(BrushColor)),
-                      QBrush(BrushColor));
+    expect_plain_fill(draw_rectangle(theme, QBrush(BrushColor)), QBrush(BrushColor));
 }
 
 TEST(HandPaintHachureTest, HatchedRectangleShowsThePaperBetweenLinesInTheBrush) {
     constexpr int ImageSize = 200;
     const hpq::Theme theme = hpq::sketch_theme(hpq::FillStyle::Hachure);
-    const QColor paper = theme.palette().color(QPalette::Window);
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
+    const QColor paper = theme.palette.color(QPalette::Window);
     QImage image(ImageSize, ImageSize, QImage::Format_ARGB32_Premultiplied);
     image.fill(Qt::black);
     {
         QPainter target_painter(&image);
-        hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+        hpq::HandPaintDevice device(target_painter, theme);
         QPainter painter(&device);
         painter.setPen(Qt::NoPen);
         painter.setBrush(BrushColor);

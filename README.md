@@ -36,7 +36,7 @@ The teaser in 1080p: [teaser.mp4](https://qnope.github.io/HandPaintingForQt/teas
 - **Your own painting**: the `paintEvent` of your widgets and the items of a `QGraphicsScene`
   are hand-drawn with the theme, without a change to their code.
 - **A steady hand**: a shape keeps its wobble between repaints and when a view scrolls. A
-  geometry engine with a fixed seed draws the same window every time.
+  theme draws the same window every time, and another seed gives it another hand.
 - **Fast repaints**: the rough paths of the shapes are kept between repaints, and a repaint of
   a part of a window (a hovered button, the cursor of a field) draws only what is close to it.
 - **Fonts included**: the handwritten fonts of the themes are embedded in the library.
@@ -48,10 +48,7 @@ The teaser in 1080p: [teaser.mp4](https://qnope.github.io/HandPaintingForQt/teas
 ## Quick start
 
 ```cpp
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/Theming.h>
-#include <hpq/WindowTheming.h>
+#include <hpq/Hpq.h>
 
 #include <QApplication>
 
@@ -60,14 +57,13 @@ int main(int argc, char *argv[]) {
     MyWindow window;
 
     const hpq::Theme theme = hpq::sketch_theme();  // or sketch_theme(hpq::FillStyle::Hachure)
-    const auto geometry_engine = std::make_shared<const hpq::RoughGeometryEngine>();
 
     // The window and every widget in it.
-    hpq::apply_theme(window, theme, geometry_engine);
+    hpq::apply_theme(window, theme);
 
     // Menus, dialogs and tooltips are windows of their own: this event filter gives them the
     // theme when they open.
-    hpq::WindowTheming window_theming(theme, geometry_engine);
+    hpq::WindowTheming window_theming(theme);
     application.installEventFilter(&window_theming);
 
     window.show();
@@ -87,31 +83,34 @@ target_link_libraries(MyApplication PRIVATE hpq::hpq)
 
 ![The window of the integration example in the nine themes](docs/images/themes.png)
 
-Each theme is a function of the library, in its own header, that takes the fill style:
-`hpq::FillStyle::Solid` (the default) or `hpq::FillStyle::Hachure`.
-
-Every line and every fill is smoothed. `Theme::with_antialiasing_mode` gives a theme that
-smooths otherwise: `hpq::AntialiasingMode::Always` (the default), `OnlyWhenAsked` (where the
-painter asks for it with `QPainter::Antialiasing`, as Qt draws) or `Never`. Smoothing costs
-time: a full repaint of a window can take 2 to 3 times longer, a hovered button stays well
-under a millisecond.
+Each theme is a function of `<hpq/Themes.h>` that takes the fill style:
+`hpq::FillStyle::Solid` (the default) or `hpq::FillStyle::Hachure`. It returns a `hpq::Theme`,
+a plain value: change the fields that you want before you apply it.
 
 ```cpp
-hpq::apply_theme(window, hpq::sketch_theme().with_antialiasing_mode(hpq::AntialiasingMode::OnlyWhenAsked),
-                 geometry_engine);
+hpq::Theme theme = hpq::sketch_theme();
+theme.rough_options.roughness = 0.5;                             // a steadier hand
+theme.rough_options.seed = std::random_device()();               // another hand at each run
+theme.antialiasing_mode = hpq::AntialiasingMode::OnlyWhenAsked;  // smooth as Qt does
+hpq::apply_theme(window, theme);
 ```
+
+Every line and every fill is smoothed. `Theme::antialiasing_mode` says otherwise:
+`hpq::AntialiasingMode::Always` (the default), `OnlyWhenAsked` (where the painter asks for it
+with `QPainter::Antialiasing`, as Qt draws) or `Never`. Smoothing costs time: a full repaint of
+a window can take 2 to 3 times longer, a hovered button stays well under a millisecond.
 
 | Theme | Solid | Hachures |
 | --- | --- | --- |
-| **Sketch**<br>`sketch_theme`<br>`<hpq/SketchTheme.h>`<br><br>Graphite pencil on paper. | <img src="docs/images/sketch.png" width="380" alt="Sketch"> | <img src="docs/images/sketch-hachure.png" width="380" alt="Sketch with hachures"> |
-| **China ink**<br>`china_ink_theme`<br>`<hpq/ChinaInkTheme.h>`<br><br>A brush loaded with ink on rice paper, and the red of a seal for the selection. | <img src="docs/images/china-ink.png" width="380" alt="China ink"> | <img src="docs/images/china-ink-hachure.png" width="380" alt="China ink with hachures"> |
-| **Black slate and chalk**<br>`slate_theme`<br>`<hpq/SlateTheme.h>`<br><br>White and colored chalk on a black slate. | <img src="docs/images/slate.png" width="380" alt="Black slate and chalk"> | <img src="docs/images/slate-hachure.png" width="380" alt="Black slate and chalk with hachures"> |
-| **School notebook**<br>`notebook_theme`<br>`<hpq/NotebookTheme.h>`<br><br>A fountain pen on the Seyès ruled paper of a French school notebook. | <img src="docs/images/notebook.png" width="380" alt="School notebook"> | <img src="docs/images/notebook-hachure.png" width="380" alt="School notebook with hachures"> |
-| **Velleda**<br>`velleda_theme`<br>`<hpq/VelledaTheme.h>`<br><br>Dry-erase markers on a white board. | <img src="docs/images/velleda.png" width="380" alt="Velleda"> | <img src="docs/images/velleda-hachure.png" width="380" alt="Velleda with hachures"> |
-| **Watercolor**<br>`watercolor_theme`<br>`<hpq/WatercolorTheme.h>`<br><br>Washes and brush lines on a grainy paper. | <img src="docs/images/watercolor.png" width="380" alt="Watercolor"> | <img src="docs/images/watercolor-hachure.png" width="380" alt="Watercolor with hachures"> |
-| **Blueprint**<br>`blueprint_theme`<br>`<hpq/BlueprintTheme.h>`<br><br>White ink on the blue paper of an architect, with a faint grid. | <img src="docs/images/blueprint.png" width="380" alt="Blueprint"> | <img src="docs/images/blueprint-hachure.png" width="380" alt="Blueprint with hachures"> |
-| **Invisible ink**<br>`invisible_ink_theme`<br>`<hpq/InvisibleInkTheme.h>`<br><br>The text shows only where it is selected, under the violet light of a lamp. | <img src="docs/images/invisible-ink.png" width="380" alt="Invisible ink"> | <img src="docs/images/invisible-ink-hachure.png" width="380" alt="Invisible ink with hachures"> |
-| **Highlighter**<br>`highlighter_theme`<br>`<hpq/HighlighterTheme.h>`<br><br>Fluorescent highlighters over notes in black pen. | <img src="docs/images/highlighter.png" width="380" alt="Highlighter"> | <img src="docs/images/highlighter-hachure.png" width="380" alt="Highlighter with hachures"> |
+| **Sketch**<br>`sketch_theme`<br><br>Graphite pencil on paper. | <img src="docs/images/sketch.png" width="380" alt="Sketch"> | <img src="docs/images/sketch-hachure.png" width="380" alt="Sketch with hachures"> |
+| **China ink**<br>`china_ink_theme`<br><br>A brush loaded with ink on rice paper, and the red of a seal for the selection. | <img src="docs/images/china-ink.png" width="380" alt="China ink"> | <img src="docs/images/china-ink-hachure.png" width="380" alt="China ink with hachures"> |
+| **Black slate and chalk**<br>`slate_theme`<br><br>White and colored chalk on a black slate. | <img src="docs/images/slate.png" width="380" alt="Black slate and chalk"> | <img src="docs/images/slate-hachure.png" width="380" alt="Black slate and chalk with hachures"> |
+| **School notebook**<br>`notebook_theme`<br><br>A fountain pen on the Seyès ruled paper of a French school notebook. | <img src="docs/images/notebook.png" width="380" alt="School notebook"> | <img src="docs/images/notebook-hachure.png" width="380" alt="School notebook with hachures"> |
+| **Velleda**<br>`velleda_theme`<br><br>Dry-erase markers on a white board. | <img src="docs/images/velleda.png" width="380" alt="Velleda"> | <img src="docs/images/velleda-hachure.png" width="380" alt="Velleda with hachures"> |
+| **Watercolor**<br>`watercolor_theme`<br><br>Washes and brush lines on a grainy paper. | <img src="docs/images/watercolor.png" width="380" alt="Watercolor"> | <img src="docs/images/watercolor-hachure.png" width="380" alt="Watercolor with hachures"> |
+| **Blueprint**<br>`blueprint_theme`<br><br>White ink on the blue paper of an architect, with a faint grid. | <img src="docs/images/blueprint.png" width="380" alt="Blueprint"> | <img src="docs/images/blueprint-hachure.png" width="380" alt="Blueprint with hachures"> |
+| **Invisible ink**<br>`invisible_ink_theme`<br><br>The text shows only where it is selected, under the violet light of a lamp. | <img src="docs/images/invisible-ink.png" width="380" alt="Invisible ink"> | <img src="docs/images/invisible-ink-hachure.png" width="380" alt="Invisible ink with hachures"> |
+| **Highlighter**<br>`highlighter_theme`<br><br>Fluorescent highlighters over notes in black pen. | <img src="docs/images/highlighter.png" width="380" alt="Highlighter"> | <img src="docs/images/highlighter-hachure.png" width="380" alt="Highlighter with hachures"> |
 
 The images are the window of [`Examples/Integration`](Examples/Integration), rendered by
 [`tools/screenshots`](tools/screenshots/ThemeScreenshots.cpp):
@@ -266,25 +265,25 @@ endif()
 
 ## API overview
 
-All of hpq is in the namespace `hpq`.
+All of hpq is in the namespace `hpq`, and `<hpq/Hpq.h>` includes all of it.
 
-- **Themes**: `sketch_theme`, `china_ink_theme`, `slate_theme`, `notebook_theme`,
-  `velleda_theme`, `watercolor_theme`, `blueprint_theme`, `invisible_ink_theme` and
-  `highlighter_theme` each return a `Theme`.
-- **`apply_theme(window, theme, geometry_engine)`** and **`remove_theme(window)`**
-  (`<hpq/Theming.h>`): theme a window and its widgets, or give them back their look. A theme is
-  a palette and a font, a `HandPaintStyle` on each widget and a `HandPaintEffect` on the window.
-- **`WindowTheming`** (`<hpq/WindowTheming.h>`): the event filter that themes the menus,
-  dialogs and tooltips of the application.
-- **`Theme`** (`<hpq/Theme.h>`): make a theme of your own from a `QPalette`, a `QFont`,
-  `RoughOptions` (roughness, number of strokes, largest offset, gap and angle of the hachures),
-  a `FillStyle`, a `Medium` (`Pencil`, `Chalk`, `Ink` or `Watercolor`), a `TextInk` (`Visible`
-  or `Invisible`) and the marker of the labels. `with_antialiasing_mode` gives the same theme
-  with another `AntialiasingMode` (`Always`, `OnlyWhenAsked` or `Never`).
-- **`GeometryEngine`** and **`RoughGeometryEngine`** (`<hpq/RoughGeometryEngine.h>`): how
-  shapes are made rough. `RoughGeometryEngine()` takes a random seed, each engine has its own
-  hand; `RoughGeometryEngine(seed)` draws the same paths every time. Derive from
-  `GeometryEngine` for another look.
+- **Themes** (`<hpq/Themes.h>`): `sketch_theme`, `china_ink_theme`, `slate_theme`,
+  `notebook_theme`, `velleda_theme`, `watercolor_theme`, `blueprint_theme`,
+  `invisible_ink_theme` and `highlighter_theme` each return a `Theme`.
+- **`apply_theme(window, theme)`** and **`remove_theme(window)`** (`<hpq/Theming.h>`): theme a
+  window and its widgets, or give them back their look. A theme is a palette and a font, a
+  `HandPaintStyle` on each widget and a `HandPaintEffect` on the window.
+- **`WindowTheming`** (`<hpq/Theming.h>`): the event filter that themes the menus, dialogs and
+  tooltips of the application.
+- **`Theme`** (`<hpq/Theme.h>`): a struct, to change a theme or to make one of your own. Its
+  fields are a `QPalette`, a `QFont`, `RoughOptions` (roughness, number of strokes, largest
+  offset, gap and angle of the hachures, and the seed of the hand), a `FillStyle`, a `Medium`
+  (`Pencil`, `Chalk`, `Ink` or `Watercolor`), a `TextInk` (`Visible` or `Invisible`), the
+  marker of the labels and an `AntialiasingMode` (`Always`, `OnlyWhenAsked` or `Never`).
+- **`rough_outline`**, **`rough_frame_outline`**, **`rough_fill_area`** and **`rough_hachure`**
+  (`<hpq/RoughGeometry.h>`): how shapes are made rough, as four functions of a shape, of
+  `RoughOptions` and of the seed of the shape. The same `RoughOptions::seed` draws the same
+  paths every time: it is 0 unless you give a theme another one.
 - **`HandPaintDevice`** (`<hpq/HandPaintDevice.h>`): hand-paint what a `QPainter` draws,
   outside of the widgets, on a `QImage` for instance:
 
@@ -292,9 +291,7 @@ All of hpq is in the namespace `hpq`.
   QImage image(400, 300, QImage::Format_ARGB32_Premultiplied);
   image.fill(Qt::white);
   QPainter target(&image);
-  const hpq::Theme theme = hpq::sketch_theme();
-  const hpq::RoughGeometryEngine geometry_engine;
-  hpq::HandPaintDevice device(target, theme, geometry_engine);
+  hpq::HandPaintDevice device(target, hpq::sketch_theme());
   QPainter painter(&device);
   painter.drawEllipse(50, 50, 300, 200);
   ```

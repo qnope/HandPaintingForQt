@@ -2,8 +2,6 @@
 
 #include "StrokeRibbon.h"
 
-#include <hpq/Medium.h>
-#include <hpq/RoughOptions.h>
 #include <hpq/Theme.h>
 
 #include <QPaintEngine>
@@ -64,7 +62,7 @@ bool is_thin(const QPen &pen, const QPainter &target) {
 }  // namespace
 
 StrokeTool stroke_tool(const QPen &pen, StrokeKind kind, const Theme &theme, const QPainter &target) {
-    const Medium medium = theme.medium();
+    const Medium medium = theme.medium;
     const bool is_outline = kind == StrokeKind::Outline;
     const bool is_chalk = medium == Medium::Chalk;
     const bool is_watercolor = medium == Medium::Watercolor;
@@ -93,7 +91,7 @@ StrokeTool stroke_tool(const QPen &pen, StrokeKind kind, const Theme &theme, con
     // Hachures stay inside their shape: they get no margin.
     tool.widest = tool.width * (is_chalk ? ChalkWidestPressure : is_brush ? BrushWidestPressure : 1.0);
     tool.system_clip_margin =
-        is_outline ? static_cast<int>(std::ceil(theme.rough_options().max_offset + tool.widest)) : 0;
+        is_outline ? static_cast<int>(std::ceil(theme.rough_options.max_offset + tool.widest)) : 0;
     return tool;
 }
 

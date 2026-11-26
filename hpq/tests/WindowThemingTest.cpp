@@ -1,11 +1,7 @@
 #include <hpq/HandPaintEffect.h>
 #include <hpq/HandPaintStyle.h>
-#include <hpq/HighlighterTheme.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/WindowTheming.h>
 
 #include <gtest/gtest.h>
 
@@ -22,17 +18,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <cstdint>
-#include <memory>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
-
-std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
-    return std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed);
-}
 
 bool has_hand_paint_effect(const QWidget &widget) {
     return qobject_cast<hpq::HandPaintEffect *>(widget.graphicsEffect()) != nullptr;
@@ -41,8 +27,8 @@ bool has_hand_paint_effect(const QWidget &widget) {
 // True when `window` has the look of `theme`: its palette, its font, a HandPaintStyle on it and
 // on its descendants, and a HandPaintEffect of its own.
 bool has_look_of(const QWidget &window, const hpq::Theme &theme) {
-    if (!has_hand_paint_effect(window) || window.palette() != theme.palette() ||
-        window.font().family() != theme.font().family() || !qobject_cast<hpq::HandPaintStyle *>(window.style())) {
+    if (!has_hand_paint_effect(window) || window.palette() != theme.palette ||
+        window.font().family() != theme.font.family() || !qobject_cast<hpq::HandPaintStyle *>(window.style())) {
         return false;
     }
     for (const QWidget *descendant : window.findChildren<QWidget *>()) {
@@ -118,7 +104,7 @@ void hide_tool_tip() {
 // A WindowTheming of `theme` installed on the application while it lives.
 class InstalledWindowTheming {
 public:
-    explicit InstalledWindowTheming(const hpq::Theme &theme) : m_window_theming(theme, rough_geometry_engine()) {
+    explicit InstalledWindowTheming(const hpq::Theme &theme) : m_window_theming(theme) {
         QApplication::instance()->installEventFilter(&m_window_theming);
     }
     ~InstalledWindowTheming() { QApplication::instance()->removeEventFilter(&m_window_theming); }
@@ -135,7 +121,7 @@ private:
 // the style that apply_theme gives to every descendant.
 TEST(WindowThemingTest, WithoutItAMenuHasNeitherThePaletteNorTheEffectOfTheTheme) {
     WindowWithMenu window_with_menu;
-    hpq::apply_theme(window_with_menu.window(), hpq::slate_theme(), rough_geometry_engine());
+    hpq::apply_theme(window_with_menu.window(), hpq::slate_theme());
 
     const QMenu &menu = window_with_menu.open_menu();
 
@@ -252,8 +238,8 @@ TEST(WindowThemingTest, DialogTakesTheTheme) {
     QApplication::processEvents();
 
     EXPECT_TRUE(has_look_of(dialog, theme));
-    EXPECT_EQ(dialog.label().property(hpq::HandPaintStyle::LabelMarkerProperty), QVariant(theme.label_marker()));
-    EXPECT_EQ(dialog.list().palette(), theme.palette());
+    EXPECT_EQ(dialog.label().property(hpq::HandPaintStyle::LabelMarkerProperty), QVariant(theme.label_marker));
+    EXPECT_EQ(dialog.list().palette(), theme.palette);
     EXPECT_TRUE(has_hand_paint_effect(*dialog.list().window()));
     EXPECT_TRUE(has_look_of(dialog.menu(), theme));
 }

@@ -1,5 +1,5 @@
 #include <hpq/HandPaintStyle.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 

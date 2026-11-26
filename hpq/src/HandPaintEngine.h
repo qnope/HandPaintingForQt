@@ -5,6 +5,7 @@
 
 #include <hpq/FwdDecls.h>
 #include <hpq/PaintCache.h>
+#include <hpq/Theme.h>
 
 #include <QBrush>
 #include <QPaintEngine>
@@ -21,13 +22,13 @@ class QPainter;
 namespace hpq {
 
 // Paint engine that draws each primitive it receives on a target QPainter,
-// changed by a GeometryEngine and drawn as a Theme says.
+// made rough (hpq/RoughGeometry.h) and drawn as a Theme says.
 // It smooths the lines and the fills where the AntialiasingMode of the theme says: by default
 // all of them, as if the painter had the Antialiasing hint. It writes the text in the font of
 // the theme, bold or italic when the font of the painter is.
 // With a cache, it keeps there the rough paths and the washes that it makes, and takes them
 // back when it draws the same shape again: the drawing is the same, made faster. The cache
-// must serve this theme and this geometry engine only, and outlive the engine.
+// must serve this theme only, and outlive the engine.
 // A shape, a text or an image that would land out of what the target can paint (its clip, and
 // the area that Qt repaints) is not drawn: a repaint of a part of a window draws only the
 // shapes close to that part.
@@ -37,7 +38,7 @@ namespace hpq {
 class HandPaintEngine : public QPaintEngine {
 public:
     // `cache` is null when the rough paths and the washes are made at each drawing.
-    HandPaintEngine(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine, PaintCache *cache);
+    HandPaintEngine(QPainter &target, const Theme &theme, PaintCache *cache);
 
     bool begin(QPaintDevice *device) override;
     bool end() override;
@@ -142,14 +143,14 @@ private:
     void follow_device_painter_in_logical_coordinates();
 
     QPainter &m_target;
-    const Theme &m_theme;
-    const GeometryEngine &m_geometry_engine;
+    // Its own: the theme that the device was made with may not live as long.
+    const Theme m_theme;
     // Where the paths and washes made for a shape are kept; null when they are made at each drawing.
     PaintCache *m_cache;
     QPen m_pen;
     QBrush m_brush;
     // The device painter's world transform: shapes are mapped by it to device coordinates
-    // before the geometry engine deforms them, so that max_offset stays in device pixels.
+    // before they are made rough, so that max_offset stays in device pixels.
     QTransform m_transform;
     // Where the content of the shape being drawn starts on the device.
     QPointF m_origin;

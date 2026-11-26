@@ -1,4 +1,4 @@
-#include <hpq/WatercolorTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -40,7 +40,7 @@ double contrast(const QPalette &palette, QPalette::ColorGroup group, QPalette::C
 }  // namespace
 
 TEST(WatercolorTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::watercolor_theme().palette();
+    const QPalette palette = hpq::watercolor_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -55,7 +55,7 @@ TEST(WatercolorTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(WatercolorTheme, PaletteIsDarkPaintOnAWhitePaper) {
-    const QPalette palette = hpq::watercolor_theme().palette();
+    const QPalette palette = hpq::watercolor_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base, QPalette::Button}) {
         EXPECT_GT(palette.color(QPalette::Active, role).lightness(), 235) << "role " << role;
@@ -66,7 +66,7 @@ TEST(WatercolorTheme, PaletteIsDarkPaintOnAWhitePaper) {
 }
 
 TEST(WatercolorTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::watercolor_theme().palette();
+    const QPalette palette = hpq::watercolor_theme().palette;
 
     const double active_contrast = contrast(palette, QPalette::Active, QPalette::WindowText, QPalette::Window);
     EXPECT_GE(active_contrast, 4.5);
@@ -77,7 +77,7 @@ TEST(WatercolorTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 // a selection is the dark paint of any other text, on a wash light enough to read it.
 TEST(WatercolorTheme, SelectionIsALightWashOfBlueUnderTheDarkPaintOfTheText) {
     for (const hpq::FillStyle fill_style : {hpq::FillStyle::Solid, hpq::FillStyle::Hachure}) {
-        const QPalette palette = hpq::watercolor_theme(fill_style).palette();
+        const QPalette palette = hpq::watercolor_theme(fill_style).palette;
 
         const QColor selection = palette.color(QPalette::Active, QPalette::Highlight);
         EXPECT_GT(selection.blue(), selection.red());
@@ -94,7 +94,7 @@ TEST(WatercolorTheme, SelectionIsALightWashOfBlueUnderTheDarkPaintOfTheText) {
 // Under the darken composition of a wash, a color that is lighter than the paper in a channel
 // would not show as it is.
 TEST(WatercolorTheme, WashesAreNotLighterThanThePaperInAnyChannel) {
-    const QPalette palette = hpq::watercolor_theme().palette();
+    const QPalette palette = hpq::watercolor_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         const QColor paper = palette.color(group, QPalette::Window);
@@ -108,7 +108,7 @@ TEST(WatercolorTheme, WashesAreNotLighterThanThePaperInAnyChannel) {
 }
 
 TEST(WatercolorTheme, TextIsReadableOnTheWashOfAnAlternateRow) {
-    const QPalette palette = hpq::watercolor_theme().palette();
+    const QPalette palette = hpq::watercolor_theme().palette;
 
     EXPECT_GE(contrast(palette, QPalette::Active, QPalette::Text, QPalette::AlternateBase), 4.5);
 }
@@ -116,19 +116,19 @@ TEST(WatercolorTheme, TextIsReadableOnTheWashOfAnAlternateRow) {
 TEST(WatercolorTheme, DrawsWithWatercolorInOneStroke) {
     const hpq::Theme theme = hpq::watercolor_theme();
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Watercolor);
-    EXPECT_EQ(theme.rough_options().stroke_count, 1);
+    EXPECT_EQ(theme.medium, hpq::Medium::Watercolor);
+    EXPECT_EQ(theme.rough_options.stroke_count, 1);
 }
 
 TEST(WatercolorTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::watercolor_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::watercolor_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
-    EXPECT_EQ(hpq::watercolor_theme(hpq::FillStyle::Hachure).medium(), hpq::Medium::Watercolor);
+    EXPECT_EQ(hpq::watercolor_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::watercolor_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::watercolor_theme(hpq::FillStyle::Hachure).medium, hpq::Medium::Watercolor);
 }
 
 TEST(WatercolorTheme, FontIsArchitectsDaughterRegisteredInFontDatabase) {
     const hpq::Theme theme = hpq::watercolor_theme();
 
-    EXPECT_EQ(theme.font().family(), FontFamily);
+    EXPECT_EQ(theme.font.family(), FontFamily);
     EXPECT_TRUE(QFontDatabase::families().contains(FontFamily));
 }

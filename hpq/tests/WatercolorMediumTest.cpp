@@ -2,9 +2,7 @@
 #include "RecordingPaintDevice.h"
 
 #include <hpq/HandPaintDevice.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/WatercolorTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -13,13 +11,9 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <functional>
 
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -40,8 +34,7 @@ using Draw = std::function<void(QPainter &)>;
 // of the hand, in its own painting session.
 void draw_exactly(QPainter &target_painter, const hpq::Theme &theme, const Draw &draw) {
     const hpq::Theme exact_theme = hpq::test::exact(theme);
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
-    hpq::HandPaintDevice device(target_painter, exact_theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, exact_theme);
     QPainter painter(&device);
     draw(painter);
     painter.end();
@@ -60,7 +53,7 @@ std::vector<DrawCall> watercolor_calls(const Draw &draw) {
 }
 
 QColor paper_color() {
-    return hpq::watercolor_theme().palette().color(QPalette::Active, QPalette::Window);
+    return hpq::watercolor_theme().palette.color(QPalette::Active, QPalette::Window);
 }
 
 // What `draw` leaves on a sheet of the paper of the watercolor theme, 200 pixels wide and high.
@@ -468,10 +461,9 @@ TEST(WatercolorMedium, HatchedFillIsThePaperUnderBrushLines) {
 TEST(WatercolorMedium, HachuresAreLinesInTheColorOfTheBrush) {
     // Horizontal hachures, 10 pixels apart, on a grid that starts at the origin: they go through
     // the rectangle at 65, 75, 85 and 95 pixels from the top of the sheet.
-    hpq::RoughOptions options = hpq::watercolor_theme().rough_options();
-    options.hachure_angle = 0.0;
-    options.hachure_gap = 10.0;
-    const hpq::Theme theme = hpq::test::with_rough_options(hpq::watercolor_theme(hpq::FillStyle::Hachure), options);
+    hpq::Theme theme = hpq::watercolor_theme(hpq::FillStyle::Hachure);
+    theme.rough_options.hachure_angle = 0.0;
+    theme.rough_options.hachure_gap = 10.0;
     QImage sheet(RecordingPaintDevice::Size, RecordingPaintDevice::Size, QImage::Format_ARGB32_Premultiplied);
     sheet.fill(Qt::black);
     QPainter target_painter(&sheet);

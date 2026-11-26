@@ -1,15 +1,7 @@
 #include "GalleryWindow.h"
 
-#include <hpq/BlueprintTheme.h>
-#include <hpq/ChinaInkTheme.h>
-#include <hpq/HighlighterTheme.h>
-#include <hpq/InvisibleInkTheme.h>
-#include <hpq/NotebookTheme.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/VelledaTheme.h>
-#include <hpq/WatercolorTheme.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -153,9 +145,9 @@ QTabWidget *create_tabs() {
 
 }  // namespace
 
-GalleryWindow::GalleryWindow(std::shared_ptr<const hpq::GeometryEngine> geometry_engine, QWidget *parent)
+GalleryWindow::GalleryWindow(std::uint32_t seed, QWidget *parent)
     : QWidget(parent)
-    , m_geometry_engine(std::move(geometry_engine))
+    , m_seed(seed)
     , m_theme_box(new QComboBox)
     , m_hachure_box(new QCheckBox("Hachures")) {
     setWindowTitle("Hand Painting for Qt");
@@ -202,14 +194,15 @@ GalleryWindow::GalleryWindow(std::shared_ptr<const hpq::GeometryEngine> geometry
 
 void GalleryWindow::update_theme() {
     const hpq::FillStyle fill_style = m_hachure_box->isChecked() ? hpq::FillStyle::Hachure : hpq::FillStyle::Solid;
-    const hpq::Theme theme = Themes[m_theme_box->currentIndex()].make(fill_style);
+    hpq::Theme theme = Themes[m_theme_box->currentIndex()].make(fill_style);
+    theme.rough_options.seed = m_seed;
 
     // The window and every widget in it.
-    hpq::apply_theme(*this, theme, m_geometry_engine);
+    hpq::apply_theme(*this, theme);
 
     // Menus, dialogs and tooltips are windows of their own: an event filter on the application
     // gives them the theme when they open. It replaces the filter of the previous theme.
-    m_window_theming.emplace(theme, m_geometry_engine);
+    m_window_theming.emplace(theme);
     QApplication::instance()->installEventFilter(&*m_window_theming);
 }
 

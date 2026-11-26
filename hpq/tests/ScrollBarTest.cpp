@@ -1,6 +1,6 @@
 #include "StyleRendering.h"
 
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -81,7 +81,7 @@ std::map<Direction, int> render_scroll_bar(Qt::Orientation orientation, bool &dr
     }
     const std::vector<DrawCall> calls = hpq::test::render_with_style(scroll_bar);
     drew_image = hpq::test::has_image(calls);
-    return arrow_counts(calls, hpq::sketch_theme().palette());
+    return arrow_counts(calls, hpq::sketch_theme().palette);
 }
 
 // A color no theme has but for its buttons.
@@ -111,7 +111,7 @@ bool draws_in_green(const DrawCall &call) {
 
 // The groove and the handle are not buttons: only the 2 line buttons take the Button color.
 TEST(ScrollBarTest, OnlyTheLineButtonsAreInTheButtonColor) {
-    QPalette palette = hpq::sketch_theme().palette();
+    QPalette palette = hpq::sketch_theme().palette;
     palette.setColor(QPalette::Button, ButtonGreen);
     for (const Qt::Orientation orientation : {Qt::Horizontal, Qt::Vertical}) {
         QScrollBar scroll_bar(orientation);

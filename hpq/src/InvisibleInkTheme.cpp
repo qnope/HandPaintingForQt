@@ -1,4 +1,4 @@
-#include <hpq/InvisibleInkTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -37,8 +37,12 @@ PaletteColors invisible_ink_colors(bool is_disabled, FillStyle fill_style) {
 }  // namespace
 
 Theme invisible_ink_theme(FillStyle fill_style) {
-    return Theme(make_palette(invisible_ink_colors(false, fill_style), invisible_ink_colors(true, fill_style)),
-                 QFont(hand_font_family()), RoughOptions{}, fill_style, Medium::Pencil, TextInk::Invisible);
+    Theme theme;
+    theme.palette = make_palette(invisible_ink_colors(false, fill_style), invisible_ink_colors(true, fill_style));
+    theme.font = QFont(hand_font_family());
+    theme.fill_style = fill_style;
+    theme.text_ink = TextInk::Invisible;
+    return theme;
 }
 
 }  // namespace hpq

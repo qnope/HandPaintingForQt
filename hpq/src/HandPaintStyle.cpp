@@ -219,7 +219,7 @@ void draw_label_marker(const QLabel &label, QPainter &painter) {
 // repaints only the rectangles of the entries a highlight leaves and reaches: what went past
 // them would stay on the screen.
 int highlight_overflow(const Theme &theme) {
-    return static_cast<int>(std::ceil(2.0 * theme.rough_options().max_offset));
+    return static_cast<int>(std::ceil(2.0 * theme.rough_options.max_offset));
 }
 
 // Fusion caches the groove and the handle in pixmaps: draw them as flat shapes instead,

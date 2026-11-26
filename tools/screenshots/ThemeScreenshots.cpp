@@ -6,11 +6,9 @@
 // Writes <theme>.png and <theme>-hachure.png in the directory for the themes sketch,
 // china-ink, slate, notebook, velleda, watercolor, blueprint, invisible-ink and highlighter,
 // and themes.png, the nine solid images side by side.
-// The geometry engine has a fixed base seed: the same code draws the same images.
+// The themes have a fixed seed: the same code draws the same images.
 
 #include "GalleryWindow.h"
-
-#include <hpq/RoughGeometryEngine.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -24,7 +22,6 @@
 
 #include <cstdint>
 #include <iterator>
-#include <memory>
 #include <vector>
 
 namespace {
@@ -97,7 +94,7 @@ int main(int argc, char *argv[]) {
         return 2;
     }
 
-    hpq::gallery::GalleryWindow window(std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+    hpq::gallery::GalleryWindow window(BaseSeed);
     window.resize(size[0].toInt(), size[1].toInt());
     window.show();
     auto *theme_box = window.findChild<QComboBox *>("themeBox");

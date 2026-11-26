@@ -1,7 +1,5 @@
 #include <hpq/HandPaintEffect.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -14,17 +12,7 @@
 #include <QPalette>
 #include <QWidget>
 
-#include <cstdint>
-#include <memory>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
-
-std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
-    return std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed);
-}
 
 // Where the color of a list is read: this far from its right and bottom edges, in pixels.
 constexpr int RightMargin = 10;
@@ -64,10 +52,10 @@ protected:
 TEST_F(ComboBoxListThemeTest, ApplyThemeSetsThePaletteOnTheList) {
     const hpq::Theme theme = hpq::slate_theme();
 
-    hpq::apply_theme(m_window, theme, rough_geometry_engine());
+    hpq::apply_theme(m_window, theme);
 
     EXPECT_TRUE(list().testAttribute(Qt::WA_SetPalette));
-    EXPECT_EQ(list().palette(), theme.palette());
+    EXPECT_EQ(list().palette(), theme.palette);
 }
 
 // A style that shows the list as a menu draws its entries with the application palette for
@@ -75,15 +63,15 @@ TEST_F(ComboBoxListThemeTest, ApplyThemeSetsThePaletteOnTheList) {
 TEST_F(ComboBoxListThemeTest, ListIsDrawnInTheColorsOfTheTheme) {
     const hpq::Theme theme = hpq::slate_theme();
 
-    hpq::apply_theme(m_window, theme, rough_geometry_engine());
+    hpq::apply_theme(m_window, theme);
 
     const QColor background = list_background();
     ASSERT_TRUE(background.isValid());
-    EXPECT_EQ(background, theme.palette().color(QPalette::Active, QPalette::Window));
+    EXPECT_EQ(background, theme.palette.color(QPalette::Active, QPalette::Window));
 }
 
 TEST_F(ComboBoxListThemeTest, ApplyThemeGivesTheWindowOfTheListItsOwnEffect) {
-    hpq::apply_theme(m_window, hpq::slate_theme(), rough_geometry_engine());
+    hpq::apply_theme(m_window, hpq::slate_theme());
 
     ASSERT_NE(list().window(), &m_window);
     EXPECT_TRUE(has_hand_paint_effect(*list().window()));
@@ -91,17 +79,17 @@ TEST_F(ComboBoxListThemeTest, ApplyThemeGivesTheWindowOfTheListItsOwnEffect) {
 }
 
 TEST_F(ComboBoxListThemeTest, AnotherThemeReplacesThePaletteOfTheList) {
-    hpq::apply_theme(m_window, hpq::sketch_theme(), rough_geometry_engine());
-    hpq::apply_theme(m_window, hpq::slate_theme(), rough_geometry_engine());
+    hpq::apply_theme(m_window, hpq::sketch_theme());
+    hpq::apply_theme(m_window, hpq::slate_theme());
 
-    EXPECT_EQ(list().palette(), hpq::slate_theme().palette());
+    EXPECT_EQ(list().palette(), hpq::slate_theme().palette);
     EXPECT_TRUE(has_hand_paint_effect(*list().window()));
 }
 
 TEST_F(ComboBoxListThemeTest, RemoveThemeTakesThePaletteAndTheEffectOffTheList) {
     const QColor background_before = list_background();
     ASSERT_TRUE(background_before.isValid());
-    hpq::apply_theme(m_window, hpq::slate_theme(), rough_geometry_engine());
+    hpq::apply_theme(m_window, hpq::slate_theme());
 
     hpq::remove_theme(m_window);
 
@@ -115,7 +103,7 @@ TEST_F(ComboBoxListThemeTest, RemoveThemeGivesBackThePaletteSetOnTheList) {
     own_palette.setColor(QPalette::Base, Qt::darkGreen);
     list().setPalette(own_palette);
     const QPalette palette_before = list().palette();
-    hpq::apply_theme(m_window, hpq::slate_theme(), rough_geometry_engine());
+    hpq::apply_theme(m_window, hpq::slate_theme());
 
     hpq::remove_theme(m_window);
 

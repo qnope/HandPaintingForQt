@@ -1,4 +1,4 @@
-#include <hpq/ChinaInkTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -41,8 +41,13 @@ constexpr RoughOptions BrushRoughOptions{1.0, 1, 1.5, 5.0};
 }  // namespace
 
 Theme china_ink_theme(FillStyle fill_style) {
-    return Theme(make_palette(china_ink_colors(false, fill_style), china_ink_colors(true, fill_style)),
-                 QFont(brush_font_family()), BrushRoughOptions, fill_style, Medium::Ink);
+    Theme theme;
+    theme.palette = make_palette(china_ink_colors(false, fill_style), china_ink_colors(true, fill_style));
+    theme.font = QFont(brush_font_family());
+    theme.rough_options = BrushRoughOptions;
+    theme.fill_style = fill_style;
+    theme.medium = Medium::Ink;
+    return theme;
 }
 
 }  // namespace hpq

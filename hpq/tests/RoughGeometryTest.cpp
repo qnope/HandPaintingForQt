@@ -1,4 +1,4 @@
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/RoughGeometry.h>
 
 #include <QLineF>
 #include <QPainterPath>
@@ -16,8 +16,8 @@
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
+// The seed of the hand: the tests draw the same paths at every run.
+constexpr std::uint32_t HandSeed = 2024;
 
 QPainterPath line_path(QPointF from, QPointF to)
 {
@@ -55,23 +55,26 @@ hpq::RoughOptions rough_options(double roughness)
     options.roughness = roughness;
     options.stroke_count = 2;
     options.max_offset = 5.0;
+    options.seed = HandSeed;
     return options;
 }
 
 std::vector<QPainterPath> rough_line_outline(double roughness, std::uint32_t seed)
 {
-    const hpq::RoughGeometryEngine engine(BaseSeed);
-    return engine.outline(line_path({0, 0}, {100, 0}), rough_options(roughness), seed);
+    return hpq::rough_outline(line_path({0, 0}, {100, 0}), rough_options(roughness), seed);
 }
 
 const QPointF LineStart(0, 0);
 const QPointF LineEnd(100, 0);
 
-// The first stroke that `engine` draws for the line, with a seed that is the same for every engine.
-QPainterPath first_line_stroke(const hpq::RoughGeometryEngine &engine)
+// The first stroke that the hand of `hand_seed` draws for the line, with a seed of the shape
+// that is the same for every hand.
+QPainterPath first_line_stroke(std::uint32_t hand_seed)
 {
     constexpr std::uint32_t seed = 42;
-    return engine.outline(line_path(LineStart, LineEnd), rough_options(1.0), seed).at(0);
+    hpq::RoughOptions options = rough_options(1.0);
+    options.seed = hand_seed;
+    return hpq::rough_outline(line_path(LineStart, LineEnd), options, seed).at(0);
 }
 
 bool differ(const QPainterPath &first, const QPainterPath &second)
@@ -90,7 +93,7 @@ const double RoundingTolerance = 1e-9;
 
 }  // namespace
 
-TEST(RoughGeometryEngine, LineOutlineHasStrokeCountStrokesNearTheSegment)
+TEST(RoughGeometry, LineOutlineHasStrokeCountStrokesNearTheSegment)
 {
     const double max_offset = 5.0;
     const std::vector<QPainterPath> strokes = rough_line_outline(1.0, 42);
@@ -105,7 +108,7 @@ TEST(RoughGeometryEngine, LineOutlineHasStrokeCountStrokesNearTheSegment)
     }
 }
 
-TEST(RoughGeometryEngine, DifferentSeedsGiveDifferentLineOutlines)
+TEST(RoughGeometry, DifferentSeedsGiveDifferentLineOutlines)
 {
     const QPainterPath first = rough_line_outline(1.0, 1).at(0);
     const QPainterPath second = rough_line_outline(1.0, 2).at(0);
@@ -113,40 +116,30 @@ TEST(RoughGeometryEngine, DifferentSeedsGiveDifferentLineOutlines)
     EXPECT_TRUE(differ(first, second));
 }
 
-TEST(RoughGeometryEngine, EnginesWithTheSameBaseSeedGiveTheSameLineOutline)
+// A repaint asks for the same shape again: the drawing must not change.
+TEST(RoughGeometry, TheSameHandGivesTheSameLineOutlineEveryTime)
 {
-    const QPainterPath first = first_line_stroke(hpq::RoughGeometryEngine(BaseSeed));
-    const QPainterPath second = first_line_stroke(hpq::RoughGeometryEngine(BaseSeed));
+    const QPainterPath first = first_line_stroke(HandSeed);
+    const QPainterPath second = first_line_stroke(HandSeed);
 
     EXPECT_FALSE(differ(first, second));
 }
 
-TEST(RoughGeometryEngine, EnginesWithDifferentBaseSeedsGiveDifferentLineOutlines)
+TEST(RoughGeometry, AnotherHandGivesAnotherLineOutline)
 {
-    const QPainterPath first = first_line_stroke(hpq::RoughGeometryEngine(BaseSeed));
-    const QPainterPath second = first_line_stroke(hpq::RoughGeometryEngine(BaseSeed + 1));
+    const QPainterPath first = first_line_stroke(HandSeed);
+    const QPainterPath second = first_line_stroke(HandSeed + 1);
 
     EXPECT_TRUE(differ(first, second));
 }
 
-// A repaint asks the engine for the same shape again: the drawing must not change.
-TEST(RoughGeometryEngine, RandomlySeededEngineGivesTheSameLineOutlineEveryTime)
+// Unless an application chooses another one, the hand is the same at every run.
+TEST(RoughGeometry, TheSeedOfTheHandIsZeroByDefault)
 {
-    const hpq::RoughGeometryEngine engine;
-
-    EXPECT_FALSE(differ(first_line_stroke(engine), first_line_stroke(engine)));
+    EXPECT_EQ(hpq::RoughOptions().seed, 0u);
 }
 
-// Each default engine takes its base seed from std::random_device.
-TEST(RoughGeometryEngine, RandomlySeededEnginesGiveDifferentLineOutlines)
-{
-    const QPainterPath first = first_line_stroke(hpq::RoughGeometryEngine());
-    const QPainterPath second = first_line_stroke(hpq::RoughGeometryEngine());
-
-    EXPECT_TRUE(differ(first, second));
-}
-
-TEST(RoughGeometryEngine, ZeroRoughnessKeepsTheLineGeometry)
+TEST(RoughGeometry, ZeroRoughnessKeepsTheLineGeometry)
 {
     const double tolerance = 0.01;
     const std::vector<QPainterPath> strokes = rough_line_outline(0.0, 42);
@@ -162,9 +155,8 @@ TEST(RoughGeometryEngine, ZeroRoughnessKeepsTheLineGeometry)
 }
 
 // A hand that does not wobble draws the shape itself: its curves are not cut into lines.
-TEST(RoughGeometryEngine, WithoutWobbleThePathsAreTheShapeItself)
+TEST(RoughGeometry, WithoutWobbleThePathsAreTheShapeItself)
 {
-    const hpq::RoughGeometryEngine engine(BaseSeed);
     QPainterPath shape;
     shape.addEllipse(QRectF(10, 20, 80, 40));
     hpq::RoughOptions without_roughness = rough_options(0.0);
@@ -174,9 +166,9 @@ TEST(RoughGeometryEngine, WithoutWobbleThePathsAreTheShapeItself)
 
     for (const hpq::RoughOptions &options : {without_roughness, without_offset}) {
         const std::vector<QPainterPath> strokes(static_cast<std::size_t>(options.stroke_count), shape);
-        EXPECT_EQ(engine.outline(shape, options, 42), strokes);
-        EXPECT_EQ(engine.frame_outline(shape, options, 42), strokes);
-        EXPECT_EQ(engine.fill_area(shape, options, 42), shape);
+        EXPECT_EQ(hpq::rough_outline(shape, options, 42), strokes);
+        EXPECT_EQ(hpq::rough_frame_outline(shape, options, 42), strokes);
+        EXPECT_EQ(hpq::rough_fill_area(shape, options, 42), shape);
     }
 }
 
@@ -240,7 +232,7 @@ TEST_P(ClosedShapeOutline, StrokesLookClosedAndStayNearTheShape)
     const QRectF allowed_area = shape.boundingRect().adjusted(-max_offset, -max_offset, max_offset, max_offset);
 
     for (std::uint32_t seed : {1u, 42u, 1234u}) {
-        const std::vector<QPainterPath> strokes = hpq::RoughGeometryEngine(BaseSeed).outline(shape, rough_options(1.0), seed);
+        const std::vector<QPainterPath> strokes = hpq::rough_outline(shape, rough_options(1.0), seed);
 
         ASSERT_EQ(2u, strokes.size());
         for (const QPainterPath &stroke : strokes) {
@@ -254,7 +246,7 @@ TEST_P(ClosedShapeOutline, StrokesLookClosedAndStayNearTheShape)
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(RoughGeometryEngine, ClosedShapeOutline,
+INSTANTIATE_TEST_SUITE_P(RoughGeometry, ClosedShapeOutline,
                          ::testing::Values(NamedShape{"Rectangle", rectangle_path()},
                                            NamedShape{"Ellipse", ellipse_path()},
                                            NamedShape{"Triangle", triangle_path()},
@@ -276,7 +268,7 @@ QPainterPath open_cubic_path()
 
 }  // namespace
 
-TEST(RoughGeometryEngine, OpenCubicOutlineStaysOpen)
+TEST(RoughGeometry, OpenCubicOutlineStaysOpen)
 {
     const double max_offset = 5.0;
     const QPointF start = OpenCubicStart;
@@ -284,7 +276,7 @@ TEST(RoughGeometryEngine, OpenCubicOutlineStaysOpen)
     const QPainterPath curve = open_cubic_path();
 
     for (std::uint32_t seed : {1u, 42u, 1234u}) {
-        const std::vector<QPainterPath> strokes = hpq::RoughGeometryEngine(BaseSeed).outline(curve, rough_options(1.0), seed);
+        const std::vector<QPainterPath> strokes = hpq::rough_outline(curve, rough_options(1.0), seed);
 
         ASSERT_EQ(2u, strokes.size());
         for (const QPainterPath &stroke : strokes) {
@@ -343,14 +335,14 @@ TEST_P(SmoothOutline, StrokesTurnAlmostAsGentlyAsTheShape)
     const double shape_turn = max_turning_angle(shape);
 
     for (std::uint32_t seed : {1u, 42u, 1234u, 12345u}) {
-        const std::vector<QPainterPath> strokes = hpq::RoughGeometryEngine(BaseSeed).outline(shape, rough_options(1.0), seed);
+        const std::vector<QPainterPath> strokes = hpq::rough_outline(shape, rough_options(1.0), seed);
 
         for (const QPainterPath &stroke : strokes)
             EXPECT_LE(max_turning_angle(stroke), shape_turn + allowed_extra_turn) << "seed " << seed;
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(RoughGeometryEngine, SmoothOutline,
+INSTANTIATE_TEST_SUITE_P(RoughGeometry, SmoothOutline,
                          ::testing::Values(NamedShape{"Line", line_path(LineStart, LineEnd)},
                                            NamedShape{"Rectangle", rectangle_path()},
                                            NamedShape{"Ellipse", ellipse_path()},

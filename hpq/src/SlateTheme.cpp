@@ -1,4 +1,4 @@
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -31,8 +31,13 @@ constexpr RoughOptions ChalkRoughOptions{1.0, 1, 1.5};
 }  // namespace
 
 Theme slate_theme(FillStyle fill_style) {
-    return Theme(make_palette(slate_colors(false), slate_colors(true)), QFont(hand_font_family()),
-                 ChalkRoughOptions, fill_style, Medium::Chalk);
+    Theme theme;
+    theme.palette = make_palette(slate_colors(false), slate_colors(true));
+    theme.font = QFont(hand_font_family());
+    theme.rough_options = ChalkRoughOptions;
+    theme.fill_style = fill_style;
+    theme.medium = Medium::Chalk;
+    return theme;
 }
 
 }  // namespace hpq

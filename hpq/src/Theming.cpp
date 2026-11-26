@@ -5,6 +5,7 @@
 
 #include <QAbstractItemView>
 #include <QComboBox>
+#include <QEvent>
 #include <QFont>
 #include <QLabel>
 #include <QPalette>
@@ -133,25 +134,23 @@ SavedLook &saved_look_of(QWidget &window) {
 
 }  // namespace
 
-void apply_theme(QWidget &window, const Theme &theme,
-                 std::shared_ptr<const GeometryEngine> geometry_engine) {
+void apply_theme(QWidget &window, const Theme &theme) {
     // Before anything else: asking for the lists makes them descendants of the window.
     const std::vector<QAbstractItemView *> lists = combo_box_lists(window);
     SavedLook &saved_look = saved_look_of(window);
-    window.setPalette(theme.palette());
-    window.setFont(theme.font());
+    window.setPalette(theme.palette);
+    window.setFont(theme.font);
     saved_look.set_hand_paint_style(window, theme);
-    set_label_markers(window, theme.label_marker());
+    set_label_markers(window, theme.label_marker);
     for (QAbstractItemView *list : lists) {
         // The list of a combo box is a window of its own: the effect of `window` does not draw
         // it. And where the style shows it as a menu, its items take from the application
         // palette every role that is not set on the list itself: inheriting is not enough.
-        list->setPalette(theme.palette());
+        list->setPalette(theme.palette);
         QWidget *list_window = list->window();
-        list_window->setGraphicsEffect(new HandPaintEffect(theme, geometry_engine, list_window));
+        list_window->setGraphicsEffect(new HandPaintEffect(theme, list_window));
     }
-    window.setGraphicsEffect(
-        new HandPaintEffect(theme, std::move(geometry_engine), &window));
+    window.setGraphicsEffect(new HandPaintEffect(theme, &window));
 }
 
 void remove_theme(QWidget &window) {
@@ -163,6 +162,18 @@ void remove_theme(QWidget &window) {
     set_label_markers(window, Qt::NoBrush);
     saved_look->restore(window);
     delete saved_look;
+}
+
+WindowTheming::WindowTheming(Theme theme, QObject *parent) : QObject(parent), m_theme(std::move(theme)) {}
+
+bool WindowTheming::eventFilter(QObject *watched, QEvent *event) {
+    if ((event->type() == QEvent::Polish || event->type() == QEvent::Show) && watched->isWidgetType()) {
+        auto &widget = static_cast<QWidget &>(*watched);
+        if (widget.isWindow() && widget.windowType() != Qt::Window) {
+            apply_theme(widget, m_theme);
+        }
+    }
+    return false;
 }
 
 }  // namespace hpq

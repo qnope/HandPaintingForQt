@@ -1,6 +1,5 @@
 #include <hpq/HandPaintDevice.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -11,12 +10,7 @@
 #include <cmath>
 #include <functional>
 
-#include <cstdint>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 constexpr int TargetSize = 300;
 
@@ -56,7 +50,7 @@ protected:
         QImage image(TargetSize, TargetSize, QImage::Format_RGB32);
         image.fill(Qt::white);
         QPainter target_painter(&image);
-        hpq::HandPaintDevice device(target_painter, m_theme, m_geometry_engine);
+        hpq::HandPaintDevice device(target_painter, m_theme);
         QPainter painter(&device);
         painter.setPen(Qt::NoPen);
         painter.setBrush(Qt::black);
@@ -67,7 +61,6 @@ protected:
     }
 
     hpq::Theme m_theme = hpq::sketch_theme();
-    hpq::RoughGeometryEngine m_geometry_engine{BaseSeed};
 };
 
 TEST_F(HandPaintTransformClipTest, RoughShapeLandsAtTransformedPosition) {
@@ -80,7 +73,7 @@ TEST_F(HandPaintTransformClipTest, RoughShapeLandsAtTransformedPosition) {
     EXPECT_TRUE(is_dark(image, 120, 120));
     EXPECT_FALSE(is_dark(image, 20, 20));
 
-    const int margin = static_cast<int>(std::ceil(m_theme.rough_options().max_offset * 2));
+    const int margin = static_cast<int>(std::ceil(m_theme.rough_options.max_offset * 2));
     const QRect allowed = QRect(100, 100, 40, 40).adjusted(-margin, -margin, margin, margin);
     for (int y = 0; y < image.height(); ++y) {
         for (int x = 0; x < image.width(); ++x) {

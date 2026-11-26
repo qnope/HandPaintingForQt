@@ -1,4 +1,4 @@
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/RoughGeometry.h>
 
 #include <QPainterPath>
 #include <QPointF>
@@ -11,8 +11,8 @@
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
+// The seed of the hand: the tests draw the same paths at every run.
+constexpr std::uint32_t HandSeed = 2024;
 constexpr std::uint32_t SeedCount = 20;
 // Two points this close are the same point, but for a rounding.
 constexpr double Tolerance = 1e-9;
@@ -22,6 +22,7 @@ hpq::RoughOptions frame_options(double max_offset)
     hpq::RoughOptions options;
     options.roughness = 1.0;
     options.max_offset = max_offset;
+    options.seed = HandSeed;
     return options;
 }
 
@@ -42,20 +43,30 @@ std::vector<QPainterPath> frames()
     return shapes;
 }
 
+// The outline of `frame`, each of its strokes united with the frame by QPainterPath::united.
+std::vector<QPainterPath> united_outline(const QPainterPath &frame, const hpq::RoughOptions &options, std::uint32_t seed)
+{
+    std::vector<QPainterPath> strokes = hpq::rough_outline(frame, options, seed);
+    for (QPainterPath &stroke : strokes) {
+        stroke.setFillRule(frame.fillRule());
+        stroke = stroke.united(frame);
+    }
+    return strokes;
+}
+
 }  // namespace
 
-// The rough engine unites a rectangle with its outline by a way of its own: it must give the
-// path that QPainterPath::united gives, as the engine does by default, point for point. A stroke
-// of chalk or of a brush follows the points of the path: other points would change its pressure.
+// hpq unites a rectangle with its outline by a way of its own: it must give the path that
+// QPainterPath::united gives, point for point. A stroke of chalk or of a brush follows the
+// points of the path: other points would change its pressure.
 TEST(RoughFrameOutlineTest, FrameOutlineIsTheOutlineUnitedWithTheFrame)
 {
-    const hpq::RoughGeometryEngine engine(BaseSeed);
     for (const double max_offset : {2.0, 5.0}) {
         const hpq::RoughOptions options = frame_options(max_offset);
         for (const QPainterPath &frame : frames()) {
             for (std::uint32_t seed = 0; seed < SeedCount; ++seed) {
-                const std::vector<QPainterPath> strokes = engine.frame_outline(frame, options, seed);
-                const std::vector<QPainterPath> united = engine.hpq::GeometryEngine::frame_outline(frame, options, seed);
+                const std::vector<QPainterPath> strokes = hpq::rough_frame_outline(frame, options, seed);
+                const std::vector<QPainterPath> united = united_outline(frame, options, seed);
                 ASSERT_EQ(strokes.size(), united.size());
                 for (std::size_t index = 0; index < strokes.size(); ++index) {
                     const QPainterPath &stroke = strokes[index];
@@ -79,14 +90,13 @@ TEST(RoughFrameOutlineTest, FrameOutlineIsTheOutlineUnitedWithTheFrame)
 // strokes is inside it.
 TEST(RoughFrameOutlineTest, FrameOutlineStaysOutOfTheFrame)
 {
-    const hpq::RoughGeometryEngine engine(BaseSeed);
     const hpq::RoughOptions options = frame_options(5.0);
     const QRectF rectangle(10, 10, 100, 50);
     QPainterPath frame;
     frame.addRect(rectangle);
     const QRectF inside = rectangle.adjusted(Tolerance, Tolerance, -Tolerance, -Tolerance);
     for (std::uint32_t seed = 0; seed < SeedCount; ++seed) {
-        for (const QPainterPath &stroke : engine.frame_outline(frame, options, seed)) {
+        for (const QPainterPath &stroke : hpq::rough_frame_outline(frame, options, seed)) {
             for (int element = 0; element < stroke.elementCount(); ++element) {
                 const QPointF point = stroke.elementAt(element);
                 EXPECT_FALSE(inside.contains(point)) << "seed " << seed << " point " << point.x() << "," << point.y();
