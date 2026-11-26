@@ -68,9 +68,10 @@ endfunction()
 add_subdirectory(hpq)
 if(HPQ_BUILD_EXAMPLES)
   add_subdirectory(Examples)
-  # Renders the example window in each theme, and the teaser video, for the README (see
-  # tools/screenshots and tools/teaser).
+  # Draws the logo, renders the example window in each theme, and the teaser video, for the
+  # README (see tools/logo, tools/screenshots and tools/teaser).
   if(NOT EMSCRIPTEN)
+    add_subdirectory(tools/logo)
     add_subdirectory(tools/screenshots)
     add_subdirectory(tools/teaser)
   endif()

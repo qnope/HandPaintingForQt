@@ -38,7 +38,7 @@ ctest --preset debug
 
 Sans le preset : `cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=<qt>`, puis `cmake --build build --config Debug` et `ctest --test-dir build -C Debug --output-on-failure`.
 
-WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/web`, exemple lié avec asyncify (`-sASYNCIFY -Os`, pour `exec()`), déploiement GitHub Pages par `.github/workflows/pages.yml` (voir README).
+WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/web`, exemple lié avec asyncify (`-sASYNCIFY -Os`, pour `exec()`), déploiement GitHub Pages par `.github/workflows/pages.yml` (voir CONTRIBUTING.md).
 
 ## Directories
 
@@ -46,9 +46,10 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 2. hpq/src
 3. hpq/include/hpq
 4. Examples/Integration : application autonome qui consomme hpq (find_package, FetchContent, add_subdirectory), construite et lancée par la CI
-5. tools/screenshots : `HpqThemeScreenshots` rend la fenêtre de `Examples/Integration` dans chaque thème ; images du README dans `docs/images` (`QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`)
+5. tools/screenshots : `HpqThemeScreenshots` rend la fenêtre de `Examples/Integration` dans chaque thème, et sans thème (`plain.png`) ; images du README dans `docs/images` (`QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`)
 6. cmake : `HandPaintingForQtConfig.cmake.in` (paquet CMake) et `CheckVersions.cmake`
 7. tools/teaser : `HpqTeaserVideo` rend le teaser du README avec ffmpeg, `docs/teaser/teaser.mp4` et son aperçu `teaser.gif` (`QT_QPA_PLATFORM=offscreen build/tools/teaser/HpqTeaserVideo docs/teaser`) ; le workflow `Pages` publie `teaser.mp4` avec le site
+8. tools/logo : `HpqLogo` dessine le logo du README avec hpq, `docs/logo/logo.png` (crayon, page claire), `logo-dark.png` (craie, page sombre) et `icon.png` (`QT_QPA_PLATFORM=offscreen build/tools/logo/HpqLogo docs/logo`)
 
 ## Consideration for CMake
 
@@ -78,6 +79,10 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 ## Images du README
 
 Les images du README (`docs/images`) montrent toujours le rendu actuel : un changement qui modifie ce que dessine hpq les régénère dans la même pull request (`QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`), puis vérifie que seules les images attendues ont changé.
+
+Le logo (`docs/logo`) suit la même règle, avec `HpqLogo`.
+
+Le README est pour qui utilise hpq ; ce qui sert à travailler sur le projet (construction, WebAssembly, rendu des images, release) est dans `CONTRIBUTING.md`.
 
 Le teaser (`docs/teaser`, plusieurs Mo) n'est pas régénéré à chaque pull request : il l'est avant une release, si ce que dessine hpq a changé depuis le dernier rendu.
 
