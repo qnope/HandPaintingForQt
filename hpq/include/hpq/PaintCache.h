@@ -36,6 +36,7 @@ public:
             return *kept;
         }
         std::vector<QPainterPath> made = make();
+        ++m_made_count;
         m_paths.keep(key, made, byte_count_of(made));
         return made;
     }
@@ -51,6 +52,7 @@ public:
             return *kept;
         }
         std::vector<QPainterPath> made = make();
+        ++m_made_count;
         m_pieces.keep(key, made, byte_count_of(made));
         return made;
     }
@@ -64,6 +66,7 @@ public:
             return *kept;
         }
         QImage made = make();
+        ++m_made_count;
         m_washes.keep(key, made, static_cast<std::size_t>(made.sizeInBytes()));
         return made;
     }
@@ -73,6 +76,11 @@ public:
 
     // About how many bytes the kept paths and images take.
     std::size_t byte_count() const;
+
+    // How many times, since it was created, the cache did not have what it was asked for and
+    // had it made: lists of paths, lists of pieces and washes. It stays the same while the
+    // shapes that are drawn are shapes that it keeps.
+    std::size_t made_count() const { return m_made_count; }
 
     // Forgets everything.
     void clear();
@@ -167,6 +175,7 @@ private:
     // Apart from the paths: cut again, pieces cost less than paths made again.
     Generations<std::vector<QPainterPath>> m_pieces;
     Generations<QImage> m_washes;
+    std::size_t m_made_count = 0;
 };
 
 }  // namespace hpq

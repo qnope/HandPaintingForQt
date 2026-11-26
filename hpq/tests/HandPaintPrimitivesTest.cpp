@@ -1,6 +1,6 @@
+#include "ExactTheme.h"
 #include "RecordingPaintDevice.h"
 
-#include <hpq/GeometryEngine.h>
 #include <hpq/HandPaintDevice.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
@@ -21,48 +21,22 @@ namespace {
 // The base seed of the rough geometry engines: the tests draw the same paths at every run.
 constexpr std::uint32_t BaseSeed = 2024;
 
+using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
-
-// Geometry engine that records the shapes it is given and gives them back unchanged.
-class SpyGeometryEngine : public hpq::GeometryEngine {
-public:
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &,
-                                      std::uint32_t) const override {
-        m_outline_shapes.push_back(shape);
-        return {shape};
-    }
-
-    std::vector<QPainterPath> frame_outline(const QPainterPath &frame, const hpq::RoughOptions &,
-                                            std::uint32_t) const override {
-        m_frame_shapes.push_back(frame);
-        return {frame};
-    }
-
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-        return shape;
-    }
-
-    QPainterPath hachure(const QPainterPath &, const hpq::RoughOptions &, std::uint32_t) const override {
-        return {};
-    }
-
-    const std::vector<QPainterPath> &outline_shapes() const { return m_outline_shapes; }
-    const std::vector<QPainterPath> &frame_shapes() const { return m_frame_shapes; }
-
-private:
-    mutable std::vector<QPainterPath> m_outline_shapes;
-    mutable std::vector<QPainterPath> m_frame_shapes;
-};
 
 const QPolygonF Triangle({QPointF(10, 10), QPointF(90, 20), QPointF(40, 70)});
 const QRectF TriangleBounds(10, 10, 80, 60);
 
+// The target receives the outline of each shape as one stroke, which is the shape itself: the
+// theme draws without the wobble of the hand.
 class HandPaintPrimitivesTest : public testing::Test {
 protected:
-    // Draws with `draw` on a HandPaintDevice whose target is m_target, with a pen and a brush set.
-    void draw(const std::function<void(QPainter &)> &draw) {
+    // Draws with `draw` on a HandPaintDevice of `theme` whose target is m_target, with a pen and
+    // a brush set.
+    void draw(const std::function<void(QPainter &)> &draw, const hpq::Theme &theme) {
+        const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
         QPainter target_painter(&m_target);
-        hpq::HandPaintDevice device(target_painter, m_theme, m_spy);
+        hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
         QPainter painter(&device);
         painter.setPen(QPen(Qt::red, 2.0));
         painter.setBrush(QBrush(Qt::blue));
@@ -70,24 +44,34 @@ protected:
         painter.end();
     }
 
-    // Draws with `draw` and checks that the spy saw one shape whose bounding box is `bounds`.
-    void expect_one_shape_with_bounds(const std::function<void(QPainter &)> &draw_primitive, const QRectF &bounds) {
-        draw(draw_primitive);
-        ASSERT_EQ(m_spy.outline_shapes().size(), 1u);
-        EXPECT_EQ(m_spy.outline_shapes()[0].boundingRect(), bounds);
+    void draw(const std::function<void(QPainter &)> &draw) { this->draw(draw, m_theme); }
+
+    // The shapes whose outline the target received.
+    std::vector<QPainterPath> outlined_shapes() const {
+        std::vector<QPainterPath> shapes;
+        for (const DrawCall &stroke : m_target.engine().strokes()) {
+            shapes.push_back(stroke.path);
+        }
+        return shapes;
     }
 
-    hpq::Theme m_theme = hpq::sketch_theme();
-    SpyGeometryEngine m_spy;
+    // Draws with `draw` and checks that the outline of one shape was drawn, whose bounding box is `bounds`.
+    void expect_one_shape_with_bounds(const std::function<void(QPainter &)> &draw_primitive, const QRectF &bounds) {
+        draw(draw_primitive);
+        ASSERT_EQ(outlined_shapes().size(), 1u);
+        EXPECT_EQ(outlined_shapes()[0].boundingRect(), bounds);
+    }
+
+    hpq::Theme m_theme = hpq::test::exact(hpq::sketch_theme());
     RecordingPaintDevice m_target;
 };
 
-TEST_F(HandPaintPrimitivesTest, LineGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, LineIsDrawnAsOneShape) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawLine(QPointF(10, 20), QPointF(90, 60)); },
                                  QRectF(10, 20, 80, 40));
 }
 
-TEST_F(HandPaintPrimitivesTest, IntegerLineGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, IntegerLineIsDrawnAsOneShape) {
     expect_one_shape_with_bounds(
         [](QPainter &painter) {
             const QLine line(10, 20, 90, 60);
@@ -96,49 +80,74 @@ TEST_F(HandPaintPrimitivesTest, IntegerLineGoesThroughGeometryEngine) {
         QRectF(10, 20, 80, 40));
 }
 
-TEST_F(HandPaintPrimitivesTest, RectangleGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, RectangleIsDrawnAsOneShape) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawRect(QRectF(10, 20, 80, 40)); },
                                  QRectF(10, 20, 80, 40));
 }
 
-// A rectangle that fills nothing frames what is inside it: its outline is kept out of it.
-TEST_F(HandPaintPrimitivesTest, UnfilledRectangleIsAFrame) {
-    draw([](QPainter &painter) {
-        painter.setBrush(Qt::NoBrush);
-        painter.drawRect(QRectF(10, 20, 80, 40));
-    });
-    EXPECT_TRUE(m_spy.outline_shapes().empty());
-    ASSERT_EQ(m_spy.frame_shapes().size(), 1u);
-    EXPECT_EQ(m_spy.frame_shapes()[0].boundingRect(), QRectF(10, 20, 80, 40));
+// How many points of `strokes` are inside `rectangle`, away from its edge by more than a rounding.
+int points_inside(const std::vector<QPainterPath> &strokes, const QRectF &rectangle) {
+    const QRectF inside = rectangle.adjusted(0.01, 0.01, -0.01, -0.01);
+    int count = 0;
+    for (const QPainterPath &stroke : strokes) {
+        for (int index = 0; index < stroke.elementCount(); ++index) {
+            count += inside.contains(stroke.elementAt(index)) ? 1 : 0;
+        }
+    }
+    return count;
 }
 
-TEST_F(HandPaintPrimitivesTest, EllipseGoesThroughGeometryEngine) {
+// The hand wobbles: the outline of a filled rectangle goes in and out of it.
+TEST_F(HandPaintPrimitivesTest, OutlineOfAFilledRectangleGoesInsideIt) {
+    const QRectF rectangle(10, 20, 80, 40);
+
+    draw([&](QPainter &painter) { painter.drawRect(rectangle); }, hpq::sketch_theme());
+
+    EXPECT_GT(points_inside(outlined_shapes(), rectangle), 0);
+}
+
+// A rectangle that fills nothing frames what is inside it: its outline is kept out of it.
+TEST_F(HandPaintPrimitivesTest, UnfilledRectangleIsAFrame) {
+    const QRectF frame(10, 20, 80, 40);
+
+    draw(
+        [&](QPainter &painter) {
+            painter.setBrush(Qt::NoBrush);
+            painter.drawRect(frame);
+        },
+        hpq::sketch_theme());
+
+    ASSERT_FALSE(outlined_shapes().empty());
+    EXPECT_EQ(points_inside(outlined_shapes(), frame), 0);
+}
+
+TEST_F(HandPaintPrimitivesTest, EllipseIsDrawnAsOneShape) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawEllipse(QRectF(10, 20, 80, 40)); },
                                  QRectF(10, 20, 80, 40));
 }
 
-TEST_F(HandPaintPrimitivesTest, IntegerEllipseGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, IntegerEllipseIsDrawnAsOneShape) {
     expect_one_shape_with_bounds(
         [](QPainter &painter) { painter.paintEngine()->drawEllipse(QRect(10, 20, 80, 40)); }, QRectF(10, 20, 80, 40));
 }
 
-TEST_F(HandPaintPrimitivesTest, OddEvenPolygonGoesThroughGeometryEngineWithItsFillRule) {
+TEST_F(HandPaintPrimitivesTest, OddEvenPolygonKeepsItsFillRule) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawPolygon(Triangle, Qt::OddEvenFill); },
                                  TriangleBounds);
-    EXPECT_EQ(m_spy.outline_shapes()[0].fillRule(), Qt::OddEvenFill);
+    EXPECT_EQ(outlined_shapes()[0].fillRule(), Qt::OddEvenFill);
 }
 
-TEST_F(HandPaintPrimitivesTest, WindingPolygonGoesThroughGeometryEngineWithItsFillRule) {
+TEST_F(HandPaintPrimitivesTest, WindingPolygonKeepsItsFillRule) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawPolygon(Triangle, Qt::WindingFill); },
                                  TriangleBounds);
-    EXPECT_EQ(m_spy.outline_shapes()[0].fillRule(), Qt::WindingFill);
+    EXPECT_EQ(outlined_shapes()[0].fillRule(), Qt::WindingFill);
 }
 
-TEST_F(HandPaintPrimitivesTest, ConvexPolygonGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, ConvexPolygonIsDrawnAsOneShape) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawConvexPolygon(Triangle); }, TriangleBounds);
 }
 
-TEST_F(HandPaintPrimitivesTest, IntegerPolygonGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, IntegerPolygonIsDrawnAsOneShape) {
     expect_one_shape_with_bounds(
         [](QPainter &painter) {
             const QPoint points[] = {QPoint(10, 10), QPoint(90, 20), QPoint(40, 70)};
@@ -147,11 +156,11 @@ TEST_F(HandPaintPrimitivesTest, IntegerPolygonGoesThroughGeometryEngine) {
         TriangleBounds);
 }
 
-TEST_F(HandPaintPrimitivesTest, PolylineGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, PolylineIsDrawnAsOneShape) {
     expect_one_shape_with_bounds([](QPainter &painter) { painter.drawPolyline(Triangle); }, TriangleBounds);
 }
 
-TEST_F(HandPaintPrimitivesTest, PathGoesThroughGeometryEngine) {
+TEST_F(HandPaintPrimitivesTest, PathIsDrawnAsOneShape) {
     QPainterPath path;
     path.moveTo(10, 10);
     path.cubicTo(30, 0, 60, 80, 90, 70);
@@ -162,8 +171,8 @@ TEST_F(HandPaintPrimitivesTest, PathGoesThroughGeometryEngine) {
 TEST_F(HandPaintPrimitivesTest, PolylineIsAnOpenShapeAndIsNotFilled) {
     draw([](QPainter &painter) { painter.drawPolyline(Triangle); });
 
-    ASSERT_EQ(m_spy.outline_shapes().size(), 1u);
-    const QPainterPath &shape = m_spy.outline_shapes()[0];
+    ASSERT_EQ(outlined_shapes().size(), 1u);
+    const QPainterPath shape = outlined_shapes()[0];
     ASSERT_EQ(shape.elementCount(), Triangle.size());
     EXPECT_NE(QPointF(shape.elementAt(shape.elementCount() - 1)), Triangle.first());
     EXPECT_TRUE(m_target.engine().fills().empty());

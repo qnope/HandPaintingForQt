@@ -1,7 +1,8 @@
+#include "ExactTheme.h"
 #include "RecordingPaintDevice.h"
 
-#include <hpq/GeometryEngine.h>
 #include <hpq/HandPaintDevice.h>
+#include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/WatercolorTheme.h>
 
@@ -12,9 +13,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <functional>
 
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -29,52 +34,29 @@ constexpr double WidestBrushLine = 8.0;
 // The edge of a wash changes it over less than this many pixels.
 constexpr int EdgeReach = 12;
 
-// Geometry engine that returns the shape unchanged.
-class IdentityGeometryEngine : public hpq::GeometryEngine {
-public:
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &,
-                                      std::uint32_t) const override {
-        return {shape};
-    }
-
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-        return shape;
-    }
-
-    QPainterPath hachure(const QPainterPath &, const hpq::RoughOptions &, std::uint32_t) const override {
-        return QPainterPath();
-    }
-};
-
-// Geometry engine that hatches every shape with its two diagonals.
-class DiagonalHachureEngine : public IdentityGeometryEngine {
-public:
-    QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-        const QRectF bounds = shape.boundingRect();
-        QPainterPath lines(bounds.topLeft());
-        lines.lineTo(bounds.bottomRight());
-        lines.moveTo(bounds.topRight());
-        lines.lineTo(bounds.bottomLeft());
-        return lines;
-    }
-};
-
 using Draw = std::function<void(QPainter &)>;
 
-// Draws with `draw` on a HandPaintDevice of `theme` and `geometry_engine`, in its own painting
-// session, and returns the calls the target received.
-std::vector<DrawCall> calls_of(const hpq::Theme &theme, const hpq::GeometryEngine &geometry_engine, const Draw &draw) {
-    RecordingPaintDevice target;
-    QPainter target_painter(&target);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+// Draws with `draw` on `target_painter` through a HandPaintDevice of `theme`, without the wobble
+// of the hand, in its own painting session.
+void draw_exactly(QPainter &target_painter, const hpq::Theme &theme, const Draw &draw) {
+    const hpq::Theme exact_theme = hpq::test::exact(theme);
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
+    hpq::HandPaintDevice device(target_painter, exact_theme, geometry_engine);
     QPainter painter(&device);
     draw(painter);
     painter.end();
+}
+
+// The calls that a target receives when `draw` draws with `theme`, without the wobble of the hand.
+std::vector<DrawCall> calls_of(const hpq::Theme &theme, const Draw &draw) {
+    RecordingPaintDevice target;
+    QPainter target_painter(&target);
+    draw_exactly(target_painter, theme, draw);
     return target.engine().calls();
 }
 
 std::vector<DrawCall> watercolor_calls(const Draw &draw) {
-    return calls_of(hpq::watercolor_theme(), IdentityGeometryEngine(), draw);
+    return calls_of(hpq::watercolor_theme(), draw);
 }
 
 QColor paper_color() {
@@ -83,15 +65,10 @@ QColor paper_color() {
 
 // What `draw` leaves on a sheet of the paper of the watercolor theme, 200 pixels wide and high.
 QImage painted_on_paper(const Draw &draw) {
-    const hpq::Theme theme = hpq::watercolor_theme();
-    const IdentityGeometryEngine geometry_engine;
     QImage sheet(RecordingPaintDevice::Size, RecordingPaintDevice::Size, QImage::Format_ARGB32_Premultiplied);
     sheet.fill(paper_color());
     QPainter target_painter(&sheet);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
-    QPainter painter(&device);
-    draw(painter);
-    painter.end();
+    draw_exactly(target_painter, hpq::watercolor_theme(), draw);
     target_painter.end();
     return sheet;
 }
@@ -470,7 +447,7 @@ TEST(WatercolorMedium, PatternBrushIsLaidAsItIs) {
 TEST(WatercolorMedium, HatchedFillIsThePaperUnderBrushLines) {
     const hpq::Theme theme = hpq::watercolor_theme(hpq::FillStyle::Hachure);
 
-    const std::vector<DrawCall> calls = calls_of(theme, DiagonalHachureEngine(), fill_rectangle(WashColor));
+    const std::vector<DrawCall> calls = calls_of(theme, fill_rectangle(WashColor));
 
     ASSERT_EQ(calls.size(), 2u);
     // The paper under the hachures.
@@ -489,23 +466,24 @@ TEST(WatercolorMedium, HatchedFillIsThePaperUnderBrushLines) {
 // The hachures of a hatched fill are lines in the color of its brush, and leave the paper bare
 // between them.
 TEST(WatercolorMedium, HachuresAreLinesInTheColorOfTheBrush) {
-    const hpq::Theme theme = hpq::watercolor_theme(hpq::FillStyle::Hachure);
-    const DiagonalHachureEngine geometry_engine;
+    // Horizontal hachures, 10 pixels apart, on a grid that starts at the origin: they go through
+    // the rectangle at 65, 75, 85 and 95 pixels from the top of the sheet.
+    hpq::RoughOptions options = hpq::watercolor_theme().rough_options();
+    options.hachure_angle = 0.0;
+    options.hachure_gap = 10.0;
+    const hpq::Theme theme = hpq::test::with_rough_options(hpq::watercolor_theme(hpq::FillStyle::Hachure), options);
     QImage sheet(RecordingPaintDevice::Size, RecordingPaintDevice::Size, QImage::Format_ARGB32_Premultiplied);
     sheet.fill(Qt::black);
     QPainter target_painter(&sheet);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
-    QPainter painter(&device);
-    fill_rectangle(WashColor)(painter);
-    painter.end();
+    draw_exactly(target_painter, theme, fill_rectangle(WashColor));
     target_painter.end();
 
-    // On a diagonal, in the middle of the rectangle.
-    const QColor on_hachure = sheet.pixelColor(Rectangle.center());
+    // On a hachure, in the middle of the rectangle.
+    const QColor on_hachure = sheet.pixelColor(Rectangle.center().x(), 75);
     EXPECT_NEAR(on_hachure.red(), WashColor.red(), 60);
     EXPECT_GT(on_hachure.blue(), on_hachure.red());
-    // Between the two diagonals, the paper that hides the black under the rectangle.
-    const QColor on_paper = sheet.pixelColor(Rectangle.center().x(), Rectangle.top() + 4);
+    // Between two hachures, the paper that hides the black under the rectangle.
+    const QColor on_paper = sheet.pixelColor(Rectangle.center().x(), 80);
     EXPECT_NEAR(qGray(on_paper.rgb()), qGray(paper_color().rgb()), 12);
 }
 
@@ -587,7 +565,7 @@ TEST(WatercolorMedium, WashesOfTwoColorsDarkenWhereTheyOverlap) {
 
 TEST(WatercolorMedium, PencilKeepsThePlainPenAndBrush) {
     const std::vector<DrawCall> calls =
-        calls_of(hpq::sketch_theme(), IdentityGeometryEngine(), draw_rectangle(WashColor));
+        calls_of(hpq::sketch_theme(), draw_rectangle(WashColor));
 
     ASSERT_GE(calls.size(), 2u);
     EXPECT_TRUE(calls[0].is_fill());

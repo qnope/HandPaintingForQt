@@ -3,19 +3,19 @@
 //   QT_QPA_PLATFORM=offscreen QT_SCALE_FACTOR=2 HpqRepaintBench --theme sketch --scenario full
 //
 // Prints one CSV line: theme,scale,scenario,repetitions, then the median, the 10th and 90th
-// percentiles and the minimum of the repaint time, the mean time spent in the geometry engine
-// during one repaint (all in milliseconds) and the calls it got during one repaint.
+// percentiles and the minimum of the repaint time, in milliseconds, and how many times the
+// theme had something made during one repaint (see hpq::PaintCache::made_count).
 
 #include "AppFont.h"
 #include "MainWindow.h"
 
-#include <hpq/GeometryEngine.h>
-#include <hpq/RoughGeometryEngine.h>
 #include <hpq/BlueprintTheme.h>
 #include <hpq/ChinaInkTheme.h>
+#include <hpq/HandPaintEffect.h>
 #include <hpq/HighlighterTheme.h>
 #include <hpq/InvisibleInkTheme.h>
 #include <hpq/NotebookTheme.h>
+#include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
 #include <hpq/Theming.h>
@@ -34,6 +34,7 @@
 #include <QTextStream>
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -48,63 +49,12 @@ constexpr double NanosecondsPerMillisecond = 1e6;
 // How far, in pixels, the scroll scenario moves the table at each repaint.
 constexpr int ScrollStep = 7;
 
-// A geometry engine that adds up the time spent in another one.
-class TimedGeometryEngine : public hpq::GeometryEngine {
-public:
-    explicit TimedGeometryEngine(std::shared_ptr<const hpq::GeometryEngine> engine) : m_engine(std::move(engine)) {}
-
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &options,
-                                      std::uint32_t seed) const override {
-        const Stopwatch stopwatch(m_nanoseconds);
-        ++m_calls;
-        return m_engine->outline(shape, options, seed);
-    }
-    std::vector<QPainterPath> frame_outline(const QPainterPath &frame, const hpq::RoughOptions &options,
-                                            std::uint32_t seed) const override {
-        const Stopwatch stopwatch(m_nanoseconds);
-        ++m_calls;
-        return m_engine->frame_outline(frame, options, seed);
-    }
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &options,
-                           std::uint32_t seed) const override {
-        const Stopwatch stopwatch(m_nanoseconds);
-        ++m_calls;
-        return m_engine->fill_area(shape, options, seed);
-    }
-    QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &options,
-                         std::uint32_t seed) const override {
-        const Stopwatch stopwatch(m_nanoseconds);
-        ++m_calls;
-        return m_engine->hachure(shape, options, seed);
-    }
-
-    // The time and the calls since the last take, in milliseconds.
-    double take_milliseconds() const {
-        const double milliseconds = static_cast<double>(m_nanoseconds) / NanosecondsPerMillisecond;
-        m_nanoseconds = 0;
-        return milliseconds;
-    }
-    int take_calls() const {
-        const int calls = m_calls;
-        m_calls = 0;
-        return calls;
-    }
-
-private:
-    class Stopwatch {
-    public:
-        explicit Stopwatch(qint64 &total) : m_total(total) { m_timer.start(); }
-        ~Stopwatch() { m_total += m_timer.nsecsElapsed(); }
-
-    private:
-        qint64 &m_total;
-        QElapsedTimer m_timer;
-    };
-
-    std::shared_ptr<const hpq::GeometryEngine> m_engine;
-    mutable qint64 m_nanoseconds = 0;
-    mutable int m_calls = 0;
-};
+// How many times the theme of `window` had something made that it did not keep from an earlier
+// repaint: paths of a shape, pieces of an area or a wash. None for a window without a theme.
+std::size_t made_count_of(const QWidget &window) {
+    const auto *effect = qobject_cast<const hpq::HandPaintEffect *>(window.graphicsEffect());
+    return effect != nullptr ? effect->cache().made_count() : 0;
+}
 
 // The theme called `name`, with a solid fill; with hachures when `name` ends with -hachure.
 std::optional<hpq::Theme> theme_named(QString name) {
@@ -197,13 +147,11 @@ int main(int argc, char *argv[]) {
     QTextStream err(stderr);
 
     hpq::example::MainWindow window;
-    const auto timed_engine =
-        std::make_shared<const TimedGeometryEngine>(std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
     // The window comes with the Sketch theme: replace or remove it.
     if (theme_name == "none") {
         hpq::remove_theme(window);
     } else if (const std::optional<hpq::Theme> theme = theme_named(theme_name)) {
-        hpq::apply_theme(window, *theme, timed_engine);
+        hpq::apply_theme(window, *theme, std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
     } else {
         err << "Unknown theme: " << theme_name << "\n";
         return 2;
@@ -285,8 +233,7 @@ int main(int argc, char *argv[]) {
     for (int index = 0; index < warmup; ++index) {
         repaint(repetitions + index);
     }
-    timed_engine->take_milliseconds();
-    timed_engine->take_calls();
+    const std::size_t made_before = made_count_of(window);
 
     std::vector<double> durations;
     durations.reserve(static_cast<std::size_t>(repetitions));
@@ -296,16 +243,14 @@ int main(int argc, char *argv[]) {
         repaint(index);
         durations.push_back(static_cast<double>(timer.nsecsElapsed()) / NanosecondsPerMillisecond);
     }
-    const double geometry = timed_engine->take_milliseconds() / repetitions;
-    const int geometry_calls = timed_engine->take_calls() / repetitions;
+    const std::size_t made = (made_count_of(window) - made_before) / static_cast<std::size_t>(repetitions);
     std::sort(durations.begin(), durations.end());
 
     out << theme_name << ',' << window.devicePixelRatioF() << ',' << scenario << ',' << repetitions << ','
         << QString::number(percentile(durations, 0.5), 'f', 2) << ','
         << QString::number(percentile(durations, 0.1), 'f', 2) << ','
         << QString::number(percentile(durations, 0.9), 'f', 2) << ','
-        << QString::number(durations.front(), 'f', 2) << ',' << QString::number(geometry, 'f', 2) << ','
-        << geometry_calls << '\n';
+        << QString::number(durations.front(), 'f', 2) << ',' << made << '\n';
 
     if (parser.isSet("backing-store")) {
         // The backing store of the offscreen platform is an image. After the repaints of a part

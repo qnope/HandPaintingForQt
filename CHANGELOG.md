@@ -15,9 +15,16 @@ All notable changes to Hand Painting for Qt are written here. The format follows
 - A teaser video at the top of the README: a Qt window drawn by hand in the nine themes while
   a pointer uses its widgets. `tools/teaser` (`HpqTeaserVideo`) renders it frame by frame,
   offscreen, with ffmpeg, and the `Pages` workflow publishes it with the site.
+- `PaintCache::made_count()` and `HandPaintEffect::cache()`: how many times a theme had the
+  paths, the pieces or the wash of a shape made, because its cache did not keep them. A test
+  or a benchmark reads there whether a repaint found its shapes in the cache.
 
 ### Changed
 
+- Without wobble (a `roughness` or a `max_offset` of 0), `RoughGeometryEngine` returns the
+  shape itself as its outline and as its fill area: a curve stays a curve, instead of short
+  lines at the same place. The themes of hpq are not concerned: their roughness goes from 0.6
+  to 1.
 - A repaint of a part of a window, such as a hovered button or the blinking cursor of a field,
   draws only the shapes, texts and images that reach that part: the others are not made rough
   nor sent to the paint engine of Qt. Such a repaint is 2 to 3 times faster; the drawing is the

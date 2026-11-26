@@ -1,7 +1,8 @@
+#include "ExactTheme.h"
 #include "RecordingPaintDevice.h"
 
-#include <hpq/GeometryEngine.h>
 #include <hpq/HandPaintDevice.h>
+#include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
 
@@ -10,9 +11,13 @@
 #include <QImage>
 #include <QPainter>
 
+#include <cstdint>
 #include <functional>
 
 namespace {
+
+// The base seed of the rough geometry engines: the tests draw the same paths at every run.
+constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -25,30 +30,14 @@ const QRectF Rectangle(40, 40, 100, 60);
 // A chalk line is wider than its pen, and wider still where the hand presses: no more than this.
 constexpr double WidestChalkLine = 8.0;
 
-// Geometry engine that returns the shape unchanged.
-class IdentityGeometryEngine : public hpq::GeometryEngine {
-public:
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &,
-                                      std::uint32_t) const override {
-        return {shape};
-    }
-
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-        return shape;
-    }
-
-    QPainterPath hachure(const QPainterPath &, const hpq::RoughOptions &, std::uint32_t) const override {
-        return QPainterPath();
-    }
-};
-
-// Draws with `draw` on a HandPaintDevice of `theme`, in its own painting session, and returns
-// the calls the target received.
+// Draws with `draw` on a HandPaintDevice of `theme`, without the wobble of the hand, in its own
+// painting session, and returns the calls the target received.
 std::vector<DrawCall> calls_of(const hpq::Theme &theme, const std::function<void(QPainter &)> &draw) {
-    const IdentityGeometryEngine geometry_engine;
+    const hpq::Theme exact_theme = hpq::test::exact(theme);
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     RecordingPaintDevice target;
     QPainter target_painter(&target);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, exact_theme, geometry_engine);
     QPainter painter(&device);
     draw(painter);
     painter.end();
@@ -197,33 +186,10 @@ TEST(ChalkMedium, TextIsDrawnThroughTheGrainInThePenColor) {
     EXPECT_EQ(calls[0].pen.color(), PenColor);
 }
 
-namespace {
-
-// Geometry engine that hatches every shape with its two diagonals.
-class DiagonalHachureEngine : public IdentityGeometryEngine {
-public:
-    QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &, std::uint32_t) const override {
-        const QRectF bounds = shape.boundingRect();
-        QPainterPath lines(bounds.topLeft());
-        lines.lineTo(bounds.bottomRight());
-        lines.moveTo(bounds.topRight());
-        lines.lineTo(bounds.bottomLeft());
-        return lines;
-    }
-};
-
-}  // namespace
-
 TEST(ChalkMedium, HatchedFillIsTheSlateUnderChalkLines) {
     const hpq::Theme theme = hpq::slate_theme(hpq::FillStyle::Hachure);
-    const DiagonalHachureEngine geometry_engine;
-    RecordingPaintDevice target;
-    QPainter target_painter(&target);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
-    QPainter painter(&device);
-    fill_rectangle(ChalkFillColor)(painter);
-    painter.end();
-    const std::vector<DrawCall> &calls = target.engine().calls();
+
+    const std::vector<DrawCall> calls = calls_of(theme, fill_rectangle(ChalkFillColor));
 
     ASSERT_EQ(calls.size(), 2u);
     // The slate, whole, under the hachures.

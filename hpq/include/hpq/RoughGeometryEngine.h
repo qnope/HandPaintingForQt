@@ -12,6 +12,8 @@ namespace hpq {
 // around the original shape, never farther than RoughOptions::max_offset.
 // The wobble comes from the base seed of the engine and the seed of the shape:
 // an engine draws a shape the same way every time, so a repaint changes nothing.
+// Without wobble (a roughness or a max_offset of 0), the paths are the shape itself, exactly:
+// each stroke of its outline, and the area of its fill.
 class HPQ_EXPORT RoughGeometryEngine : public GeometryEngine {
 public:
     // Takes its base seed from std::random_device: each engine has its own hand.

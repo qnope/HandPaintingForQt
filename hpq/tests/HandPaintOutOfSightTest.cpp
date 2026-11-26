@@ -1,9 +1,10 @@
+#include "EffectCache.h"
 #include "ImageComparison.h"
 #include "RecordingPaintDevice.h"
 
 #include <hpq/ChinaInkTheme.h>
-#include <hpq/GeometryEngine.h>
 #include <hpq/HandPaintDevice.h>
+#include <hpq/PaintCache.h>
 #include <hpq/RoughGeometryEngine.h>
 #include <hpq/SketchTheme.h>
 #include <hpq/SlateTheme.h>
@@ -25,6 +26,7 @@
 #include <QTableWidget>
 #include <QWidget>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -46,40 +48,6 @@ const QColor BandColor(0x9c, 0xcb, 0xe4);
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
-
-// A rough geometry engine that counts the shapes it was asked to make rough.
-class CountingGeometryEngine : public hpq::GeometryEngine {
-public:
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &options,
-                                      std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.outline(shape, options, seed);
-    }
-
-    std::vector<QPainterPath> frame_outline(const QPainterPath &frame, const hpq::RoughOptions &options,
-                                            std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.frame_outline(frame, options, seed);
-    }
-
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &options,
-                           std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.fill_area(shape, options, seed);
-    }
-
-    QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &options,
-                         std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.hachure(shape, options, seed);
-    }
-
-    int call_count() const { return m_call_count; }
-
-private:
-    hpq::RoughGeometryEngine m_engine{BaseSeed};
-    mutable int m_call_count = 0;
-};
 
 struct NamedTheme {
     std::string name;
@@ -134,15 +102,17 @@ QImage paper(const QSize &size, double device_pixel_ratio) {
     return image;
 }
 
-// What `draw` draws by hand on a device of `device_pixel_ratio`, through `clip` when it is not empty.
-QImage drawn(const hpq::Theme &theme, const hpq::GeometryEngine &geometry_engine, double device_pixel_ratio,
-             void (*draw)(QPainter &), const QRect &clip = QRect()) {
+// What `draw` draws by hand on a device of `device_pixel_ratio`, through `clip` when it is not
+// empty. With a cache, what is made to draw the shapes is kept there.
+QImage drawn(const hpq::Theme &theme, double device_pixel_ratio, void (*draw)(QPainter &),
+             const QRect &clip = QRect(), hpq::PaintCache *cache = nullptr) {
+    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     QImage image = paper(SceneSize, device_pixel_ratio);
     QPainter target(&image);
     if (!clip.isEmpty()) {
         target.setClipRect(clip);
     }
-    hpq::HandPaintDevice device(target, theme, geometry_engine);
+    hpq::HandPaintDevice device(target, theme, geometry_engine, cache);
     QPainter painter(&device);
     draw(painter);
     painter.end();
@@ -165,10 +135,8 @@ TEST(HandPaintOutOfSightTest, WhatReachesThePaintedPartIsDrawnThere) {
     for (const NamedTheme &named : themes()) {
         for (const double ratio : {1.0, 2.0}) {
             SCOPED_TRACE(named.name + " at " + std::to_string(ratio));
-            const CountingGeometryEngine engine;
-
-            const QImage whole = drawn(named.theme, engine, ratio, draw_around_part);
-            const QImage part = drawn(named.theme, engine, ratio, draw_around_part, Part);
+            const QImage whole = drawn(named.theme, ratio, draw_around_part);
+            const QImage part = drawn(named.theme, ratio, draw_around_part, Part);
 
             // The scene does reach into the part: the test would not tell anything otherwise.
             EXPECT_NE(only(whole, Part), paper(SceneSize, ratio));
@@ -180,23 +148,24 @@ TEST(HandPaintOutOfSightTest, WhatReachesThePaintedPartIsDrawnThere) {
 TEST(HandPaintOutOfSightTest, ShapesOutOfThePaintedPartAreNotMadeRough) {
     for (const NamedTheme &named : themes()) {
         SCOPED_TRACE(named.name);
-        const CountingGeometryEngine engine;
+        // What is made for a shape is kept in the cache: the cache tells whether anything was made.
+        hpq::PaintCache cache;
 
-        drawn(named.theme, engine, 1.0, [](QPainter &painter) {
+        drawn(named.theme, 1.0, [](QPainter &painter) {
             painter.setPen(QPen(LineColor, 2.0));
             painter.setBrush(FillColor);
             painter.drawRect(QRectF(170, 120, 50, 40));
             painter.drawEllipse(QRectF(5, 130, 40, 30));
             painter.drawLine(QLineF(10, 5, 220, 8));
-        }, Part);
-        EXPECT_EQ(engine.call_count(), 0);
+        }, Part, &cache);
+        EXPECT_EQ(cache.made_count(), 0u);
 
-        drawn(named.theme, engine, 1.0, [](QPainter &painter) {
+        drawn(named.theme, 1.0, [](QPainter &painter) {
             painter.setPen(QPen(LineColor, 2.0));
             painter.setBrush(FillColor);
             painter.drawRect(QRectF(100, 60, 30, 30));
-        }, Part);
-        EXPECT_GT(engine.call_count(), 0);
+        }, Part, &cache);
+        EXPECT_GT(cache.made_count(), 0u);
     }
 }
 
@@ -264,19 +233,18 @@ TEST(HandPaintOutOfSightTest, ARepaintOfAWidgetDoesNotMakeTheShapesOfAnotherRoug
     button->setGeometry(10, 10, 100, 30);
     auto *far_widget = new ChangingShapeWidget(&window);
     far_widget->setGeometry(250, 100, 120, 80);
-    const auto engine = std::make_shared<const CountingGeometryEngine>();
-    hpq::apply_theme(window, hpq::sketch_theme(), engine);
+    hpq::apply_theme(window, hpq::sketch_theme(), std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
     window.show();
     shown(window);
     // The button may have taken the focus since the window was shown: its frame is drawn now.
     button->repaint();
 
-    const int calls_before = engine->call_count();
+    const std::size_t made_before = hpq::test::made_count_of(window);
     button->repaint();
-    EXPECT_EQ(engine->call_count(), calls_before);
+    EXPECT_EQ(hpq::test::made_count_of(window), made_before);
 
     far_widget->repaint();
-    EXPECT_GT(engine->call_count(), calls_before);
+    EXPECT_GT(hpq::test::made_count_of(window), made_before);
 }
 
 // After repaints of small parts here and there, the window shows what a repaint of the whole

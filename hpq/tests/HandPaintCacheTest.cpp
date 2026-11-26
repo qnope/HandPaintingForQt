@@ -1,5 +1,4 @@
 #include <hpq/ChinaInkTheme.h>
-#include <hpq/GeometryEngine.h>
 #include <hpq/HandPaintDevice.h>
 #include <hpq/PaintCache.h>
 #include <hpq/RoughGeometryEngine.h>
@@ -29,34 +28,6 @@ const QColor BandColor(0x9c, 0xcb, 0xe4);
 const QRect Part(60, 30, 90, 80);
 // The side, in pixels, of a square whose wash is too large to be kept.
 constexpr int LargeSide = 1100;
-
-// A rough geometry engine that counts the shapes it was asked to make rough.
-class CountingGeometryEngine : public hpq::GeometryEngine {
-public:
-    std::vector<QPainterPath> outline(const QPainterPath &shape, const hpq::RoughOptions &options,
-                                      std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.outline(shape, options, seed);
-    }
-
-    QPainterPath fill_area(const QPainterPath &shape, const hpq::RoughOptions &options,
-                           std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.fill_area(shape, options, seed);
-    }
-
-    QPainterPath hachure(const QPainterPath &shape, const hpq::RoughOptions &options,
-                         std::uint32_t seed) const override {
-        ++m_call_count;
-        return m_engine.hachure(shape, options, seed);
-    }
-
-    int call_count() const { return m_call_count; }
-
-private:
-    hpq::RoughGeometryEngine m_engine{BaseSeed};
-    mutable int m_call_count = 0;
-};
 
 struct NamedTheme {
     std::string name;
@@ -110,9 +81,11 @@ QImage paper(const QSize &size, double device_pixel_ratio) {
     return image;
 }
 
-// The scene drawn by hand on a device of `device_pixel_ratio`, through `clip` when it is not empty.
-QImage drawn_scene(const hpq::Theme &theme, const hpq::GeometryEngine &geometry_engine, hpq::PaintCache *cache,
-                   double device_pixel_ratio, const QRect &clip = QRect()) {
+// The scene drawn by hand on a device of `device_pixel_ratio`, through `clip` when it is not
+// empty, by a hand whose wobble comes from `base_seed`.
+QImage drawn_scene(const hpq::Theme &theme, hpq::PaintCache *cache, double device_pixel_ratio,
+                   const QRect &clip = QRect(), std::uint32_t base_seed = BaseSeed) {
+    const hpq::RoughGeometryEngine geometry_engine(base_seed);
     QImage image = paper(SceneSize, device_pixel_ratio);
     QPainter target(&image);
     if (!clip.isEmpty()) {
@@ -132,12 +105,11 @@ TEST(HandPaintCacheTest, DrawingWithACacheIsTheSameAsWithout) {
     for (const NamedTheme &named : themes()) {
         for (const double ratio : {1.0, 2.0}) {
             SCOPED_TRACE(named.name + " at " + std::to_string(ratio));
-            const CountingGeometryEngine engine;
             hpq::PaintCache cache;
 
-            const QImage without = drawn_scene(named.theme, engine, nullptr, ratio);
-            const QImage first = drawn_scene(named.theme, engine, &cache, ratio);
-            const QImage again = drawn_scene(named.theme, engine, &cache, ratio);
+            const QImage without = drawn_scene(named.theme, nullptr, ratio);
+            const QImage first = drawn_scene(named.theme, &cache, ratio);
+            const QImage again = drawn_scene(named.theme, &cache, ratio);
 
             EXPECT_NE(without, paper(SceneSize, ratio));
             EXPECT_EQ(without, first);
@@ -149,28 +121,28 @@ TEST(HandPaintCacheTest, DrawingWithACacheIsTheSameAsWithout) {
 TEST(HandPaintCacheTest, AShapeDrawnAgainIsNotMadeRoughAgain) {
     for (const NamedTheme &named : themes()) {
         SCOPED_TRACE(named.name);
-        const CountingGeometryEngine engine;
         hpq::PaintCache cache;
 
-        drawn_scene(named.theme, engine, &cache, 2.0);
-        const int calls_of_first_drawing = engine.call_count();
-        drawn_scene(named.theme, engine, &cache, 2.0);
+        drawn_scene(named.theme, &cache, 2.0);
+        const std::size_t made_by_first_drawing = cache.made_count();
+        drawn_scene(named.theme, &cache, 2.0);
 
-        EXPECT_GT(calls_of_first_drawing, 0);
-        EXPECT_EQ(engine.call_count(), calls_of_first_drawing);
+        EXPECT_GT(made_by_first_drawing, 0u);
+        EXPECT_EQ(cache.made_count(), made_by_first_drawing);
         EXPECT_GT(cache.byte_count(), 0u);
     }
 }
 
+// Nothing of a drawing is kept for the next one: the same scene drawn by another hand is
+// another drawing.
 TEST(HandPaintCacheTest, WithoutACacheEveryDrawingMakesItsShapes) {
-    const CountingGeometryEngine engine;
     const hpq::Theme theme = hpq::sketch_theme();
 
-    drawn_scene(theme, engine, nullptr, 1.0);
-    const int calls_of_first_drawing = engine.call_count();
-    drawn_scene(theme, engine, nullptr, 1.0);
+    const QImage first = drawn_scene(theme, nullptr, 1.0, QRect(), BaseSeed);
+    const QImage second = drawn_scene(theme, nullptr, 1.0, QRect(), BaseSeed + 1);
 
-    EXPECT_EQ(engine.call_count(), 2 * calls_of_first_drawing);
+    EXPECT_NE(first, second);
+    EXPECT_EQ(second, drawn_scene(theme, nullptr, 1.0, QRect(), BaseSeed + 1));
 }
 
 // A wide line is kept as an area for one device and as a stroke for another, and a wash has
@@ -178,12 +150,11 @@ TEST(HandPaintCacheTest, WithoutACacheEveryDrawingMakesItsShapes) {
 TEST(HandPaintCacheTest, OneCacheServesDevicesOfSeveralPixelRatios) {
     for (const NamedTheme &named : themes()) {
         SCOPED_TRACE(named.name);
-        const CountingGeometryEngine engine;
         hpq::PaintCache cache;
 
         for (const double ratio : {1.0, 2.0, 1.0, 1.5, 2.0}) {
             SCOPED_TRACE(ratio);
-            EXPECT_EQ(drawn_scene(named.theme, engine, &cache, ratio), drawn_scene(named.theme, engine, nullptr, ratio));
+            EXPECT_EQ(drawn_scene(named.theme, &cache, ratio), drawn_scene(named.theme, nullptr, ratio));
         }
     }
 }
@@ -194,14 +165,13 @@ TEST(HandPaintCacheTest, DrawingThroughAClipIsTheSameAsWithout) {
     for (const NamedTheme &named : themes()) {
         for (const double ratio : {1.0, 2.0}) {
             SCOPED_TRACE(named.name + " at " + std::to_string(ratio));
-            const CountingGeometryEngine engine;
             hpq::PaintCache cache;
 
-            const QImage part = drawn_scene(named.theme, engine, &cache, ratio, Part);
-            const QImage whole = drawn_scene(named.theme, engine, &cache, ratio);
+            const QImage part = drawn_scene(named.theme, &cache, ratio, Part);
+            const QImage whole = drawn_scene(named.theme, &cache, ratio);
 
-            EXPECT_EQ(part, drawn_scene(named.theme, engine, nullptr, ratio, Part));
-            EXPECT_EQ(whole, drawn_scene(named.theme, engine, nullptr, ratio));
+            EXPECT_EQ(part, drawn_scene(named.theme, nullptr, ratio, Part));
+            EXPECT_EQ(whole, drawn_scene(named.theme, nullptr, ratio));
         }
     }
 }
@@ -210,7 +180,7 @@ TEST(HandPaintCacheTest, DrawingThroughAClipIsTheSameAsWithout) {
 // without a cache.
 TEST(HandPaintCacheTest, AWashTooLargeToBeKeptIsDrawnTheSame) {
     const hpq::Theme theme = hpq::watercolor_theme();
-    const CountingGeometryEngine engine;
+    const hpq::RoughGeometryEngine engine(BaseSeed);
     hpq::PaintCache cache;
     const auto drawn = [&](hpq::PaintCache *used_cache) {
         QImage image = paper(QSize(LargeSide, LargeSide), 1.0);

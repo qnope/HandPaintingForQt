@@ -32,6 +32,10 @@ public:
                     std::shared_ptr<const GeometryEngine> geometry_engine,
                     QObject *parent = nullptr);
 
+    // What the effect keeps from a repaint to the next: how much it holds, and how many times
+    // it had something made.
+    const PaintCache &cache() const { return m_cache; }
+
 protected:
     void draw(QPainter *painter) override;
     void sourceChanged(ChangeFlags flags) override;
