@@ -100,7 +100,8 @@ code draws the same images.
 | The teaser (`docs/teaser`) | [`tools/teaser`](tools/teaser/TeaserVideo.cpp) | `QT_QPA_PLATFORM=offscreen build/tools/teaser/HpqTeaserVideo docs/teaser` |
 
 The logo is `logo.png` for a light page, `logo-dark.png` for a dark one and `icon.png`, the
-mark alone in a square.
+mark alone in a square. Its drawing is in [`tools/logo/LogoDrawing.h`](tools/logo/LogoDrawing.h):
+the teaser, which opens and ends with the logo, draws it with the same code.
 
 The screenshots are the window of [`Examples/Integration`](Examples/Integration). They always
 show what hpq draws now: a pull request that changes the drawing renders them again, and only

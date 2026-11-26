@@ -49,7 +49,7 @@ WebAssembly : `-DHPQ_BUILD_TESTS=OFF` (pas de GoogleTest), page dans `Examples/w
 5. tools/screenshots : `HpqThemeScreenshots` rend la fenêtre de `Examples/Integration` dans chaque thème, et sans thème (`plain.png`) ; images du README dans `docs/images` (`QT_QPA_PLATFORM=offscreen build/tools/screenshots/HpqThemeScreenshots docs/images`)
 6. cmake : `HandPaintingForQtConfig.cmake.in` (paquet CMake) et `CheckVersions.cmake`
 7. tools/teaser : `HpqTeaserVideo` rend le teaser du README avec ffmpeg, `docs/teaser/teaser.mp4` et son aperçu `teaser.gif` (`QT_QPA_PLATFORM=offscreen build/tools/teaser/HpqTeaserVideo docs/teaser`) ; le workflow `Pages` publie `teaser.mp4` avec le site
-8. tools/logo : `HpqLogo` dessine le logo du README avec hpq, `docs/logo/logo.png` (crayon, page claire), `logo-dark.png` (craie, page sombre) et `icon.png` (`QT_QPA_PLATFORM=offscreen build/tools/logo/HpqLogo docs/logo`)
+8. tools/logo : `HpqLogo` dessine le logo du README avec hpq, `docs/logo/logo.png` (crayon, page claire), `logo-dark.png` (craie, page sombre) et `icon.png` (`QT_QPA_PLATFORM=offscreen build/tools/logo/HpqLogo docs/logo`) ; le dessin est dans `tools/logo/LogoDrawing.h`, que `tools/teaser` inclut pour montrer le même logo
 
 ## Consideration for CMake
 

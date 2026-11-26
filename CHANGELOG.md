@@ -42,7 +42,7 @@ functions and the headers are 11 instead of 27. To move an application from 0.1:
   offscreen, with ffmpeg, and the `Pages` workflow publishes it with the site.
 - A logo, drawn by hpq with a `HandPaintDevice`: `tools/logo` (`HpqLogo`) writes
   `docs/logo/logo.png` in pencil for a light page, `logo-dark.png` in chalk for a dark page and
-  `icon.png`, the mark alone.
+  `icon.png`, the mark alone. The teaser opens and ends with it.
 - `CONTRIBUTING.md`: how to build the project, run its tests, build the WebAssembly site,
   render the images of the README and publish a version. The README, which held it, now opens
   with the logo, a first call to `apply_theme` and the window before and after that call
