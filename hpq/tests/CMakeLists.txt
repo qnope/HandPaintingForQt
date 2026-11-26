@@ -1,58 +1,69 @@
-add_executable(HpqTests)
-target_sources(HpqTests PRIVATE TestMain.cpp RoughGeometryEngineTest.cpp RoughFillAreaTest.cpp RoughFrameOutlineTest.cpp)
+# The sources of the tests and their helpers, in alphabetical order.
+hpq_add_executable(HpqTests
+  ApplyThemeTest.cpp
+  ArrowTest.cpp
+  BlueprintThemeTest.cpp
+  ButtonPanelTest.cpp
+  ButtonWidgetsTest.cpp
+  ChalkMediumTest.cpp
+  ChinaInkThemeTest.cpp
+  ComboBoxListThemeTest.cpp
+  ComboBoxTest.cpp
+  DisabledButtonTest.cpp
+  GridLineColorTest.cpp
+  GroupBoxFrameTest.cpp
+  HandPaintCacheTest.cpp
+  HandPaintDeviceTest.cpp
+  HandPaintHachureTest.cpp
+  HandPaintImageTest.cpp
+  HandPaintOutOfSightTest.cpp
+  HandPaintPainterStateTest.cpp
+  HandPaintPrimitivesTest.cpp
+  HandPaintSeedTest.cpp
+  HandPaintSmoothingTest.cpp
+  HandPaintStyleTest.cpp
+  HandPaintTextTest.cpp
+  HandPaintTransformClipTest.cpp
+  HeaderSectionTest.cpp
+  HighlighterThemeTest.cpp
+  ImageComparison.cpp
+  ImageComparison.h
+  InkMediumTest.cpp
+  InvisibleInkThemeTest.cpp
+  InvisibleTextInkTest.cpp
+  LabelMarkerTest.cpp
+  LabelMarkerThemeTest.cpp
+  MovingHighlightTest.cpp
+  NestedThemeTest.cpp
+  NotebookThemeTest.cpp
+  OtherWidgetsTest.cpp
+  PaintCacheTest.cpp
+  PartialRenderTest.cpp
+  RecordingPaintDevice.cpp
+  RecordingPaintDevice.h
+  RemoveThemeTest.cpp
+  RoughFillAreaTest.cpp
+  RoughFrameOutlineTest.cpp
+  RoughGeometryEngineTest.cpp
+  RoughHachureTest.cpp
+  ScrollBarTest.cpp
+  ScrolledViewTest.cpp
+  SketchThemeTest.cpp
+  SlateThemeTest.cpp
+  SliderTest.cpp
+  SpinBoxTest.cpp
+  StyleRendering.cpp
+  StyleRendering.h
+  TestMain.cpp
+  VelledaThemeTest.cpp
+  VersionTest.cpp
+  WatercolorMediumTest.cpp
+  WatercolorThemeTest.cpp
+  WindowThemingTest.cpp)
 target_link_libraries(HpqTests PRIVATE hpq::hpq GTest::gtest)
-hpq_set_runtime_directory(HpqTests)
-hpq_set_warnings(HpqTests)
 add_test(NAME HpqTests COMMAND HpqTests)
-target_sources(HpqTests PRIVATE SketchThemeTest.cpp)
-target_sources(HpqTests PRIVATE RecordingPaintDevice.h RecordingPaintDevice.cpp HandPaintDeviceTest.cpp)
-target_sources(HpqTests PRIVATE HandPaintPrimitivesTest.cpp)
-target_sources(HpqTests PRIVATE HandPaintTextTest.cpp)
-target_sources(HpqTests PRIVATE HandPaintImageTest.cpp)
-target_sources(HpqTests PRIVATE HandPaintTransformClipTest.cpp)
-target_sources(HpqTests PRIVATE HandPaintPainterStateTest.cpp)
-target_sources(HpqTests PRIVATE HandPaintSmoothingTest.cpp)
-target_sources(HpqTests PRIVATE HandPaintSeedTest.cpp)
-target_sources(HpqTests PRIVATE ApplyThemeTest.cpp)
-target_sources(HpqTests PRIVATE NestedThemeTest.cpp)
-target_sources(HpqTests PRIVATE RemoveThemeTest.cpp)
-target_sources(HpqTests PRIVATE StyleRendering.h StyleRendering.cpp HandPaintStyleTest.cpp)
-target_sources(HpqTests PRIVATE HeaderSectionTest.cpp)
-target_sources(HpqTests PRIVATE GroupBoxFrameTest.cpp)
-target_sources(HpqTests PRIVATE ButtonPanelTest.cpp)
-target_sources(HpqTests PRIVATE OtherWidgetsTest.cpp)
-target_sources(HpqTests PRIVATE ArrowTest.cpp)
-target_sources(HpqTests PRIVATE SliderTest.cpp)
-target_sources(HpqTests PRIVATE ComboBoxTest.cpp)
-target_sources(HpqTests PRIVATE ScrollBarTest.cpp)
-target_sources(HpqTests PRIVATE SpinBoxTest.cpp)
-target_sources(HpqTests PRIVATE ButtonWidgetsTest.cpp)
-target_sources(HpqTests PRIVATE DisabledButtonTest.cpp)
-target_sources(HpqTests PRIVATE RoughHachureTest.cpp HandPaintHachureTest.cpp)
-target_sources(HpqTests PRIVATE SlateThemeTest.cpp)
-target_sources(HpqTests PRIVATE NotebookThemeTest.cpp)
-target_sources(HpqTests PRIVATE ChalkMediumTest.cpp)
-target_sources(HpqTests PRIVATE GridLineColorTest.cpp)
-target_sources(HpqTests PRIVATE ComboBoxListThemeTest.cpp)
-target_sources(HpqTests PRIVATE VelledaThemeTest.cpp)
-target_sources(HpqTests PRIVATE ChinaInkThemeTest.cpp InkMediumTest.cpp)
-target_sources(HpqTests PRIVATE WatercolorThemeTest.cpp WatercolorMediumTest.cpp)
-target_sources(HpqTests PRIVATE BlueprintThemeTest.cpp)
-target_sources(HpqTests PRIVATE InvisibleInkThemeTest.cpp InvisibleTextInkTest.cpp)
-target_sources(HpqTests PRIVATE ScrolledViewTest.cpp)
-target_sources(HpqTests PRIVATE PaintCacheTest.cpp HandPaintCacheTest.cpp)
-target_sources(HpqTests PRIVATE ImageComparison.h ImageComparison.cpp)
-target_sources(HpqTests PRIVATE HandPaintOutOfSightTest.cpp)
-target_sources(HpqTests PRIVATE PartialRenderTest.cpp)
-target_sources(HpqTests PRIVATE HighlighterThemeTest.cpp)
-target_sources(HpqTests PRIVATE LabelMarkerTest.cpp LabelMarkerThemeTest.cpp)
-target_sources(HpqTests PRIVATE MovingHighlightTest.cpp)
-target_sources(HpqTests PRIVATE WindowThemingTest.cpp)
-target_sources(HpqTests PRIVATE VersionTest.cpp)
 
 # A theme made before the QApplication: its own executable, since HpqTests runs in a QApplication.
-add_executable(HpqThemeBeforeApplicationTests ThemeBeforeApplicationTest.cpp)
+hpq_add_executable(HpqThemeBeforeApplicationTests ThemeBeforeApplicationTest.cpp)
 target_link_libraries(HpqThemeBeforeApplicationTests PRIVATE hpq::hpq GTest::gtest)
-hpq_set_runtime_directory(HpqThemeBeforeApplicationTests)
-hpq_set_warnings(HpqThemeBeforeApplicationTests)
 add_test(NAME HpqThemeBeforeApplicationTests COMMAND HpqThemeBeforeApplicationTests)

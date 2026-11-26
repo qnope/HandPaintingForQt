@@ -55,6 +55,16 @@ function(hpq_set_warnings target)
   target_compile_options(${target} PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/W4,-Wall;-Wextra>)
 endfunction()
 
+# An executable of the project, made of the sources that follow its name: built where it finds
+# hpq.dll, with the warnings of the project and moc. qt_add_executable also finalizes the target
+# for Qt for WebAssembly (JavaScript entry point, qtloader.js).
+function(hpq_add_executable target)
+  qt_add_executable(${target} ${ARGN})
+  set_target_properties(${target} PROPERTIES AUTOMOC ON)
+  hpq_set_runtime_directory(${target})
+  hpq_set_warnings(${target})
+endfunction()
+
 add_subdirectory(hpq)
 if(HPQ_BUILD_EXAMPLES)
   add_subdirectory(Examples)

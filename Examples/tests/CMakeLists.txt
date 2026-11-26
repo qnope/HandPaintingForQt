@@ -1,10 +1,12 @@
-add_executable(HandPaintingExampleTests)
-target_sources(HandPaintingExampleTests PRIVATE TestMain.cpp StartupTest.cpp MainWindowTest.cpp
-  ItemEditorInputPanelTest.cpp TableModelFactoryTest.cpp TreeModelFactoryTest.cpp HpqTest.cpp)
+hpq_add_executable(HandPaintingExampleTests
+  HpqTest.cpp
+  ItemEditorInputPanelTest.cpp
+  MainWindowTest.cpp
+  StartupTest.cpp
+  TableModelFactoryTest.cpp
+  TestMain.cpp
+  TreeModelFactoryTest.cpp)
 target_link_libraries(HandPaintingExampleTests PRIVATE HandPaintingExampleLib GTest::gtest)
-set_target_properties(HandPaintingExampleTests PROPERTIES AUTOMOC ON)
-hpq_set_runtime_directory(HandPaintingExampleTests)
-hpq_set_warnings(HandPaintingExampleTests)
 add_test(NAME HandPaintingExampleTests COMMAND HandPaintingExampleTests)
 
 # Runs the application offscreen, quitting right after the event loop starts.

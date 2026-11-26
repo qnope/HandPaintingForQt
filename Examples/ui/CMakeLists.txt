@@ -1,1 +1,0 @@
-target_sources(HandPaintingExampleLib PRIVATE MainWindow.ui)

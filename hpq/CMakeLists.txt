@@ -16,7 +16,88 @@ endif()
 # The same name everywhere: hpq::hpq in this build, in an application that adds this project
 # with add_subdirectory or FetchContent, and from find_package(HandPaintingForQt).
 add_library(hpq::hpq ALIAS hpq)
-set_target_properties(hpq PROPERTIES AUTOMOC ON EXPORT_NAME hpq)
+
+# The public headers, then the sources and the private headers: each list in alphabetical order.
+target_sources(hpq PRIVATE
+  include/hpq/AntialiasingMode.h
+  include/hpq/BlueprintTheme.h
+  include/hpq/ChinaInkTheme.h
+  include/hpq/Export.h
+  include/hpq/FillStyle.h
+  include/hpq/FwdDecls.h
+  include/hpq/GeometryEngine.h
+  include/hpq/HandPaintDevice.h
+  include/hpq/HandPaintEffect.h
+  include/hpq/HandPaintEngine.h
+  include/hpq/HandPaintStyle.h
+  include/hpq/HighlighterTheme.h
+  include/hpq/Hpq.h
+  include/hpq/InvisibleInkTheme.h
+  include/hpq/Medium.h
+  include/hpq/NotebookTheme.h
+  include/hpq/PaintCache.h
+  include/hpq/RoughGeometryEngine.h
+  include/hpq/RoughOptions.h
+  include/hpq/SketchTheme.h
+  include/hpq/SlateTheme.h
+  include/hpq/TextInk.h
+  include/hpq/Theme.h
+  include/hpq/Theming.h
+  include/hpq/VelledaTheme.h
+  include/hpq/Version.h.in
+  include/hpq/WatercolorTheme.h
+  include/hpq/WindowTheming.h
+
+  src/BlueprintTheme.cpp
+  src/BrushStroke.cpp
+  src/BrushStroke.h
+  src/ChalkStroke.cpp
+  src/ChalkStroke.h
+  src/ChalkTexture.cpp
+  src/ChalkTexture.h
+  src/ChinaInkTheme.cpp
+  src/EmbeddedFont.cpp
+  src/EmbeddedFont.h
+  src/GeometryEngine.cpp
+  src/GrainNoise.cpp
+  src/GrainNoise.h
+  src/HandFont.cpp
+  src/HandFont.h
+  src/HandPaintDevice.cpp
+  src/HandPaintEffect.cpp
+  src/HandPaintEngine.cpp
+  src/HandPaintStyle.cpp
+  src/HighlighterTheme.cpp
+  src/Hpq.cpp
+  src/InvisibleInkTheme.cpp
+  src/NotebookTheme.cpp
+  src/PaintCache.cpp
+  src/PathTiles.cpp
+  src/PathTiles.h
+  src/RoughGeometryEngine.cpp
+  src/SchoolFont.cpp
+  src/SchoolFont.h
+  src/SeyesPaper.cpp
+  src/SeyesPaper.h
+  src/SketchTheme.cpp
+  src/SlateTheme.cpp
+  src/StrokeRibbon.cpp
+  src/StrokeRibbon.h
+  src/Theme.cpp
+  src/Theming.cpp
+  src/TileBrush.cpp
+  src/TileBrush.h
+  src/VelledaTheme.cpp
+  src/WatercolorTexture.cpp
+  src/WatercolorTexture.h
+  src/WatercolorTheme.cpp
+  src/WatercolorWash.cpp
+  src/WatercolorWash.h
+  src/WindowTheming.cpp)
+
+# hpq/Version.h: the version of the project, for the code that includes hpq.
+configure_file(include/hpq/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h @ONLY)
+target_sources(hpq PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h)
 
 # libhpq.so.0.1.0, with the soname libhpq.so.0.1: before 1.0, a minor version may break the ABI.
 if(PROJECT_VERSION_MAJOR EQUAL 0)
@@ -24,23 +105,20 @@ if(PROJECT_VERSION_MAJOR EQUAL 0)
 else()
   set(hpq_soversion ${PROJECT_VERSION_MAJOR})
 endif()
-set_target_properties(hpq PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${hpq_soversion})
+# INSTALL_RPATH_USE_LINK_PATH: the installed library finds Qt where it was linked with it.
+set_target_properties(hpq PROPERTIES
+  AUTOMOC ON
+  EXPORT_NAME hpq
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${hpq_soversion}
+  INSTALL_RPATH_USE_LINK_PATH ON)
 # hpqd.dll and hpqd.lib in Debug with MSVC, as Qt does: a Debug and a Release build can be
 # installed in the same prefix, and an application links the one of its configuration.
 if(MSVC)
   set_target_properties(hpq PROPERTIES DEBUG_POSTFIX d)
 endif()
-# The installed library finds Qt where it was linked with it.
-set_target_properties(hpq PROPERTIES INSTALL_RPATH_USE_LINK_PATH ON)
-
 hpq_set_runtime_directory(hpq)
 hpq_set_warnings(hpq)
-add_subdirectory(src)
-add_subdirectory(include/hpq)
-
-# hpq/Version.h: the version of the project, for the code that includes hpq.
-configure_file(include/hpq/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h @ONLY)
-target_sources(hpq PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h)
 
 include(GNUInstallDirs)
 target_include_directories(hpq PUBLIC
@@ -48,6 +126,8 @@ target_include_directories(hpq PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(hpq PUBLIC Qt6::Widgets)
+# C++ standard: PUBLIC, the headers of hpq need C++17.
+target_compile_features(hpq PUBLIC cxx_std_17)
 
 # The fonts are embedded in the library. In a static hpq, Qt compiles each resource in an object
 # library of its own (hpq_resources_<n>), which is installed and exported with hpq.
@@ -72,8 +152,6 @@ qt_add_resources(hpq "hpq_china_ink_fonts"
     FILES resources/fonts/KaushanScript-Regular.ttf resources/fonts/OFL-KaushanScript.txt
     OUTPUT_TARGETS hpq_china_ink_font_targets)
 
-# C++ standard: PUBLIC, the headers of hpq need C++17.
-target_compile_features(hpq PUBLIC cxx_std_17)
 if(HPQ_BUILD_TESTS)
   add_subdirectory(tests)
 endif()
