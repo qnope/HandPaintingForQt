@@ -2,7 +2,7 @@
 
 `HpqRepaintBench` shows the example window on the offscreen platform and measures how long
 `QWidget::repaint()` takes under a theme: the whole pipeline of a real repaint (the style, the
-hand paint engine, the geometry engine, the raster engine of Qt and the backing store).
+hand paint engine, the rough geometry, the raster engine of Qt and the backing store).
 
 ```
 cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release -DHPQ_BUILD_BENCH=ON
@@ -20,7 +20,7 @@ bench/run.sh build/release/bench/HpqRepaintBench > results.csv
   hover do; `rectangles` repaints small parts of the window.
 - `--backing-store` saves what the repaints left on the window, and what a repaint of the
   whole window then draws: the two images must be the same.
-- The geometry engine has a fixed base seed: every run draws the same window, and
+- The theme has a fixed seed: every run draws the same window, and
   `--screenshot` or `--backing-store` save it to compare two versions pixel by pixel.
 
 Each line gives the median, the 10th and 90th percentiles and the minimum of the repaint

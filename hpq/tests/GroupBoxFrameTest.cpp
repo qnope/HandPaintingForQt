@@ -2,7 +2,7 @@
 #include "StyleRendering.h"
 
 #include <hpq/HandPaintStyle.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -53,7 +53,7 @@ std::vector<DrawCall> strokes_of_color(const std::vector<DrawCall> &calls, const
 }  // namespace
 
 TEST(GroupBoxFrameTest, FrameIsOneRectangleOutlineInDarkWithoutImage) {
-    const QPalette palette = hpq::sketch_theme().palette();
+    const QPalette palette = hpq::sketch_theme().palette;
 
     const std::vector<DrawCall> calls = draw_group_box_frame(palette);
 
@@ -73,7 +73,7 @@ TEST(GroupBoxFrameTest, TitledGroupBoxRendersOneDarkOutlineWithoutImage) {
     const std::vector<DrawCall> calls = hpq::test::render_with_style(group_box);
 
     EXPECT_FALSE(hpq::test::has_image(calls));
-    const QColor dark = hpq::sketch_theme().palette().color(QPalette::Dark);
+    const QColor dark = hpq::sketch_theme().palette.color(QPalette::Dark);
     const std::vector<DrawCall> outlines = strokes_of_color(calls, dark);
     ASSERT_EQ(outlines.size(), 1u);
     EXPECT_TRUE(is_rectangle(outlines.front().path));

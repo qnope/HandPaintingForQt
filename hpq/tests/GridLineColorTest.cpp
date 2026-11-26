@@ -1,6 +1,5 @@
 #include <hpq/HandPaintStyle.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -21,7 +20,7 @@ QColor grid_line_color(const QPalette &palette) {
 }  // namespace
 
 TEST(GridLineColor, IsLighterThanADarkWindowAndDimmerThanItsOutlines) {
-    const QPalette palette = hpq::slate_theme().palette();
+    const QPalette palette = hpq::slate_theme().palette;
 
     const QColor grid = grid_line_color(palette);
 
@@ -30,7 +29,7 @@ TEST(GridLineColor, IsLighterThanADarkWindowAndDimmerThanItsOutlines) {
 }
 
 TEST(GridLineColor, IsDarkerThanALightWindowAndLighterThanItsOutlines) {
-    const QPalette palette = hpq::sketch_theme().palette();
+    const QPalette palette = hpq::sketch_theme().palette;
 
     const QColor grid = grid_line_color(palette);
 
@@ -39,5 +38,5 @@ TEST(GridLineColor, IsDarkerThanALightWindowAndLighterThanItsOutlines) {
 }
 
 TEST(GridLineColor, IsOpaque) {
-    EXPECT_EQ(grid_line_color(hpq::slate_theme().palette()).alpha(), 255);
+    EXPECT_EQ(grid_line_color(hpq::slate_theme().palette).alpha(), 255);
 }

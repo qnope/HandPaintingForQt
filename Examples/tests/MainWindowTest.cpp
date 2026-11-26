@@ -16,16 +16,8 @@
 #include <QTableView>
 #include <QTreeView>
 #include <gtest/gtest.h>
-#include <hpq/BlueprintTheme.h>
-#include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintEffect.h>
-#include <hpq/HighlighterTheme.h>
-#include <hpq/InvisibleInkTheme.h>
-#include <hpq/NotebookTheme.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
-#include <hpq/VelledaTheme.h>
-#include <hpq/WatercolorTheme.h>
+#include <hpq/Themes.h>
 
 namespace {
 template <typename T> T *find(hpq::example::MainWindow &w, const char *name)
@@ -170,7 +162,7 @@ TEST(MainWindow, StartsWithTheSketchThemeApplied)
     EXPECT_EQ(combo->currentIndex(), SketchIndex);
     EXPECT_EQ(combo->currentText(), "Sketch");
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette);
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
@@ -183,7 +175,7 @@ TEST(MainWindow, AboutOpensAMessageBoxInTheThemeOfTheWindow)
     ASSERT_NE(about, nullptr);
     EXPECT_TRUE(about->isVisible());
     EXPECT_TRUE(has_hand_paint_effect(*about));
-    EXPECT_EQ(about->palette(), hpq::slate_theme().palette());
+    EXPECT_EQ(about->palette(), hpq::slate_theme().palette);
     about->close();
 }
 
@@ -212,8 +204,8 @@ TEST(MainWindow, CheckingHachuresAppliesTheHatchedSketchTheme)
     hpq::example::MainWindow w;
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::sketch_theme(hpq::FillStyle::Hachure).palette());
-    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::sketch_theme(hpq::FillStyle::Hachure).palette);
+    EXPECT_NE(w.palette(), hpq::sketch_theme().palette);
 }
 
 TEST(MainWindow, UncheckingHachuresAppliesTheSolidSketchThemeAgain)
@@ -223,7 +215,7 @@ TEST(MainWindow, UncheckingHachuresAppliesTheSolidSketchThemeAgain)
     check_box->setChecked(true);
     check_box->setChecked(false);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette);
 }
 
 TEST(MainWindow, AntialiasingComboBoxListsTheModesAndStartsAtAlways)
@@ -247,7 +239,7 @@ TEST(MainWindow, ChoosingAnAntialiasingModeAppliesTheThemeAgain)
     find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
     find<QComboBox>(w, "antialiasingComboBox")->setCurrentIndex(0);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::china_ink_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme().palette);
 }
 
 TEST(MainWindow, ChoosingAnAntialiasingModeWithoutCurrentEntryKeepsTheThemeRemoved)
@@ -272,8 +264,8 @@ TEST(MainWindow, CheckingHachuresUnderChinaInkAppliesTheHatchedChinaInkTheme)
     find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::china_ink_theme(hpq::FillStyle::Hachure).palette());
-    EXPECT_NE(w.palette(), hpq::china_ink_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme(hpq::FillStyle::Hachure).palette);
+    EXPECT_NE(w.palette(), hpq::china_ink_theme().palette);
 }
 
 TEST(MainWindow, CheckingHachuresUnderBlackSlateAppliesTheHatchedSlateTheme)
@@ -282,7 +274,7 @@ TEST(MainWindow, CheckingHachuresUnderBlackSlateAppliesTheHatchedSlateTheme)
     find<QComboBox>(w, "comboBox")->setCurrentIndex(BlackSlateIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::slate_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(w.palette(), hpq::slate_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(MainWindow, SelectingNoEntryRemovesTheSketchTheme)
@@ -290,7 +282,7 @@ TEST(MainWindow, SelectingNoEntryRemovesTheSketchTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(NoEntryIndex);
     EXPECT_EQ(w.graphicsEffect(), nullptr);
-    EXPECT_NE(w.palette(), hpq::sketch_theme().palette());
+    EXPECT_NE(w.palette(), hpq::sketch_theme().palette);
 }
 
 TEST(MainWindow, SelectingChinaInkAppliesTheChinaInkTheme)
@@ -298,7 +290,7 @@ TEST(MainWindow, SelectingChinaInkAppliesTheChinaInkTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(ChinaInkIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::china_ink_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::china_ink_theme().palette);
     EXPECT_EQ(w.font().family(), "Kaushan Script");
 }
 
@@ -307,7 +299,7 @@ TEST(MainWindow, SelectingBlackSlateAppliesTheSlateTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(BlackSlateIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::slate_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::slate_theme().palette);
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
@@ -316,7 +308,7 @@ TEST(MainWindow, SelectingSchoolNotebookAppliesTheNotebookTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(SchoolNotebookIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::notebook_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::notebook_theme().palette);
     EXPECT_EQ(w.font().family(), "Playwrite FR Moderne");
 }
 
@@ -326,8 +318,8 @@ TEST(MainWindow, CheckingHachuresUnderSchoolNotebookAppliesTheHatchedNotebookThe
     find<QComboBox>(w, "comboBox")->setCurrentIndex(SchoolNotebookIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::notebook_theme(hpq::FillStyle::Hachure).palette());
-    EXPECT_NE(w.palette(), hpq::notebook_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::notebook_theme(hpq::FillStyle::Hachure).palette);
+    EXPECT_NE(w.palette(), hpq::notebook_theme().palette);
 }
 
 TEST(MainWindow, SelectingVelledaAppliesTheVelledaTheme)
@@ -335,7 +327,7 @@ TEST(MainWindow, SelectingVelledaAppliesTheVelledaTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(VelledaIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::velleda_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::velleda_theme().palette);
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
@@ -345,7 +337,7 @@ TEST(MainWindow, CheckingHachuresUnderVelledaAppliesTheHatchedVelledaTheme)
     find<QComboBox>(w, "comboBox")->setCurrentIndex(VelledaIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::velleda_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(w.palette(), hpq::velleda_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(MainWindow, SelectingWatercolorAppliesTheWatercolorTheme)
@@ -353,7 +345,7 @@ TEST(MainWindow, SelectingWatercolorAppliesTheWatercolorTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(WatercolorIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::watercolor_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::watercolor_theme().palette);
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
@@ -363,7 +355,7 @@ TEST(MainWindow, CheckingHachuresUnderWatercolorAppliesTheHatchedWatercolorTheme
     find<QComboBox>(w, "comboBox")->setCurrentIndex(WatercolorIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::watercolor_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(w.palette(), hpq::watercolor_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(MainWindow, SelectingBlueprintAppliesTheBlueprintTheme)
@@ -371,7 +363,7 @@ TEST(MainWindow, SelectingBlueprintAppliesTheBlueprintTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(BlueprintIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::blueprint_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::blueprint_theme().palette);
     EXPECT_EQ(w.font().family(), "Architects Daughter");
     EXPECT_EQ(w.font().capitalization(), QFont::AllUppercase);
 }
@@ -382,7 +374,7 @@ TEST(MainWindow, CheckingHachuresUnderBlueprintAppliesTheHatchedBlueprintTheme)
     find<QComboBox>(w, "comboBox")->setCurrentIndex(BlueprintIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::blueprint_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(w.palette(), hpq::blueprint_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(MainWindow, SelectingInvisibleInkAppliesTheInvisibleInkTheme)
@@ -390,7 +382,7 @@ TEST(MainWindow, SelectingInvisibleInkAppliesTheInvisibleInkTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(InvisibleInkIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::invisible_ink_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::invisible_ink_theme().palette);
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
@@ -400,7 +392,7 @@ TEST(MainWindow, CheckingHachuresUnderInvisibleInkAppliesTheHatchedInvisibleInkT
     find<QComboBox>(w, "comboBox")->setCurrentIndex(InvisibleInkIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::invisible_ink_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(w.palette(), hpq::invisible_ink_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(MainWindow, SelectingHighlighterAppliesTheHighlighterTheme)
@@ -408,7 +400,7 @@ TEST(MainWindow, SelectingHighlighterAppliesTheHighlighterTheme)
     hpq::example::MainWindow w;
     find<QComboBox>(w, "comboBox")->setCurrentIndex(HighlighterIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::highlighter_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::highlighter_theme().palette);
     EXPECT_EQ(w.font().family(), "Architects Daughter");
 }
 
@@ -418,7 +410,7 @@ TEST(MainWindow, CheckingHachuresUnderHighlighterAppliesTheHatchedHighlighterThe
     find<QComboBox>(w, "comboBox")->setCurrentIndex(HighlighterIndex);
     find<QCheckBox>(w, "checkBox")->setChecked(true);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::highlighter_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(w.palette(), hpq::highlighter_theme(hpq::FillStyle::Hachure).palette);
 }
 
 class MainWindowOtherTheme : public ::testing::TestWithParam<int>
@@ -432,7 +424,7 @@ TEST_P(MainWindowOtherTheme, SelectingSketchAgainAppliesTheSketchTheme)
     combo->setCurrentIndex(GetParam());
     combo->setCurrentIndex(SketchIndex);
     EXPECT_TRUE(has_hand_paint_effect(w));
-    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette());
+    EXPECT_EQ(w.palette(), hpq::sketch_theme().palette);
 }
 
 INSTANTIATE_TEST_SUITE_P(NoEntryAndEveryOtherTheme, MainWindowOtherTheme,

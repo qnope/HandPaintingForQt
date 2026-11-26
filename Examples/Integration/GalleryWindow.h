@@ -1,12 +1,10 @@
 #pragma once
 
-#include <hpq/GeometryEngine.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/WindowTheming.h>
+#include <hpq/Theming.h>
 
 #include <QWidget>
 
-#include <memory>
+#include <cstdint>
 #include <optional>
 
 class QCheckBox;
@@ -21,18 +19,16 @@ class GalleryWindow : public QWidget {
     Q_OBJECT
 
 public:
-    // `geometry_engine` makes the shapes rough. Each RoughGeometryEngine has its own hand;
-    // one with a fixed base seed draws the same window every time.
-    explicit GalleryWindow(std::shared_ptr<const hpq::GeometryEngine> geometry_engine =
-                               std::make_shared<const hpq::RoughGeometryEngine>(),
-                           QWidget *parent = nullptr);
+    // `seed` is the hand that draws the window (hpq::RoughOptions::seed): the same seed draws
+    // the same window every time.
+    explicit GalleryWindow(std::uint32_t seed = 0, QWidget *parent = nullptr);
 
 private:
     // Gives the window, and the menus, dialogs and tooltips of the application, the theme
     // chosen in m_theme_box.
     void update_theme();
 
-    std::shared_ptr<const hpq::GeometryEngine> m_geometry_engine;
+    std::uint32_t m_seed;
     QComboBox *m_theme_box;
     QCheckBox *m_hachure_box;
     // Themes the windows of their own of the application (menus, dialogs, tooltips).

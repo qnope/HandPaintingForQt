@@ -1,9 +1,7 @@
 #include "EffectCache.h"
 
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/WatercolorTheme.h>
 
 #include <gtest/gtest.h>
 
@@ -20,14 +18,10 @@
 #include <QWidget>
 
 #include <cstddef>
-#include <cstdint>
-#include <memory>
 #include <vector>
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 constexpr int RowCount = 60;
 constexpr int ColumnCount = 6;
 // Pixels by which a test scrolls a view: not a whole number of rows or columns.
@@ -51,8 +45,7 @@ public:
         m_table->setAlternatingRowColors(true);
         m_table->selectRow(3);
         m_window.resize(320, 260);
-        hpq::apply_theme(m_window, hpq::sketch_theme(hpq::FillStyle::Hachure),
-                         std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+        hpq::apply_theme(m_window, hpq::sketch_theme(hpq::FillStyle::Hachure));
         m_window.show();
         QCoreApplication::processEvents();
     }
@@ -209,8 +202,7 @@ TEST(ScrolledViewTest, AShapeScrolledOutOfTheViewportDoesNotShowAboveIt) {
     view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     layout->addWidget(view);
     window.resize(260, 220);
-    hpq::apply_theme(window, hpq::watercolor_theme(hpq::FillStyle::Solid),
-                     std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+    hpq::apply_theme(window, hpq::watercolor_theme(hpq::FillStyle::Solid));
     window.show();
     QCoreApplication::processEvents();
 

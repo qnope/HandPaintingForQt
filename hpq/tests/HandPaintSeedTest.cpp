@@ -2,19 +2,13 @@
 #include "RecordingPaintDevice.h"
 
 #include <hpq/HandPaintDevice.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
 #include <QPainter>
 
-#include <cstdint>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -25,10 +19,9 @@ const QRectF Rectangle(10, 10, 100, 50);
 // session, after setting `transform` on the painter, and returns the calls the target received.
 std::vector<DrawCall> draw_rectangle(const QRectF &rectangle, const hpq::Theme &theme = hpq::sketch_theme(),
                                      const QTransform &transform = QTransform()) {
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     RecordingPaintDevice target;
     QPainter target_painter(&target);
-    hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, theme);
     QPainter painter(&device);
     painter.setPen(QPen(Qt::black, 2.0));
     painter.setBrush(QBrush(Qt::blue));

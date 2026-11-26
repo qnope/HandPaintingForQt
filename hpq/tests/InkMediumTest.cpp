@@ -1,21 +1,16 @@
 #include "ExactTheme.h"
 #include "RecordingPaintDevice.h"
 
-#include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintDevice.h>
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
 #include <QPainter>
 
-#include <cstdint>
 #include <functional>
 
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -32,10 +27,9 @@ constexpr double WidestBrushLine = 8.0;
 // painting session, and returns the calls the target received.
 std::vector<DrawCall> calls_of(const hpq::Theme &theme, const std::function<void(QPainter &)> &draw) {
     const hpq::Theme exact_theme = hpq::test::exact(theme);
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     RecordingPaintDevice target;
     QPainter target_painter(&target);
-    hpq::HandPaintDevice device(target_painter, exact_theme, geometry_engine);
+    hpq::HandPaintDevice device(target_painter, exact_theme);
     QPainter painter(&device);
     draw(painter);
     painter.end();
@@ -173,7 +167,7 @@ TEST(InkMedium, HatchedFillIsThePaperUnderBrushLines) {
     ASSERT_EQ(calls.size(), 2u);
     // The paper under the hachures.
     EXPECT_TRUE(calls[0].is_fill());
-    EXPECT_EQ(calls[0].brush, theme.palette().window());
+    EXPECT_EQ(calls[0].brush, theme.palette.window());
     // The hachures: areas of ink in the color of the brush, inside the rectangle.
     EXPECT_TRUE(calls[1].is_fill());
     EXPECT_EQ(calls[1].brush, QBrush(FillColor));
@@ -187,10 +181,9 @@ TEST(InkMedium, HachureIsDrawnWithTheTipOfTheBrush) {
     constexpr double WidestHachure = 2.5;
     // Horizontal hachures, 10 pixels apart, on a grid that starts at the origin: one of them
     // goes through the middle of the band below.
-    hpq::RoughOptions options = hpq::china_ink_theme().rough_options();
-    options.hachure_angle = 0.0;
-    options.hachure_gap = 10.0;
-    const hpq::Theme theme = hpq::test::with_rough_options(hpq::china_ink_theme(hpq::FillStyle::Hachure), options);
+    hpq::Theme theme = hpq::china_ink_theme(hpq::FillStyle::Hachure);
+    theme.rough_options.hachure_angle = 0.0;
+    theme.rough_options.hachure_gap = 10.0;
     QPainterPath band;
     band.addRect(QRectF(0, 40, RecordingPaintDevice::Size, 10));
 

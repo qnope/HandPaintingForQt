@@ -1,4 +1,4 @@
-#include <hpq/ChinaInkTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -39,7 +39,7 @@ double text_contrast(const QPalette &palette, QPalette::ColorGroup group) {
 }  // namespace
 
 TEST(ChinaInkTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::china_ink_theme().palette();
+    const QPalette palette = hpq::china_ink_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -54,7 +54,7 @@ TEST(ChinaInkTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(ChinaInkTheme, PaletteIsLightPaperWithBlackInk) {
-    const QPalette palette = hpq::china_ink_theme().palette();
+    const QPalette palette = hpq::china_ink_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base, QPalette::Button}) {
         EXPECT_GT(palette.color(QPalette::Active, role).lightness(), 200) << "role " << role;
@@ -65,7 +65,7 @@ TEST(ChinaInkTheme, PaletteIsLightPaperWithBlackInk) {
 }
 
 TEST(ChinaInkTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::china_ink_theme().palette();
+    const QPalette palette = hpq::china_ink_theme().palette;
 
     const double active_contrast = text_contrast(palette, QPalette::Active);
     EXPECT_GE(active_contrast, 4.5);
@@ -74,7 +74,7 @@ TEST(ChinaInkTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 
 // The selection has the red of a seal, and its text is read on it.
 TEST(ChinaInkTheme, SelectionIsSealRedWithReadableText) {
-    const QPalette palette = hpq::china_ink_theme().palette();
+    const QPalette palette = hpq::china_ink_theme().palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         const QColor seal = palette.color(group, QPalette::Highlight);
@@ -88,19 +88,19 @@ TEST(ChinaInkTheme, SelectionIsSealRedWithReadableText) {
 TEST(ChinaInkTheme, DrawsOneStrokeWithABrush) {
     const hpq::Theme theme = hpq::china_ink_theme();
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Ink);
-    EXPECT_EQ(theme.rough_options().stroke_count, 1);
+    EXPECT_EQ(theme.medium, hpq::Medium::Ink);
+    EXPECT_EQ(theme.rough_options.stroke_count, 1);
 }
 
 TEST(ChinaInkTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::china_ink_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::china_ink_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
-    EXPECT_EQ(hpq::china_ink_theme(hpq::FillStyle::Hachure).medium(), hpq::Medium::Ink);
+    EXPECT_EQ(hpq::china_ink_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::china_ink_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::china_ink_theme(hpq::FillStyle::Hachure).medium, hpq::Medium::Ink);
 }
 
 // The paper shows between the hachures of a selection: its text must be readable on the paper.
 TEST(ChinaInkTheme, HachureVariantSelectionTextIsReadableOnPaper) {
-    const QPalette palette = hpq::china_ink_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette palette = hpq::china_ink_theme(hpq::FillStyle::Hachure).palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         const QColor text = palette.color(group, QPalette::HighlightedText);
@@ -112,7 +112,7 @@ TEST(ChinaInkTheme, HachureVariantSelectionTextIsReadableOnPaper) {
 TEST(ChinaInkTheme, FontIsKaushanScript) {
     const hpq::Theme theme = hpq::china_ink_theme();
 
-    EXPECT_EQ(theme.font().family(), FontFamily);
+    EXPECT_EQ(theme.font.family(), FontFamily);
 }
 
 TEST(ChinaInkTheme, RegistersKaushanScriptInFontDatabase) {

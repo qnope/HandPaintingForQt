@@ -1,4 +1,4 @@
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/RoughGeometry.h>
 
 #include <QPainterPath>
 #include <QPointF>
@@ -10,8 +10,8 @@
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
+// The seed of the hand: the tests draw the same paths at every run.
+constexpr std::uint32_t HandSeed = 2024;
 
 constexpr std::uint32_t Seed = 7;
 
@@ -20,6 +20,7 @@ hpq::RoughOptions fill_options()
     hpq::RoughOptions options;
     options.roughness = 1.0;
     options.max_offset = 5.0;
+    options.seed = HandSeed;
     return options;
 }
 
@@ -62,7 +63,7 @@ bool same_elements(const QPainterPath &a, const QPainterPath &b)
 void expect_rough_fill_of(const QPainterPath &shape, QPointF center)
 {
     const hpq::RoughOptions options = fill_options();
-    const QPainterPath fill = hpq::RoughGeometryEngine(BaseSeed).fill_area(shape, options, Seed);
+    const QPainterPath fill = hpq::rough_fill_area(shape, options, Seed);
 
     EXPECT_TRUE(is_closed(fill));
     const double margin = options.max_offset;
@@ -85,18 +86,17 @@ TEST(RoughFillAreaTest, EllipseFillIsClosedNearTheShapeAndContainsItsCenter)
 
 TEST(RoughFillAreaTest, SameShapeOptionsAndSeedGiveTheSamePaths)
 {
-    const hpq::RoughGeometryEngine engine(BaseSeed);
     const QPainterPath shape = rectangle_shape();
     const hpq::RoughOptions options = fill_options();
 
-    const std::vector<QPainterPath> first_outline = engine.outline(shape, options, Seed);
-    const std::vector<QPainterPath> second_outline = engine.outline(shape, options, Seed);
+    const std::vector<QPainterPath> first_outline = hpq::rough_outline(shape, options, Seed);
+    const std::vector<QPainterPath> second_outline = hpq::rough_outline(shape, options, Seed);
     ASSERT_EQ(first_outline.size(), second_outline.size());
     for (std::size_t i = 0; i < first_outline.size(); ++i)
         EXPECT_TRUE(same_elements(first_outline[i], second_outline[i]));
 
-    const QPainterPath first_fill = engine.fill_area(shape, options, Seed);
-    const QPainterPath second_fill = engine.fill_area(shape, options, Seed);
+    const QPainterPath first_fill = hpq::rough_fill_area(shape, options, Seed);
+    const QPainterPath second_fill = hpq::rough_fill_area(shape, options, Seed);
     EXPECT_GT(first_fill.elementCount(), 0);
     EXPECT_TRUE(same_elements(first_fill, second_fill));
 }
@@ -109,7 +109,7 @@ TEST(RoughFillAreaTest, FillAreaCoversTheWholeShape)
     const QPainterPath shape = rectangle_shape();
     const QRectF inside = shape.boundingRect().adjusted(Step, Step, -Step, -Step);
     for (std::uint32_t seed = 0; seed < 10; ++seed) {
-        const QPainterPath fill = hpq::RoughGeometryEngine(BaseSeed).fill_area(shape, fill_options(), seed);
+        const QPainterPath fill = hpq::rough_fill_area(shape, fill_options(), seed);
         for (double y = inside.top(); y <= inside.bottom(); y += Step) {
             for (double x = inside.left(); x <= inside.right(); x += Step) {
                 ASSERT_TRUE(fill.contains(QPointF(x, y))) << "seed " << seed << " point " << x << "," << y;
@@ -124,7 +124,6 @@ TEST(RoughFillAreaTest, FillAreaCoversTheWholeShape)
 TEST(RoughFillAreaTest, RectangleFillCoversWhatItsBoundaryAndTheRectangleCover)
 {
     constexpr double Step = 0.5;
-    const hpq::RoughGeometryEngine engine(BaseSeed);
     hpq::RoughOptions options = fill_options();
     options.stroke_count = 1;
     for (const QRectF &rectangle : {QRectF(10, 10, 100, 50), QRectF(0, 0, 300, 11), QRectF(5, 5, 11, 160)}) {
@@ -133,8 +132,8 @@ TEST(RoughFillAreaTest, RectangleFillCoversWhatItsBoundaryAndTheRectangleCover)
         const double margin = options.max_offset;
         const QRectF around = rectangle.adjusted(-margin, -margin, margin, margin);
         for (std::uint32_t seed = 0; seed < 20; ++seed) {
-            const QPainterPath fill = engine.fill_area(shape, options, seed);
-            QPainterPath boundary = engine.outline(shape, options, seed).front();
+            const QPainterPath fill = hpq::rough_fill_area(shape, options, seed);
+            QPainterPath boundary = hpq::rough_outline(shape, options, seed).front();
             boundary.closeSubpath();
             const QPainterPath united = boundary.united(shape);
             EXPECT_TRUE(is_closed(fill));

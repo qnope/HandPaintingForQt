@@ -5,8 +5,8 @@
 // Writes teaser.mp4 (1920x1080, 30 frames a second, H.264, no sound) and teaser.gif (its
 // preview in the README, 960 pixels wide) in the directory, with ffmpeg, which must be in PATH.
 // The frames are drawn one after the other at a fixed rate and sent to ffmpeg, so the video
-// does not depend on the speed of the machine. The geometry engine has a fixed base seed: the
-// same code renders the same video.
+// does not depend on the speed of the machine. The themes have a fixed seed: the same code
+// renders the same video.
 //
 // To look at the frames without ffmpeg, --frames <directory> writes one frame in --step as PNG
 // (and renders only those), between --from and --to seconds.
@@ -20,18 +20,9 @@
 
 #include "GalleryWindow.h"
 
-#include <hpq/BlueprintTheme.h>
-#include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintDevice.h>
-#include <hpq/HighlighterTheme.h>
-#include <hpq/InvisibleInkTheme.h>
-#include <hpq/NotebookTheme.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/VelledaTheme.h>
-#include <hpq/WatercolorTheme.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -84,6 +75,12 @@ struct NamedTheme {
     const char *description;
     hpq::Theme (*make)(hpq::FillStyle);
 };
+
+// `theme`, drawn by the hand of the teaser: every run draws the same wobble.
+hpq::Theme seeded(hpq::Theme theme) {
+    theme.rough_options.seed = BaseSeed;
+    return theme;
+}
 
 const NamedTheme Themes[] = {
     {"Sketch", "Graphite pencil on paper", hpq::sketch_theme},
@@ -181,13 +178,13 @@ void draw_revealed(QPainter &painter, const QImage &layer, const QRectF &bounds,
 }
 
 // A layer of the size of the frame, drawn by hand with `theme`.
-QImage hand_layer(const hpq::Theme &theme, const hpq::GeometryEngine &engine, const std::function<void(QPainter &)> &draw) {
+QImage hand_layer(const hpq::Theme &theme, const std::function<void(QPainter &)> &draw) {
     QImage layer = blank();
     QPainter target(&layer);
     target.setRenderHint(QPainter::Antialiasing);
     target.setRenderHint(QPainter::TextAntialiasing);
     target.setRenderHint(QPainter::SmoothPixmapTransform);
-    hpq::HandPaintDevice device(target, theme, engine);
+    hpq::HandPaintDevice device(target, theme);
     QPainter painter(&device);
     painter.setRenderHint(QPainter::Antialiasing);
     draw(painter);
@@ -400,8 +397,8 @@ T *find_widget(QWidget &root, Predicate predicate) {
 
 class Gallery {
 public:
-    explicit Gallery(std::shared_ptr<const hpq::GeometryEngine> engine)
-        : m_window(std::move(engine)) {
+    Gallery()
+        : m_window(BaseSeed) {
         m_window.resize(GallerySize);
         m_window.show();
         m_theme_box = find_widget<QComboBox>(m_window, [](QComboBox *box) { return box->objectName() == "themeBox"; });
@@ -692,11 +689,9 @@ private:
 class Teaser {
 public:
     Teaser()
-        : m_engine(std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed))
-        , m_plain(m_engine)
-        , m_galleries{std::make_unique<Gallery>(m_engine), std::make_unique<Gallery>(m_engine)}
+        : m_galleries{std::make_unique<Gallery>(), std::make_unique<Gallery>()}
         , m_pointer(carousel_moves(), carousel_clicks()) {
-        m_hand_family = hpq::sketch_theme().font().family();
+        m_hand_family = hpq::sketch_theme().font.family();
         m_plain.make_plain();
         m_chart.show();
         build_layers();
@@ -737,48 +732,48 @@ private:
     // ----- Scene 1: the title
 
     void build_layers() {
-        const hpq::Theme sketch = hpq::sketch_theme();
-        m_title = hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        const hpq::Theme sketch = seeded(hpq::sketch_theme());
+        m_title = hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(Graphite);
             painter.setFont(font(m_hand_family, 150));
             painter.drawText(QRectF(0, 300, Width, 200), Qt::AlignCenter, "Hand Painting for Qt");
         });
-        m_underline = hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_underline = hand_layer(sketch, [&](QPainter &painter) {
             QPainterPath wave(QPointF(470, 520));
             wave.cubicTo(760, 498, 1150, 545, 1450, 512);
             painter.setPen(QPen(QColor(0xc0, 0x39, 0x2b), 6, Qt::SolidLine, Qt::RoundCap));
             painter.setBrush(Qt::NoBrush);
             painter.drawPath(wave);
         });
-        m_subtitle = hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_subtitle = hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(SoftGraphite);
             painter.setFont(font(m_hand_family, 56));
             painter.drawText(QRectF(0, 560, Width, 90), Qt::AlignCenter, "Hand-drawn themes for your Qt widgets");
         });
         // Little widgets, drawn by hand: a button, a check box, a slider and a radio button.
         const double y = 735;
-        m_doodles.push_back(hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(QPen(Graphite, 3));
             painter.setBrush(QColor(0xf2, 0xed, 0xdf));
             painter.drawRect(QRectF(560, y, 170, 72));
             painter.setFont(font(m_hand_family, 36));
             painter.drawText(QRectF(560, y, 170, 72), Qt::AlignCenter, "OK");
         }));
-        m_doodles.push_back(hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(QPen(Graphite, 3));
             painter.setBrush(Qt::NoBrush);
             painter.drawRect(QRectF(800, y + 10, 52, 52));
             painter.setPen(QPen(QColor(0x1e, 0x84, 0x49), 5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
             painter.drawPolyline(QPolygonF({{808, y + 36}, {822, y + 54}, {860, y + 4}}));
         }));
-        m_doodles.push_back(hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(QPen(Graphite, 3));
             painter.drawLine(QPointF(920, y + 36), QPointF(1170, y + 36));
             painter.setBrush(QColor(0xae, 0xd6, 0xf1));
             painter.setPen(QPen(QColor(0x2a, 0x6f, 0xdb), 3));
             painter.drawRect(QRectF(1060, y + 14, 28, 44));
         }));
-        m_doodles.push_back(hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(QPen(Graphite, 3));
             painter.setBrush(Qt::NoBrush);
             painter.drawEllipse(QPointF(1270, y + 36), 28, 28);
@@ -786,19 +781,19 @@ private:
             painter.setBrush(QColor(0xc0, 0x39, 0x2b));
             painter.drawEllipse(QPointF(1270, y + 36), 13, 13);
         }));
-        m_paper = blank(sketch.palette().color(QPalette::Window));
+        m_paper = blank(sketch.palette.color(QPalette::Window));
         {
             QPainter painter(&m_paper);
-            painter.fillRect(m_paper.rect(), sketch.palette().window());
+            painter.fillRect(m_paper.rect(), sketch.palette.window());
         }
 
         // The end: the title again, and where to find the library.
-        m_end_title = hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_end_title = hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(Graphite);
             painter.setFont(font(m_hand_family, 132));
             painter.drawText(QRectF(0, 250, Width, 180), Qt::AlignCenter, "Hand Painting for Qt");
         });
-        m_end_underline = hand_layer(sketch, *m_engine, [&](QPainter &painter) {
+        m_end_underline = hand_layer(sketch, [&](QPainter &painter) {
             QPainterPath wave(QPointF(560, 445));
             wave.cubicTo(820, 425, 1120, 468, 1360, 440);
             painter.setPen(QPen(QColor(0xc0, 0x39, 0x2b), 6, Qt::SolidLine, Qt::RoundCap));
@@ -881,7 +876,7 @@ private:
         draw_theme_caption(painter, 0, phase(u, 5.45, 0.55));
 
         // The call.
-        const QString code = "hpq::apply_theme(window, hpq::sketch_theme(), engine);";
+        const QString code = "hpq::apply_theme(window, hpq::sketch_theme());";
         const double typed = phase(u, 0.9, 1.7);
         const int count = static_cast<int>(std::floor(typed * code.size()));
         const double code_opacity = phase(u, 0.6, 0.3) * (1 - phase(u, 4.8, 0.4));
@@ -905,7 +900,7 @@ private:
             const std::vector<Piece> pieces = {
                 {"hpq::", QColor(0x7e, 0xc8, 0xe3)},     {"apply_theme", QColor(0xf0, 0xc6, 0x74)},
                 {"(window, ", QColor(0xe6, 0xe6, 0xe6)}, {"hpq::", QColor(0x7e, 0xc8, 0xe3)},
-                {"sketch_theme", QColor(0xf0, 0xc6, 0x74)}, {"(), engine);", QColor(0xe6, 0xe6, 0xe6)},
+                {"sketch_theme", QColor(0xf0, 0xc6, 0x74)}, {"());", QColor(0xe6, 0xe6, 0xe6)},
             };
             int remaining = count;
             for (const Piece &piece : pieces) {
@@ -1049,7 +1044,7 @@ private:
         const int step = std::clamp(static_cast<int>((v - 0.3) / 0.55), 0, static_cast<int>(std::size(Order)) - 1);
         const int theme = Order[step];
         if (m_chart_theme != theme) {
-            hpq::apply_theme(m_chart, Themes[theme].make(hpq::FillStyle::Solid), m_engine);
+            hpq::apply_theme(m_chart, seeded(Themes[theme].make(hpq::FillStyle::Solid)));
             m_chart_theme = theme;
             QApplication::processEvents();
         }
@@ -1128,7 +1123,6 @@ private:
         return frame;
     }
 
-    std::shared_ptr<const hpq::RoughGeometryEngine> m_engine;
     Gallery m_plain;
     std::array<std::unique_ptr<Gallery>, 2> m_galleries;
     ChartWidget m_chart;

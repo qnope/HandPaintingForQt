@@ -1,4 +1,4 @@
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -33,8 +33,11 @@ PaletteColors sketch_colors(bool is_disabled, FillStyle fill_style) {
 }  // namespace
 
 Theme sketch_theme(FillStyle fill_style) {
-    return Theme(make_palette(sketch_colors(false, fill_style), sketch_colors(true, fill_style)),
-                 QFont(hand_font_family()), RoughOptions{}, fill_style);
+    Theme theme;
+    theme.palette = make_palette(sketch_colors(false, fill_style), sketch_colors(true, fill_style));
+    theme.font = QFont(hand_font_family());
+    theme.fill_style = fill_style;
+    return theme;
 }
 
 }  // namespace hpq

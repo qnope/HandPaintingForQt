@@ -1,6 +1,6 @@
 #include "StyleRendering.h"
 
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -17,7 +17,7 @@ using hpq::test::has_image;
 using hpq::test::render_with_style;
 
 bool has_button_fill(const std::vector<DrawCall> &calls) {
-    const QColor button_color = hpq::sketch_theme().palette().color(QPalette::Button);
+    const QColor button_color = hpq::sketch_theme().palette.color(QPalette::Button);
     return std::any_of(calls.begin(), calls.end(), [&](const DrawCall &call) {
         return call.kind == DrawCall::Kind::Path && call.brush.style() == Qt::SolidPattern &&
                call.brush.color() == button_color;

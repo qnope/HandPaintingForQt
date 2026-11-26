@@ -1,4 +1,4 @@
-#include <hpq/VelledaTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -50,8 +50,12 @@ QFont marker_font() {
 }  // namespace
 
 Theme velleda_theme(FillStyle fill_style) {
-    return Theme(make_palette(velleda_colors(false, fill_style), velleda_colors(true, fill_style)), marker_font(),
-                 MarkerRoughOptions, fill_style);
+    Theme theme;
+    theme.palette = make_palette(velleda_colors(false, fill_style), velleda_colors(true, fill_style));
+    theme.font = marker_font();
+    theme.rough_options = MarkerRoughOptions;
+    theme.fill_style = fill_style;
+    return theme;
 }
 
 }  // namespace hpq

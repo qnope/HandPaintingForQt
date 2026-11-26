@@ -1,14 +1,8 @@
 #include "ImageComparison.h"
 
-#include <hpq/ChinaInkTheme.h>
-#include <hpq/Medium.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
 #include <hpq/Theme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/VelledaTheme.h>
-#include <hpq/WatercolorTheme.h>
 
 #include <gtest/gtest.h>
 
@@ -35,8 +29,6 @@
 #include <QTreeWidget>
 #include <QWidget>
 
-#include <cstdint>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -46,15 +38,9 @@
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 const QColor LineColor(0x20, 0x40, 0x80);
 // A background that the themes with hachures draw in hachures, and watercolor in a wash.
 const QColor PanelColor(0xf0, 0xd0, 0x60);
-
-std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
-    return std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed);
-}
 
 struct NamedTheme {
     std::string name;
@@ -163,7 +149,7 @@ public:
 
         auto *panel = new QFrame(this);
         panel->setGeometry(370, 190, 180, 100);
-        if (theme.medium() != hpq::Medium::Watercolor) {
+        if (theme.medium != hpq::Medium::Watercolor) {
             QPalette panel_palette = panel->palette();
             panel_palette.setColor(QPalette::Window, PanelColor);
             panel->setPalette(panel_palette);
@@ -196,7 +182,7 @@ private:
 TEST(PartialRenderTest, ARepaintOfAButtonDoesNotPaintTheWidgetsFarFromIt) {
     const hpq::Theme theme = hpq::sketch_theme();
     Gallery window(theme);
-    hpq::apply_theme(window, theme, rough_geometry_engine());
+    hpq::apply_theme(window, theme);
     window.show();
     shown(window);
     auto *button = window.findChild<QPushButton *>();
@@ -218,7 +204,7 @@ TEST(PartialRenderTest, ARepaintOfAWidgetPaintsItsCloseNeighbours) {
     button->setGeometry(10, 10, 100, 30);
     auto *neighbour = new CountingWidget(&window);
     neighbour->setGeometry(118, 10, 100, 30);
-    hpq::apply_theme(window, hpq::sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window, hpq::sketch_theme());
     window.show();
     shown(window);
 
@@ -232,7 +218,7 @@ TEST(PartialRenderTest, RepaintsOfWidgetsLeaveTheWindowAsAWholeRepaintDrawsIt) {
     for (const NamedTheme &named : themes()) {
         SCOPED_TRACE(named.name);
         Gallery window(named.theme);
-        hpq::apply_theme(window, named.theme, rough_geometry_engine());
+        hpq::apply_theme(window, named.theme);
         window.show();
         shown(window);
 
@@ -250,7 +236,7 @@ TEST(PartialRenderTest, RepaintsOfPartsLeaveTheWindowAsAWholeRepaintDrawsIt) {
     for (const NamedTheme &named : themes()) {
         SCOPED_TRACE(named.name);
         Gallery window(named.theme);
-        hpq::apply_theme(window, named.theme, rough_geometry_engine());
+        hpq::apply_theme(window, named.theme);
         window.show();
         shown(window);
 
@@ -288,7 +274,7 @@ TEST(PartialRenderTest, ScrollsLeaveTheWindowAsAWholeRepaintDrawsIt) {
     for (const NamedTheme &named : themes()) {
         SCOPED_TRACE(named.name);
         Gallery window(named.theme);
-        hpq::apply_theme(window, named.theme, rough_geometry_engine());
+        hpq::apply_theme(window, named.theme);
         window.show();
         shown(window);
 
@@ -313,7 +299,7 @@ TEST(PartialRenderTest, AScrollBarThatShowsAndHidesLeavesNoTrace) {
     for (const NamedTheme &named : themes()) {
         SCOPED_TRACE(named.name);
         Gallery window(named.theme);
-        hpq::apply_theme(window, named.theme, rough_geometry_engine());
+        hpq::apply_theme(window, named.theme);
         window.show();
         auto *notes = window.findChild<QTextEdit *>();
         auto *table = window.findChild<QTableWidget *>();

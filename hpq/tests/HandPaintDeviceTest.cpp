@@ -1,19 +1,13 @@
 #include "RecordingPaintDevice.h"
 
 #include <hpq/HandPaintDevice.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
 #include <QPainter>
 
-#include <cstdint>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 using hpq::test::DrawCall;
 using hpq::test::RecordingPaintDevice;
@@ -28,7 +22,7 @@ protected:
     // Draws Rectangle on a HandPaintDevice whose target is m_target, and returns the recorded calls.
     const hpq::test::RecordingPaintEngine &draw_rectangle(const QPen &pen, const QBrush &brush) {
         QPainter target_painter(&m_target);
-        hpq::HandPaintDevice device(target_painter, m_theme, m_geometry_engine);
+        hpq::HandPaintDevice device(target_painter, m_theme);
         QPainter painter(&device);
         painter.setPen(pen);
         painter.setBrush(brush);
@@ -44,7 +38,6 @@ protected:
     }
 
     hpq::Theme m_theme = hpq::sketch_theme();
-    hpq::RoughGeometryEngine m_geometry_engine{BaseSeed};
     RecordingPaintDevice m_target;
 };
 
@@ -110,10 +103,9 @@ TEST(HandPaintDeviceHighDpiTest, ShapeLandsAtTheSameLogicalPlaceOnAHighDpiTarget
     target.setDevicePixelRatio(DevicePixelRatio);
     target.fill(Qt::white);
     const hpq::Theme theme = hpq::sketch_theme();
-    hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     {
         QPainter target_painter(&target);
-        hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+        hpq::HandPaintDevice device(target_painter, theme);
         EXPECT_EQ(device.width(), 100);
         EXPECT_EQ(device.height(), 100);
         QPainter painter(&device);

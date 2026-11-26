@@ -1,4 +1,4 @@
-#include <hpq/VelledaTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -39,7 +39,7 @@ double contrast(const QPalette &palette, QPalette::ColorGroup group, QPalette::C
 }  // namespace
 
 TEST(VelledaTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::velleda_theme().palette();
+    const QPalette palette = hpq::velleda_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -54,7 +54,7 @@ TEST(VelledaTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(VelledaTheme, PaletteIsAWhiteBoardWithABlackMarker) {
-    const QPalette palette = hpq::velleda_theme().palette();
+    const QPalette palette = hpq::velleda_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base, QPalette::Button}) {
         EXPECT_GT(palette.color(QPalette::Active, role).lightness(), 245) << "role " << role;
@@ -65,7 +65,7 @@ TEST(VelledaTheme, PaletteIsAWhiteBoardWithABlackMarker) {
 }
 
 TEST(VelledaTheme, FramesAreBlueSelectionIsRedAndLinksAreGreen) {
-    const QPalette palette = hpq::velleda_theme().palette();
+    const QPalette palette = hpq::velleda_theme().palette;
 
     const QColor frame = palette.color(QPalette::Active, QPalette::Dark);
     EXPECT_GT(frame.blue(), frame.red());
@@ -79,7 +79,7 @@ TEST(VelledaTheme, FramesAreBlueSelectionIsRedAndLinksAreGreen) {
 }
 
 TEST(VelledaTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::velleda_theme().palette();
+    const QPalette palette = hpq::velleda_theme().palette;
 
     const double active_contrast = contrast(palette, QPalette::Active, QPalette::WindowText, QPalette::Window);
     EXPECT_GE(active_contrast, 4.5);
@@ -87,15 +87,15 @@ TEST(VelledaTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 }
 
 TEST(VelledaTheme, SelectedTextIsReadableOnASolidSelection) {
-    const QPalette palette = hpq::velleda_theme().palette();
+    const QPalette palette = hpq::velleda_theme().palette;
 
     EXPECT_GE(contrast(palette, QPalette::Active, QPalette::HighlightedText, QPalette::Highlight), 4.5);
 }
 
 // The board shows between the hachures: the text of a selection is read on the board.
 TEST(VelledaTheme, HatchedSelectionHasBlackTextUnderLightRedHachures) {
-    const QPalette solid = hpq::velleda_theme().palette();
-    const QPalette hatched = hpq::velleda_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette solid = hpq::velleda_theme().palette;
+    const QPalette hatched = hpq::velleda_theme(hpq::FillStyle::Hachure).palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         EXPECT_EQ(hatched.color(group, QPalette::HighlightedText), hatched.color(group, QPalette::Text))
@@ -109,9 +109,9 @@ TEST(VelledaTheme, HatchedSelectionHasBlackTextUnderLightRedHachures) {
 
 TEST(VelledaTheme, DrawsAThickLineOfCloseStrokesWithoutGrain) {
     const hpq::Theme theme = hpq::velleda_theme();
-    const hpq::RoughOptions options = theme.rough_options();
+    const hpq::RoughOptions options = theme.rough_options;
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Pencil);
+    EXPECT_EQ(theme.medium, hpq::Medium::Pencil);
     EXPECT_GE(options.stroke_count, 2);
     // The strokes stay within a pixel of the shape: they read as one line.
     EXPECT_LE(options.roughness * options.max_offset, 1.0);
@@ -119,12 +119,12 @@ TEST(VelledaTheme, DrawsAThickLineOfCloseStrokesWithoutGrain) {
 }
 
 TEST(VelledaTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::velleda_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::velleda_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::velleda_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::velleda_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
 }
 
 TEST(VelledaTheme, FontIsBoldArchitectsDaughter) {
-    const QFont font = hpq::velleda_theme().font();
+    const QFont font = hpq::velleda_theme().font;
 
     EXPECT_EQ(font.family(), FontFamily);
     EXPECT_EQ(font.weight(), QFont::Bold);

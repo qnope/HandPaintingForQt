@@ -1,7 +1,8 @@
+#include "MakeDevice.h"
+
 #include <hpq/HandPaintDevice.h>
 #include <hpq/PaintCache.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -10,16 +11,12 @@
 #include <QPainter>
 
 #include <algorithm>
-#include <cstdint>
 #include <functional>
 
 // What the state of the device painter says reaches the drawing as Qt draws it: its opacity,
 // the width of its pen under its transform, and the place of its gradients.
 
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 constexpr int TargetSize = 300;
 
@@ -49,8 +46,8 @@ protected:
         QImage image(TargetSize, TargetSize, QImage::Format_RGB32);
         image.fill(Qt::white);
         QPainter target_painter(&image);
-        hpq::HandPaintDevice device(target_painter, m_theme, m_geometry_engine, cache);
-        QPainter painter(&device);
+        const auto device = hpq::test::make_device(target_painter, m_theme, cache);
+        QPainter painter(device.get());
         paint(painter);
         painter.end();
         target_painter.end();
@@ -58,7 +55,6 @@ protected:
     }
 
     hpq::Theme m_theme = hpq::sketch_theme();
-    hpq::RoughGeometryEngine m_geometry_engine{BaseSeed};
 };
 
 TEST_F(HandPaintPainterStateTest, OpacityLightensAFillAsQtDoes) {

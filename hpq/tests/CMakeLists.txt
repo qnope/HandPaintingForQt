@@ -11,7 +11,6 @@ hpq_add_executable(HpqTests
   ComboBoxTest.cpp
   DisabledButtonTest.cpp
   EffectCache.h
-  ExactTheme.cpp
   ExactTheme.h
   GridLineColorTest.cpp
   GroupBoxFrameTest.cpp
@@ -36,6 +35,7 @@ hpq_add_executable(HpqTests
   InvisibleTextInkTest.cpp
   LabelMarkerTest.cpp
   LabelMarkerThemeTest.cpp
+  MakeDevice.h
   MovingHighlightTest.cpp
   NestedThemeTest.cpp
   NotebookThemeTest.cpp
@@ -47,7 +47,7 @@ hpq_add_executable(HpqTests
   RemoveThemeTest.cpp
   RoughFillAreaTest.cpp
   RoughFrameOutlineTest.cpp
-  RoughGeometryEngineTest.cpp
+  RoughGeometryTest.cpp
   RoughHachureTest.cpp
   ScrollBarTest.cpp
   ScrolledViewTest.cpp

@@ -1,4 +1,4 @@
-#include <hpq/HighlighterTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "ThemePalette.h"
@@ -78,9 +78,13 @@ QBrush label_marker() {
 }  // namespace
 
 Theme highlighter_theme(FillStyle fill_style) {
-    return Theme(make_palette(highlighter_colors(false, fill_style), highlighter_colors(true, fill_style)),
-                 QFont(hand_font_family()), HighlighterRoughOptions, fill_style, Medium::Pencil, TextInk::Visible,
-                 label_marker());
+    Theme theme;
+    theme.palette = make_palette(highlighter_colors(false, fill_style), highlighter_colors(true, fill_style));
+    theme.font = QFont(hand_font_family());
+    theme.rough_options = HighlighterRoughOptions;
+    theme.fill_style = fill_style;
+    theme.label_marker = label_marker();
+    return theme;
 }
 
 }  // namespace hpq

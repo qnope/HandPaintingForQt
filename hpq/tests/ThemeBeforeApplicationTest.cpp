@@ -1,6 +1,4 @@
-#include <hpq/ChinaInkTheme.h>
-#include <hpq/NotebookTheme.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -13,18 +11,18 @@ namespace {
 
 TEST(ThemeBeforeApplicationTest, FontsAreRegisteredOnceTheApplicationExists) {
     // Before the application: no font is registered, and nothing crashes.
-    EXPECT_TRUE(hpq::sketch_theme().font().family().isEmpty());
-    EXPECT_TRUE(hpq::notebook_theme().font().family().isEmpty());
-    EXPECT_TRUE(hpq::china_ink_theme().font().family().isEmpty());
+    EXPECT_TRUE(hpq::sketch_theme().font.family().isEmpty());
+    EXPECT_TRUE(hpq::notebook_theme().font.family().isEmpty());
+    EXPECT_TRUE(hpq::china_ink_theme().font.family().isEmpty());
 
     int argc = 1;
     char name[] = "HpqThemeBeforeApplicationTests";
     char *argv[] = {name, nullptr};
     QApplication application(argc, argv);
 
-    EXPECT_EQ(hpq::sketch_theme().font().family(), "Architects Daughter");
-    EXPECT_EQ(hpq::notebook_theme().font().family(), "Playwrite FR Moderne");
-    EXPECT_EQ(hpq::china_ink_theme().font().family(), "Kaushan Script");
+    EXPECT_EQ(hpq::sketch_theme().font.family(), "Architects Daughter");
+    EXPECT_EQ(hpq::notebook_theme().font.family(), "Playwrite FR Moderne");
+    EXPECT_EQ(hpq::china_ink_theme().font.family(), "Kaushan Script");
 }
 
 }  // namespace

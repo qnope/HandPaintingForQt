@@ -9,18 +9,9 @@
 #include "AppFont.h"
 #include "MainWindow.h"
 
-#include <hpq/BlueprintTheme.h>
-#include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintEffect.h>
-#include <hpq/HighlighterTheme.h>
-#include <hpq/InvisibleInkTheme.h>
-#include <hpq/NotebookTheme.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/VelledaTheme.h>
-#include <hpq/WatercolorTheme.h>
 
 #include <QApplication>
 #include <QBackingStore>
@@ -37,7 +28,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <memory>
 #include <optional>
 #include <vector>
 
@@ -150,8 +140,9 @@ int main(int argc, char *argv[]) {
     // The window comes with the Sketch theme: replace or remove it.
     if (theme_name == "none") {
         hpq::remove_theme(window);
-    } else if (const std::optional<hpq::Theme> theme = theme_named(theme_name)) {
-        hpq::apply_theme(window, *theme, std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+    } else if (std::optional<hpq::Theme> theme = theme_named(theme_name)) {
+        theme->rough_options.seed = BaseSeed;
+        hpq::apply_theme(window, *theme);
     } else {
         err << "Unknown theme: " << theme_name << "\n";
         return 2;

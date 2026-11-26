@@ -1,4 +1,4 @@
-#include <hpq/NotebookTheme.h>
+#include <hpq/Themes.h>
 
 #include "Fonts.h"
 #include "SeyesPaper.h"
@@ -79,8 +79,12 @@ QFont handwriting_font() {
 }  // namespace
 
 Theme notebook_theme(FillStyle fill_style) {
-    return Theme(make_palette(notebook_colors(false, fill_style), notebook_colors(true, fill_style)), handwriting_font(),
-                 PenRoughOptions, fill_style);
+    Theme theme;
+    theme.palette = make_palette(notebook_colors(false, fill_style), notebook_colors(true, fill_style));
+    theme.font = handwriting_font();
+    theme.rough_options = PenRoughOptions;
+    theme.fill_style = fill_style;
+    return theme;
 }
 
 }  // namespace hpq

@@ -1,5 +1,4 @@
-#include <hpq/BlueprintTheme.h>
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -11,7 +10,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <memory>
 
 namespace {
 
@@ -47,7 +45,7 @@ bool is_blue(const QColor &color) {
 }  // namespace
 
 TEST(BlueprintTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::blueprint_theme().palette();
+    const QPalette palette = hpq::blueprint_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -62,7 +60,7 @@ TEST(BlueprintTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(BlueprintTheme, PaletteIsBluePaperWithLightInk) {
-    const QPalette palette = hpq::blueprint_theme().palette();
+    const QPalette palette = hpq::blueprint_theme().palette;
 
     for (const QPalette::ColorRole role : PaperRoles) {
         const QColor paper = palette.color(QPalette::Active, role);
@@ -75,7 +73,7 @@ TEST(BlueprintTheme, PaletteIsBluePaperWithLightInk) {
 }
 
 TEST(BlueprintTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::blueprint_theme().palette();
+    const QPalette palette = hpq::blueprint_theme().palette;
 
     const double active_contrast = text_contrast(palette, QPalette::Active);
     EXPECT_GE(active_contrast, 4.5);
@@ -84,7 +82,7 @@ TEST(BlueprintTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 
 // The grid is printed on the paper: its squares tile, and its lines are a lighter blue.
 TEST(BlueprintTheme, PaperIsATextureOfAGridLighterThanThePaper) {
-    const QPalette palette = hpq::blueprint_theme().palette();
+    const QPalette palette = hpq::blueprint_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (const QPalette::ColorRole role : PaperRoles) {
@@ -107,27 +105,27 @@ TEST(BlueprintTheme, PaperIsATextureOfAGridLighterThanThePaper) {
 
 // Qt compares two textures by the image they share, not by their pixels.
 TEST(BlueprintTheme, TwoPalettesOfTheThemeAreEqual) {
-    EXPECT_EQ(hpq::blueprint_theme().palette(), hpq::blueprint_theme().palette());
-    EXPECT_NE(hpq::blueprint_theme().palette(), hpq::blueprint_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(hpq::blueprint_theme().palette, hpq::blueprint_theme().palette);
+    EXPECT_NE(hpq::blueprint_theme().palette, hpq::blueprint_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(BlueprintTheme, DrawsOneStrokeWithAPencilCloserToTheLineThanTheDefault) {
     const hpq::Theme theme = hpq::blueprint_theme();
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Pencil);
-    EXPECT_EQ(theme.rough_options().stroke_count, 1);
-    EXPECT_LT(theme.rough_options().roughness, hpq::RoughOptions{}.roughness);
-    EXPECT_DOUBLE_EQ(theme.rough_options().hachure_angle, -45.0);
+    EXPECT_EQ(theme.medium, hpq::Medium::Pencil);
+    EXPECT_EQ(theme.rough_options.stroke_count, 1);
+    EXPECT_LT(theme.rough_options.roughness, hpq::RoughOptions{}.roughness);
+    EXPECT_DOUBLE_EQ(theme.rough_options.hachure_angle, -45.0);
 }
 
 TEST(BlueprintTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::blueprint_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::blueprint_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::blueprint_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::blueprint_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
 }
 
 // A solid selection is a block of light ink: its text is in the blue of the paper.
 TEST(BlueprintTheme, SolidSelectionTextIsReadableOnTheSelection) {
-    const QPalette palette = hpq::blueprint_theme().palette();
+    const QPalette palette = hpq::blueprint_theme().palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         EXPECT_GE(contrast_ratio(palette.color(group, QPalette::HighlightedText),
@@ -138,7 +136,7 @@ TEST(BlueprintTheme, SolidSelectionTextIsReadableOnTheSelection) {
 
 // The paper shows between the hachures of a selection: its text must be readable on the paper.
 TEST(BlueprintTheme, HachureVariantSelectionTextIsReadableOnPaper) {
-    const QPalette palette = hpq::blueprint_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette palette = hpq::blueprint_theme(hpq::FillStyle::Hachure).palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         const QColor text = palette.color(group, QPalette::HighlightedText);
@@ -150,18 +148,18 @@ TEST(BlueprintTheme, HachureVariantSelectionTextIsReadableOnPaper) {
 TEST(BlueprintTheme, FontIsArchitectsDaughterInCapitals) {
     const hpq::Theme theme = hpq::blueprint_theme();
 
-    EXPECT_EQ(theme.font().family(), FontFamily);
-    EXPECT_EQ(theme.font().capitalization(), QFont::AllUppercase);
+    EXPECT_EQ(theme.font.family(), FontFamily);
+    EXPECT_EQ(theme.font.capitalization(), QFont::AllUppercase);
 }
 
 // The window of a themed widget is the paper: the paint engine draws its grid, unchanged.
 TEST(BlueprintTheme, ThemedWindowShowsTheGridOfThePaper) {
     const hpq::Theme theme = hpq::blueprint_theme();
-    const QImage tile = theme.palette().window().textureImage();
+    const QImage tile = theme.palette.window().textureImage();
     QWidget window;
     window.resize(3 * tile.width(), 3 * tile.height());
 
-    hpq::apply_theme(window, theme, std::make_shared<const hpq::RoughGeometryEngine>());
+    hpq::apply_theme(window, theme);
     const QImage grab = window.grab().toImage();
 
     ASSERT_EQ(grab.size(), window.size());

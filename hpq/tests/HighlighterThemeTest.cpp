@@ -1,5 +1,4 @@
-#include <hpq/HighlighterTheme.h>
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -15,7 +14,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <memory>
 
 namespace {
 
@@ -62,7 +60,7 @@ bool is_fluorescent(const QColor &color) {
 }  // namespace
 
 TEST(HighlighterTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -77,7 +75,7 @@ TEST(HighlighterTheme, PaletteSetsEveryRoleOfEveryGroup) {
 }
 
 TEST(HighlighterTheme, PaletteIsWhitePaperWithABlackPen) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base}) {
         EXPECT_GT(palette.color(QPalette::Active, role).lightness(), 245) << "role " << role;
@@ -89,7 +87,7 @@ TEST(HighlighterTheme, PaletteIsWhitePaperWithABlackPen) {
 }
 
 TEST(HighlighterTheme, SelectionIsYellowButtonsAreGreenFramesArePinkAndAlternateRowsAreBlue) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     const QColor selection = palette.color(QPalette::Active, QPalette::Highlight);
     EXPECT_GT(std::min(selection.red(), selection.green()), selection.blue() + 100);
@@ -105,7 +103,7 @@ TEST(HighlighterTheme, SelectionIsYellowButtonsAreGreenFramesArePinkAndAlternate
 
 TEST(HighlighterTheme, HighlightersAreFluorescent) {
     for (const hpq::FillStyle fill_style : {hpq::FillStyle::Solid, hpq::FillStyle::Hachure}) {
-        const QPalette palette = hpq::highlighter_theme(fill_style).palette();
+        const QPalette palette = hpq::highlighter_theme(fill_style).palette;
 
         for (const QPalette::ColorRole role : {QPalette::Highlight, QPalette::Button, QPalette::Midlight, QPalette::Dark}) {
             EXPECT_TRUE(is_fluorescent(palette.color(QPalette::Active, role))) << "role " << role;
@@ -115,7 +113,7 @@ TEST(HighlighterTheme, HighlightersAreFluorescent) {
 
 // A highlighter does not hide what it marks.
 TEST(HighlighterTheme, SolidHighlightersLetWhatIsUnderThemShow) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (const QPalette::ColorRole role : FillRoles) {
@@ -127,7 +125,7 @@ TEST(HighlighterTheme, SolidHighlightersLetWhatIsUnderThemShow) {
 
 // A pressed button gets a second pass of the highlighter of the buttons.
 TEST(HighlighterTheme, PressedButtonIsTheButtonHighlightedTwice) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     const QColor button = palette.color(QPalette::Active, QPalette::Button);
     const QColor pressed = palette.color(QPalette::Active, QPalette::Midlight);
@@ -137,7 +135,7 @@ TEST(HighlighterTheme, PressedButtonIsTheButtonHighlightedTwice) {
 
 // An alternate row is only tinted: it stays close to the paper.
 TEST(HighlighterTheme, AlternateRowIsALightPass) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     EXPECT_LT(palette.color(QPalette::Active, QPalette::AlternateBase).alpha(),
               palette.color(QPalette::Active, QPalette::Button).alpha());
@@ -147,7 +145,7 @@ TEST(HighlighterTheme, AlternateRowIsALightPass) {
 }
 
 TEST(HighlighterTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     const double active_contrast = contrast_ratio(palette.color(QPalette::Active, QPalette::WindowText),
                                                   palette.color(QPalette::Active, QPalette::Window));
@@ -159,7 +157,7 @@ TEST(HighlighterTheme, ActiveTextContrastIsReadableAndDisabledIsLower) {
 
 // The text stays the one of the pen under a highlighter, and is read through it.
 TEST(HighlighterTheme, TextIsReadableUnderTheHighlighters) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         EXPECT_EQ(palette.color(group, QPalette::HighlightedText), palette.color(group, QPalette::Text));
@@ -176,7 +174,7 @@ TEST(HighlighterTheme, TextIsReadableUnderTheHighlighters) {
 }
 
 TEST(HighlighterTheme, LinkIsReadableOnThePaper) {
-    const QPalette palette = hpq::highlighter_theme().palette();
+    const QPalette palette = hpq::highlighter_theme().palette;
 
     EXPECT_GE(contrast_ratio(palette.color(QPalette::Active, QPalette::Link),
                              palette.color(QPalette::Active, QPalette::Window)),
@@ -186,7 +184,7 @@ TEST(HighlighterTheme, LinkIsReadableOnThePaper) {
 // A disabled widget is marked by highlighters that have run dry.
 TEST(HighlighterTheme, DisabledHighlightersArePaler) {
     for (const hpq::FillStyle fill_style : {hpq::FillStyle::Solid, hpq::FillStyle::Hachure}) {
-        const QPalette palette = hpq::highlighter_theme(fill_style).palette();
+        const QPalette palette = hpq::highlighter_theme(fill_style).palette;
 
         for (const QPalette::ColorRole role : {QPalette::Highlight, QPalette::Button, QPalette::Dark}) {
             EXPECT_LT(palette.color(QPalette::Disabled, role).saturation(),
@@ -198,7 +196,7 @@ TEST(HighlighterTheme, DisabledHighlightersArePaler) {
 
 // The paint engine hatches only an opaque fill.
 TEST(HighlighterTheme, HachureVariantFillsAreOpaque) {
-    const QPalette palette = hpq::highlighter_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette palette = hpq::highlighter_theme(hpq::FillStyle::Hachure).palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (const QPalette::ColorRole role : FillRoles) {
@@ -212,8 +210,8 @@ TEST(HighlighterTheme, HachureVariantFillsAreOpaque) {
 // The thin hachures of a yellow highlighter would not show on white paper: an orange one
 // marks the selection, and its text is read on the paper between the hachures.
 TEST(HighlighterTheme, HachureVariantSelectionIsOrangeAndShowsOnThePaper) {
-    const QPalette solid = hpq::highlighter_theme().palette();
-    const QPalette hatched = hpq::highlighter_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette solid = hpq::highlighter_theme().palette;
+    const QPalette hatched = hpq::highlighter_theme(hpq::FillStyle::Hachure).palette;
 
     const QColor selection = hatched.color(QPalette::Active, QPalette::Highlight);
     EXPECT_GT(selection.red(), selection.green() + 50);
@@ -226,26 +224,26 @@ TEST(HighlighterTheme, HachureVariantSelectionIsOrangeAndShowsOnThePaper) {
 }
 
 TEST(HighlighterTheme, TwoPalettesOfTheThemeAreEqual) {
-    EXPECT_EQ(hpq::highlighter_theme().palette(), hpq::highlighter_theme().palette());
-    EXPECT_NE(hpq::highlighter_theme().palette(), hpq::highlighter_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(hpq::highlighter_theme().palette, hpq::highlighter_theme().palette);
+    EXPECT_NE(hpq::highlighter_theme().palette, hpq::highlighter_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(HighlighterTheme, DrawsALineOfCloseStrokesWithoutGrain) {
     const hpq::Theme theme = hpq::highlighter_theme();
-    const hpq::RoughOptions options = theme.rough_options();
+    const hpq::RoughOptions options = theme.rough_options;
 
-    EXPECT_EQ(theme.medium(), hpq::Medium::Pencil);
+    EXPECT_EQ(theme.medium, hpq::Medium::Pencil);
     EXPECT_GE(options.stroke_count, 3);
     EXPECT_LT(options.roughness * options.max_offset, hpq::RoughOptions{}.max_offset);
 }
 
 TEST(HighlighterTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::highlighter_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::highlighter_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
+    EXPECT_EQ(hpq::highlighter_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::highlighter_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
 }
 
 TEST(HighlighterTheme, FontIsArchitectsDaughter) {
-    EXPECT_EQ(hpq::highlighter_theme().font().family(), FontFamily);
+    EXPECT_EQ(hpq::highlighter_theme().font.family(), FontFamily);
 }
 
 // The window of a themed widget is the paper, and its button is highlighted in green.
@@ -258,13 +256,13 @@ TEST(HighlighterTheme, ThemedButtonIsHighlightedOnThePaper) {
     layout->addWidget(button);
     window.resize(240, 140);
 
-    hpq::apply_theme(window, theme, std::make_shared<const hpq::RoughGeometryEngine>());
+    hpq::apply_theme(window, theme);
     const QImage grab = window.grab().toImage();
 
     ASSERT_EQ(grab.size(), window.size());
-    EXPECT_EQ(grab.pixelColor(10, 10), theme.palette().color(QPalette::Active, QPalette::Window));
+    EXPECT_EQ(grab.pixelColor(10, 10), theme.palette.color(QPalette::Active, QPalette::Window));
     const QColor inside = grab.pixelColor(button->geometry().center());
-    const QColor expected = on_paper(theme.palette(), QPalette::Active, QPalette::Button);
+    const QColor expected = on_paper(theme.palette, QPalette::Active, QPalette::Button);
     // The blend of the paint engine may round a channel another way.
     EXPECT_NEAR(inside.red(), expected.red(), 2);
     EXPECT_NEAR(inside.green(), expected.green(), 2);
@@ -275,26 +273,26 @@ TEST(HighlighterTheme, ThemedButtonIsHighlightedOnThePaper) {
 // The text of a label is marked with the yellow highlighter, whose line is not a fill: it is
 // the same with hachures.
 TEST(HighlighterTheme, LabelMarkerIsATranslucentYellowHighlighter) {
-    const QBrush marker = hpq::highlighter_theme().label_marker();
+    const QBrush marker = hpq::highlighter_theme().label_marker;
 
     ASSERT_EQ(marker.style(), Qt::SolidPattern);
     const QColor color = marker.color();
     EXPECT_TRUE(is_fluorescent(color));
     EXPECT_GT(std::min(color.red(), color.green()), color.blue() + 100);
     EXPECT_LT(color.alpha(), 255);
-    EXPECT_EQ(hpq::highlighter_theme(hpq::FillStyle::Hachure).label_marker(), marker);
+    EXPECT_EQ(hpq::highlighter_theme(hpq::FillStyle::Hachure).label_marker, marker);
 }
 
 TEST(HighlighterTheme, LabelTextIsReadableOnItsMarker) {
     const hpq::Theme theme = hpq::highlighter_theme();
-    const QColor paper = theme.palette().color(QPalette::Active, QPalette::Window);
+    const QColor paper = theme.palette.color(QPalette::Active, QPalette::Window);
     // Where every stroke of the line overlaps, the marker is the most vivid.
     QColor marked = paper;
-    for (int stroke = 0; stroke < theme.rough_options().stroke_count; ++stroke) {
-        marked = laid_on(theme.label_marker().color(), marked);
+    for (int stroke = 0; stroke < theme.rough_options.stroke_count; ++stroke) {
+        marked = laid_on(theme.label_marker.color(), marked);
     }
 
-    EXPECT_GE(contrast_ratio(theme.palette().color(QPalette::Active, QPalette::WindowText), marked), 4.5);
+    EXPECT_GE(contrast_ratio(theme.palette.color(QPalette::Active, QPalette::WindowText), marked), 4.5);
     EXPECT_GT(contrast_ratio(marked, paper), 1.1);
 }
 
@@ -307,7 +305,7 @@ TEST(HighlighterTheme, ThemedLabelIsMarkedInYellow) {
     layout->addWidget(label, 0, Qt::AlignLeft | Qt::AlignTop);
     window.resize(240, 140);
 
-    hpq::apply_theme(window, hpq::highlighter_theme(), std::make_shared<const hpq::RoughGeometryEngine>());
+    hpq::apply_theme(window, hpq::highlighter_theme());
     const QImage grab = window.grab().toImage();
 
     const QRect area = label->geometry();

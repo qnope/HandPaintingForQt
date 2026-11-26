@@ -1,5 +1,4 @@
-#include <hpq/InvisibleInkTheme.h>
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -15,15 +14,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
-#include <memory>
 
 namespace {
 
 constexpr auto FontFamily = "Architects Daughter";
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 constexpr QPalette::ColorGroup Groups[] = {QPalette::Active, QPalette::Inactive, QPalette::Disabled};
 constexpr hpq::FillStyle FillStyles[] = {hpq::FillStyle::Solid, hpq::FillStyle::Hachure};
@@ -84,7 +78,7 @@ bool has_pixel_close_to(const QImage &image, const QRect &area, const QColor &co
 }  // namespace
 
 TEST(InvisibleInkTheme, PaletteSetsEveryRoleOfEveryGroup) {
-    const QPalette palette = hpq::invisible_ink_theme().palette();
+    const QPalette palette = hpq::invisible_ink_theme().palette;
 
     for (const QPalette::ColorGroup group : Groups) {
         for (int role = 0; role < QPalette::NColorRoles; ++role) {
@@ -101,12 +95,12 @@ TEST(InvisibleInkTheme, PaletteSetsEveryRoleOfEveryGroup) {
 TEST(InvisibleInkTheme, WritesWithAnInvisibleInkAndDrawsWithAPencil) {
     const hpq::Theme theme = hpq::invisible_ink_theme();
 
-    EXPECT_EQ(theme.text_ink(), hpq::TextInk::Invisible);
-    EXPECT_EQ(theme.medium(), hpq::Medium::Pencil);
+    EXPECT_EQ(theme.text_ink, hpq::TextInk::Invisible);
+    EXPECT_EQ(theme.medium, hpq::Medium::Pencil);
 }
 
 TEST(InvisibleInkTheme, PaletteIsLightPaper) {
-    const QPalette palette = hpq::invisible_ink_theme().palette();
+    const QPalette palette = hpq::invisible_ink_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::Window, QPalette::Base, QPalette::Button}) {
         EXPECT_GT(palette.color(QPalette::Active, role).lightness(), 200) << "role " << role;
@@ -116,7 +110,7 @@ TEST(InvisibleInkTheme, PaletteIsLightPaper) {
 // The arrows, the check marks and the cursor of a text have the color of a text: the pencil
 // draws them, and they show on the paper.
 TEST(InvisibleInkTheme, MarksInTheColorOfATextShowOnThePaper) {
-    const QPalette palette = hpq::invisible_ink_theme().palette();
+    const QPalette palette = hpq::invisible_ink_theme().palette;
 
     for (const QPalette::ColorRole role : {QPalette::WindowText, QPalette::Text, QPalette::ButtonText}) {
         const double active_contrast =
@@ -132,7 +126,7 @@ TEST(InvisibleInkTheme, MarksInTheColorOfATextShowOnThePaper) {
 // The paint engine tells the text of a selection by its color: no other text may have it.
 TEST(InvisibleInkTheme, NoOtherTextRoleHasTheColorOfTheTextOfASelection) {
     for (const hpq::FillStyle fill_style : FillStyles) {
-        const QPalette palette = hpq::invisible_ink_theme(fill_style).palette();
+        const QPalette palette = hpq::invisible_ink_theme(fill_style).palette;
         for (const QPalette::ColorGroup selection_group : Groups) {
             const QColor selection_text = palette.color(selection_group, QPalette::HighlightedText);
             for (const QPalette::ColorGroup group : Groups) {
@@ -147,7 +141,7 @@ TEST(InvisibleInkTheme, NoOtherTextRoleHasTheColorOfTheTextOfASelection) {
 
 // A solid selection is the violet light of the lamp: the ink glows on it.
 TEST(InvisibleInkTheme, SolidSelectionIsADarkVioletWithLuminousText) {
-    const QPalette palette = hpq::invisible_ink_theme().palette();
+    const QPalette palette = hpq::invisible_ink_theme().palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         const QColor lamp = palette.color(group, QPalette::Highlight);
@@ -162,7 +156,7 @@ TEST(InvisibleInkTheme, SolidSelectionIsADarkVioletWithLuminousText) {
 
 // The paper shows between the hachures of a selection: its text must be readable on the paper.
 TEST(InvisibleInkTheme, HachureVariantSelectionTextIsReadableOnPaper) {
-    const QPalette palette = hpq::invisible_ink_theme(hpq::FillStyle::Hachure).palette();
+    const QPalette palette = hpq::invisible_ink_theme(hpq::FillStyle::Hachure).palette;
 
     for (const QPalette::ColorGroup group : {QPalette::Active, QPalette::Inactive}) {
         const QColor text = palette.color(group, QPalette::HighlightedText);
@@ -172,13 +166,13 @@ TEST(InvisibleInkTheme, HachureVariantSelectionTextIsReadableOnPaper) {
 }
 
 TEST(InvisibleInkTheme, KeepsTheFillStyleItIsGiven) {
-    EXPECT_EQ(hpq::invisible_ink_theme().fill_style(), hpq::FillStyle::Solid);
-    EXPECT_EQ(hpq::invisible_ink_theme(hpq::FillStyle::Hachure).fill_style(), hpq::FillStyle::Hachure);
-    EXPECT_NE(hpq::invisible_ink_theme().palette(), hpq::invisible_ink_theme(hpq::FillStyle::Hachure).palette());
+    EXPECT_EQ(hpq::invisible_ink_theme().fill_style, hpq::FillStyle::Solid);
+    EXPECT_EQ(hpq::invisible_ink_theme(hpq::FillStyle::Hachure).fill_style, hpq::FillStyle::Hachure);
+    EXPECT_NE(hpq::invisible_ink_theme().palette, hpq::invisible_ink_theme(hpq::FillStyle::Hachure).palette);
 }
 
 TEST(InvisibleInkTheme, FontIsArchitectsDaughter) {
-    EXPECT_EQ(hpq::invisible_ink_theme().font().family(), FontFamily);
+    EXPECT_EQ(hpq::invisible_ink_theme().font.family(), FontFamily);
 }
 
 // A themed list of two items: the first one is selected.
@@ -197,7 +191,7 @@ protected:
 
     // The window as its theme draws it, with the first item selected.
     QImage grab_with_first_item_selected(const hpq::Theme &theme) {
-        hpq::apply_theme(m_window, theme, std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+        hpq::apply_theme(m_window, theme);
         m_list->setCurrentRow(0);
         m_window.show();
         QApplication::processEvents();
@@ -223,7 +217,7 @@ TEST_F(InvisibleInkListTest, TheTextOfAnItemThatIsNotSelectedDoesNotShow) {
 
     const QImage image = grab_with_first_item_selected(theme);
 
-    EXPECT_TRUE(is_plain(image, text_area(1), theme.palette().color(QPalette::Active, QPalette::Base)));
+    EXPECT_TRUE(is_plain(image, text_area(1), theme.palette.color(QPalette::Active, QPalette::Base)));
 }
 
 TEST_F(InvisibleInkListTest, TheTextOfASelectedItemShows) {
@@ -232,7 +226,7 @@ TEST_F(InvisibleInkListTest, TheTextOfASelectedItemShows) {
 
         const QImage image = grab_with_first_item_selected(theme);
 
-        const QPalette palette = theme.palette();
+        const QPalette palette = theme.palette;
         const QColor text = palette.color(QPalette::Active, QPalette::HighlightedText);
         // Neither the selection nor the paper could be taken for the text.
         ASSERT_FALSE(is_close(palette.color(QPalette::Active, QPalette::Highlight), text));

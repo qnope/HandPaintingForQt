@@ -1,11 +1,9 @@
-#include <hpq/ChinaInkTheme.h>
+#include "MakeDevice.h"
+
 #include <hpq/HandPaintDevice.h>
 #include <hpq/PaintCache.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
 #include <hpq/Theme.h>
-#include <hpq/WatercolorTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -18,8 +16,6 @@
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 const QSize SceneSize(240, 180);
 const QColor LineColor(0x20, 0x40, 0x80);
 const QColor FillColor(0xc0, 0x40, 0x40);
@@ -82,17 +78,16 @@ QImage paper(const QSize &size, double device_pixel_ratio) {
 }
 
 // The scene drawn by hand on a device of `device_pixel_ratio`, through `clip` when it is not
-// empty, by a hand whose wobble comes from `base_seed`.
+// empty.
 QImage drawn_scene(const hpq::Theme &theme, hpq::PaintCache *cache, double device_pixel_ratio,
-                   const QRect &clip = QRect(), std::uint32_t base_seed = BaseSeed) {
-    const hpq::RoughGeometryEngine geometry_engine(base_seed);
+                   const QRect &clip = QRect()) {
     QImage image = paper(SceneSize, device_pixel_ratio);
     QPainter target(&image);
     if (!clip.isEmpty()) {
         target.setClipRect(clip);
     }
-    hpq::HandPaintDevice device(target, theme, geometry_engine, cache);
-    QPainter painter(&device);
+    const auto device = hpq::test::make_device(target, theme, cache);
+    QPainter painter(device.get());
     draw_scene(painter);
     painter.end();
     target.end();
@@ -137,12 +132,14 @@ TEST(HandPaintCacheTest, AShapeDrawnAgainIsNotMadeRoughAgain) {
 // another drawing.
 TEST(HandPaintCacheTest, WithoutACacheEveryDrawingMakesItsShapes) {
     const hpq::Theme theme = hpq::sketch_theme();
+    hpq::Theme other_hand = theme;
+    other_hand.rough_options.seed = theme.rough_options.seed + 1;
 
-    const QImage first = drawn_scene(theme, nullptr, 1.0, QRect(), BaseSeed);
-    const QImage second = drawn_scene(theme, nullptr, 1.0, QRect(), BaseSeed + 1);
+    const QImage first = drawn_scene(theme, nullptr, 1.0);
+    const QImage second = drawn_scene(other_hand, nullptr, 1.0);
 
     EXPECT_NE(first, second);
-    EXPECT_EQ(second, drawn_scene(theme, nullptr, 1.0, QRect(), BaseSeed + 1));
+    EXPECT_EQ(second, drawn_scene(other_hand, nullptr, 1.0));
 }
 
 // A wide line is kept as an area for one device and as a stroke for another, and a wash has
@@ -180,13 +177,12 @@ TEST(HandPaintCacheTest, DrawingThroughAClipIsTheSameAsWithout) {
 // without a cache.
 TEST(HandPaintCacheTest, AWashTooLargeToBeKeptIsDrawnTheSame) {
     const hpq::Theme theme = hpq::watercolor_theme();
-    const hpq::RoughGeometryEngine engine(BaseSeed);
     hpq::PaintCache cache;
     const auto drawn = [&](hpq::PaintCache *used_cache) {
         QImage image = paper(QSize(LargeSide, LargeSide), 1.0);
         QPainter target(&image);
-        hpq::HandPaintDevice device(target, theme, engine, used_cache);
-        QPainter painter(&device);
+        const auto device = hpq::test::make_device(target, theme, used_cache);
+        QPainter painter(device.get());
         painter.setPen(Qt::NoPen);
         painter.setBrush(BandColor);
         painter.drawRect(QRectF(10, 10, LargeSide - 20, LargeSide - 20));

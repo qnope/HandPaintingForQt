@@ -1,6 +1,5 @@
 #include <hpq/HandPaintEffect.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -14,16 +13,7 @@
 
 #include <memory>
 
-#include <cstdint>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
-
-std::shared_ptr<const hpq::GeometryEngine> rough_geometry_engine() {
-    return std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed);
-}
 
 // A window with its own "Windows" style and a child button with the application style.
 class WindowWithButton {
@@ -72,7 +62,7 @@ TEST(RemoveThemeTest, RestoresEffectPaletteFontAndStyles) {
     WindowWithButton window_with_button;
     const LookSnapshot before = take_snapshot(window_with_button);
 
-    hpq::apply_theme(window_with_button.window(), hpq::sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window_with_button.window(), hpq::sketch_theme());
     hpq::remove_theme(window_with_button.window());
 
     EXPECT_EQ(window_with_button.window().graphicsEffect(), nullptr);
@@ -84,8 +74,8 @@ TEST(RemoveThemeTest, ApplyTwiceKeepsOneEffectAndRestoresFirstValues) {
     QWidget &window = window_with_button.window();
     const LookSnapshot before = take_snapshot(window_with_button);
 
-    hpq::apply_theme(window, hpq::sketch_theme(), rough_geometry_engine());
-    hpq::apply_theme(window, hpq::sketch_theme(), rough_geometry_engine());
+    hpq::apply_theme(window, hpq::sketch_theme());
+    hpq::apply_theme(window, hpq::sketch_theme());
 
     EXPECT_NE(qobject_cast<hpq::HandPaintEffect *>(window.graphicsEffect()), nullptr);
     EXPECT_EQ(window.findChildren<hpq::HandPaintEffect *>().size(), 1);

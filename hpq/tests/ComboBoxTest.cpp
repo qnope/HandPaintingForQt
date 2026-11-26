@@ -1,7 +1,7 @@
 #include "RecordingPaintDevice.h"
 #include "StyleRendering.h"
 
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <gtest/gtest.h>
 
@@ -25,7 +25,7 @@ std::vector<DrawCall> render_combo_box(bool is_editable) {
 }
 
 std::size_t count_dark_outlines(const std::vector<DrawCall> &calls) {
-    const QColor dark = hpq::sketch_theme().palette().color(QPalette::Dark);
+    const QColor dark = hpq::sketch_theme().palette.color(QPalette::Dark);
     return std::count_if(calls.begin(), calls.end(), [&dark](const DrawCall &call) {
         return call.kind == DrawCall::Kind::Path && call.pen.style() != Qt::NoPen && call.pen.color() == dark;
     });
@@ -33,7 +33,7 @@ std::size_t count_dark_outlines(const std::vector<DrawCall> &calls) {
 
 // A down arrow (B4): one filled closed triangle in ButtonText whose lowest corner is the only one.
 bool is_down_triangle(const DrawCall &call) {
-    const QColor button_text = hpq::sketch_theme().palette().color(QPalette::ButtonText);
+    const QColor button_text = hpq::sketch_theme().palette.color(QPalette::ButtonText);
     if (!call.is_fill() || call.brush.color() != button_text) {
         return false;
     }

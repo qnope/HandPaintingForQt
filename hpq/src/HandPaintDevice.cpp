@@ -6,9 +6,11 @@
 
 namespace hpq {
 
-HandPaintDevice::HandPaintDevice(QPainter &target, const Theme &theme, const GeometryEngine &geometry_engine,
-                                 PaintCache *cache)
-    : m_target(target), m_engine(std::make_unique<HandPaintEngine>(target, theme, geometry_engine, cache)) {}
+HandPaintDevice::HandPaintDevice(QPainter &target, const Theme &theme)
+    : m_target(target), m_engine(std::make_unique<HandPaintEngine>(target, theme, nullptr)) {}
+
+HandPaintDevice::HandPaintDevice(QPainter &target, const Theme &theme, PaintCache &cache)
+    : m_target(target), m_engine(std::make_unique<HandPaintEngine>(target, theme, &cache)) {}
 
 HandPaintDevice::~HandPaintDevice() = default;
 

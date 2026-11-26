@@ -1,4 +1,4 @@
-#include <hpq/RoughGeometryEngine.h>
+#include <hpq/RoughGeometry.h>
 
 #include "SmoothCurve.h"
 
@@ -32,10 +32,11 @@ constexpr double MinHachureGapsAcross = 4.0;
 // The ends of a hachure move by at most this fraction of the gap.
 constexpr double HachureJitterPerGap = 0.25;
 
-// The generator of one shape: the same seeds always give the same numbers.
-std::mt19937 shape_generator(std::uint32_t base_seed, std::uint32_t shape_seed)
+// The generator of one shape, for the hand of `options`: the same seeds always give the same
+// numbers.
+std::mt19937 shape_generator(const RoughOptions &options, std::uint32_t shape_seed)
 {
-    std::seed_seq seeds{base_seed, shape_seed};
+    std::seed_seq seeds{options.seed, shape_seed};
     return std::mt19937(seeds);
 }
 
@@ -329,17 +330,13 @@ std::vector<Span> spans_inside(const QList<QPolygonF> &polygons, double y, Qt::F
 
 }  // namespace
 
-RoughGeometryEngine::RoughGeometryEngine() : RoughGeometryEngine(std::random_device()()) {}
-
-RoughGeometryEngine::RoughGeometryEngine(std::uint32_t base_seed) : m_base_seed(base_seed) {}
-
-std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape, const RoughOptions &options,
-                                                       std::uint32_t seed) const
+std::vector<QPainterPath> rough_outline(const QPainterPath &shape, const RoughOptions &options,
+                                        std::uint32_t shape_seed)
 {
     const double amplitude = wobble_amplitude(options);
     if (amplitude == 0.0)
         return exact_strokes(shape, options);
-    std::mt19937 generator = shape_generator(m_base_seed, seed);
+    std::mt19937 generator = shape_generator(options, shape_seed);
     const QList<QPolygonF> polygons = flattened_subpaths(shape);
 
     std::vector<QPainterPath> strokes;
@@ -354,15 +351,13 @@ std::vector<QPainterPath> RoughGeometryEngine::outline(const QPainterPath &shape
     return strokes;
 }
 
-std::vector<QPainterPath> RoughGeometryEngine::frame_outline(const QPainterPath &frame, const RoughOptions &options,
-                                                             std::uint32_t seed) const
+std::vector<QPainterPath> rough_frame_outline(const QPainterPath &frame, const RoughOptions &options,
+                                              std::uint32_t shape_seed)
 {
     const double amplitude = wobble_amplitude(options);
     if (amplitude == 0.0)
         return exact_strokes(frame, options);
-    // The outline of this engine, even when a derived engine draws another one: the way of
-    // its own to unite a rectangle relies on how this one wobbles.
-    std::vector<QPainterPath> strokes = RoughGeometryEngine::outline(frame, options, seed);
+    std::vector<QPainterPath> strokes = rough_outline(frame, options, shape_seed);
     const QList<QPolygonF> polygons = flattened_subpaths(frame);
     for (QPainterPath &stroke : strokes) {
         stroke.setFillRule(frame.fillRule());
@@ -371,13 +366,12 @@ std::vector<QPainterPath> RoughGeometryEngine::frame_outline(const QPainterPath 
     return strokes;
 }
 
-QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const RoughOptions &options,
-                                            std::uint32_t seed) const
+QPainterPath rough_fill_area(const QPainterPath &shape, const RoughOptions &options, std::uint32_t shape_seed)
 {
     const double amplitude = wobble_amplitude(options);
     if (amplitude == 0.0)
         return shape;
-    std::mt19937 generator = shape_generator(m_base_seed, seed);
+    std::mt19937 generator = shape_generator(options, shape_seed);
 
     const QList<QPolygonF> polygons = flattened_subpaths(shape);
     QPainterPath area;
@@ -394,8 +388,7 @@ QPainterPath RoughGeometryEngine::fill_area(const QPainterPath &shape, const Rou
     return united_with_shape(area, shape, polygons, amplitude);
 }
 
-QPainterPath RoughGeometryEngine::hachure(const QPainterPath &shape, const RoughOptions &options,
-                                          std::uint32_t seed) const
+QPainterPath rough_hachure(const QPainterPath &shape, const RoughOptions &options, std::uint32_t shape_seed)
 {
     QPainterPath lines;
     const double gap = options.hachure_gap;
@@ -403,7 +396,7 @@ QPainterPath RoughGeometryEngine::hachure(const QPainterPath &shape, const Rough
     if (gap <= 0.0 || std::min(bounds.width(), bounds.height()) < MinHachureGapsAcross * gap)
         return lines;
 
-    std::mt19937 generator = shape_generator(m_base_seed, seed);
+    std::mt19937 generator = shape_generator(options, shape_seed);
     const double jitter = std::min(wobble_amplitude(options), HachureJitterPerGap * gap);
     // Turned back by the angle, the hachures are horizontal lines.
     const QTransform to_device = QTransform().rotate(options.hachure_angle);

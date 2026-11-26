@@ -1,7 +1,7 @@
 #include "StyleRendering.h"
 
 #include <hpq/HandPaintStyle.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 
 #include <QList>
 #include <QWidget>
@@ -27,7 +27,7 @@ void set_style(const QList<QWidget *> &widgets, QStyle *style) {
 }  // namespace
 
 std::vector<DrawCall> render_with_style(QWidget &widget) {
-    return render_with_style(widget, sketch_theme().palette());
+    return render_with_style(widget, sketch_theme().palette);
 }
 
 std::vector<DrawCall> render_with_style(QWidget &widget, const QPalette &palette) {

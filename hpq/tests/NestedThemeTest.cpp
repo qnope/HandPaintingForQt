@@ -1,5 +1,4 @@
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
 
 #include <gtest/gtest.h>
@@ -26,12 +25,7 @@
 #include <functional>
 #include <memory>
 
-#include <cstdint>
-
 namespace {
-
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 
 // Builds the central widget of a window and returns the widget the test looks at.
 using Builder = std::function<QWidget *(QWidget &central)>;
@@ -53,10 +47,10 @@ Grab grab_window(const Builder &build, bool themed) {
     window.setCentralWidget(central);
     window.resize(400, 260);
     if (themed) {
-        hpq::apply_theme(window, theme, std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+        hpq::apply_theme(window, theme);
     } else {
-        window.setPalette(theme.palette());
-        window.setFont(theme.font());
+        window.setPalette(theme.palette);
+        window.setFont(theme.font);
         window.setStyle(style.get());
         for (QWidget *descendant : window.findChildren<QWidget *>()) {
             descendant->setStyle(style.get());
@@ -88,7 +82,7 @@ int dark_pixel_count(const QImage &image, const QRect &rect) {
 // falls between two rows of pixels spreads its ink over both, lighter in each: the darkenings
 // of two pixels one above the other add up.
 double covered_column_share(const QImage &image, const QRect &band) {
-    const int window_lightness = hpq::sketch_theme().palette().color(QPalette::Window).lightness();
+    const int window_lightness = hpq::sketch_theme().palette.color(QPalette::Window).lightness();
     constexpr int MinDarkening = 30;
     const auto darkening = [&](int x, int y) {
         return std::max(0, window_lightness - image.pixelColor(x, y).lightness());

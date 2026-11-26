@@ -1,17 +1,13 @@
 #include "EffectCache.h"
 #include "ImageComparison.h"
+#include "MakeDevice.h"
 #include "RecordingPaintDevice.h"
 
-#include <hpq/ChinaInkTheme.h>
 #include <hpq/HandPaintDevice.h>
 #include <hpq/PaintCache.h>
-#include <hpq/RoughGeometryEngine.h>
-#include <hpq/SketchTheme.h>
-#include <hpq/SlateTheme.h>
 #include <hpq/Theme.h>
+#include <hpq/Themes.h>
 #include <hpq/Theming.h>
-#include <hpq/VelledaTheme.h>
-#include <hpq/WatercolorTheme.h>
 
 #include <gtest/gtest.h>
 
@@ -27,8 +23,6 @@
 #include <QWidget>
 
 #include <cstddef>
-#include <cstdint>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,8 +31,6 @@
 
 namespace {
 
-// The base seed of the rough geometry engines: the tests draw the same paths at every run.
-constexpr std::uint32_t BaseSeed = 2024;
 const QSize SceneSize(240, 180);
 // The part of the scene that the target can paint.
 const QRect Part(60, 30, 90, 80);
@@ -106,14 +98,13 @@ QImage paper(const QSize &size, double device_pixel_ratio) {
 // empty. With a cache, what is made to draw the shapes is kept there.
 QImage drawn(const hpq::Theme &theme, double device_pixel_ratio, void (*draw)(QPainter &),
              const QRect &clip = QRect(), hpq::PaintCache *cache = nullptr) {
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     QImage image = paper(SceneSize, device_pixel_ratio);
     QPainter target(&image);
     if (!clip.isEmpty()) {
         target.setClipRect(clip);
     }
-    hpq::HandPaintDevice device(target, theme, geometry_engine, cache);
-    QPainter painter(&device);
+    const auto device = hpq::test::make_device(target, theme, cache);
+    QPainter painter(device.get());
     draw(painter);
     painter.end();
     target.end();
@@ -171,14 +162,13 @@ TEST(HandPaintOutOfSightTest, ShapesOutOfThePaintedPartAreNotMadeRough) {
 
 TEST(HandPaintOutOfSightTest, TextsAndImagesOutOfThePaintedPartAreNotDrawn) {
     const hpq::Theme theme = hpq::sketch_theme();
-    const hpq::RoughGeometryEngine geometry_engine(BaseSeed);
     QImage image(20, 20, QImage::Format_ARGB32);
     image.fill(BandColor);
     const auto calls_of = [&](const QPointF &place) {
         RecordingPaintDevice target;
         QPainter target_painter(&target);
         target_painter.setClipRect(QRect(60, 60, 80, 80));
-        hpq::HandPaintDevice device(target_painter, theme, geometry_engine);
+        hpq::HandPaintDevice device(target_painter, theme);
         QPainter painter(&device);
         QFont font;
         font.setPixelSize(16);
@@ -233,7 +223,7 @@ TEST(HandPaintOutOfSightTest, ARepaintOfAWidgetDoesNotMakeTheShapesOfAnotherRoug
     button->setGeometry(10, 10, 100, 30);
     auto *far_widget = new ChangingShapeWidget(&window);
     far_widget->setGeometry(250, 100, 120, 80);
-    hpq::apply_theme(window, hpq::sketch_theme(), std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+    hpq::apply_theme(window, hpq::sketch_theme());
     window.show();
     shown(window);
     // The button may have taken the focus since the window was shown: its frame is drawn now.
@@ -264,7 +254,7 @@ TEST(HandPaintOutOfSightTest, RepaintsOfPartsLeaveTheWindowAsAWholeRepaintDrawsI
                 table->setItem(row, column, new QTableWidgetItem(QString("Cell %1").arg(row * 3 + column)));
             }
         }
-        hpq::apply_theme(window, named.theme, std::make_shared<const hpq::RoughGeometryEngine>(BaseSeed));
+        hpq::apply_theme(window, named.theme);
         window.show();
         shown(window);
 

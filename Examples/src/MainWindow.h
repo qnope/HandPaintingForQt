@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hpq/WindowTheming.h>
+#include <hpq/Theming.h>
 
 #include <QMainWindow>
 #include <memory>
