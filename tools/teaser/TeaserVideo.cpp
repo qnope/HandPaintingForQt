@@ -12,13 +12,14 @@
 // (and renders only those), between --from and --to seconds.
 //
 // The scenes:
-//   1. The title.
+//   1. The logo, drawn part by part as tools/logo draws it (LogoDrawing.h).
 //   2. A plain Qt window, the call to apply_theme, and the same window drawn by hand.
 //   3. The nine themes, one after the other, while a pointer uses the widgets.
 //   4. A paintEvent of the application, drawn in eight themes.
-//   5. The nine themes side by side, and where to find the library.
+//   5. The nine themes side by side, the logo and where to find the library.
 
 #include "GalleryWindow.h"
+#include "LogoDrawing.h"
 
 #include <hpq/HandPaintDevice.h>
 #include <hpq/Themes.h>
@@ -190,6 +191,66 @@ QImage hand_layer(const hpq::Theme &theme, const std::function<void(QPainter &)>
     draw(painter);
     painter.end();
     return layer;
+}
+
+// A part of a drawing, on a layer of the size of the frame, and the rectangle it is drawn in:
+// what draw_revealed needs to reveal it as a hand draws it.
+struct Part {
+    QImage layer;
+    QRectF bounds;
+};
+
+// The rectangle of `layer` that is drawn on.
+QRectF drawn_bounds(const QImage &layer) {
+    int left = layer.width();
+    int top = layer.height();
+    int right = -1;
+    int bottom = -1;
+    for (int y = 0; y < layer.height(); ++y) {
+        const QRgb *line = reinterpret_cast<const QRgb *>(layer.constScanLine(y));
+        for (int x = 0; x < layer.width(); ++x) {
+            if (qAlpha(line[x]) != 0) {
+                left = std::min(left, x);
+                right = std::max(right, x);
+                top = std::min(top, y);
+                bottom = y;
+            }
+        }
+    }
+    return right < 0 ? QRectF() : QRectF(QPointF(left, top), QPointF(right + 1, bottom + 1));
+}
+
+// The four parts of the logo (the box, its check, the name and its underline) as tools/logo
+// draws them, `scale` times their size, the top left corner of the logo at `origin`.
+using Logo = std::array<Part, 4>;
+Logo logo_parts(QPointF origin, double scale) {
+    using namespace hpq::logo;
+    static constexpr void (*Draws[])(QPainter &, const Colors &) = {draw_box, draw_check, draw_name, draw_underline};
+    const hpq::Theme pencil = logo_theme(hpq::sketch_theme);
+    const Colors colors = colors_on_paper(pencil);
+    Logo logo;
+    for (std::size_t index = 0; index < logo.size(); ++index) {
+        QImage part = hand_drawn_image(LogoSize, scale, Qt::transparent, pencil,
+                                       [&](QPainter &painter) { Draws[index](painter, colors); });
+        part.setDevicePixelRatio(1);
+        logo[index].layer = blank();
+        QPainter painter(&logo[index].layer);
+        painter.drawImage(origin, part);
+        painter.end();
+        logo[index].bounds = drawn_bounds(logo[index].layer);
+    }
+    return logo;
+}
+
+// Draws `logo` part by part, `t` seconds after its first line, as a hand draws it: the box,
+// its check, the name and its underline.
+void draw_logo(QPainter &painter, const Logo &logo, double t) {
+    static constexpr double Starts[] = {0.0, 0.35, 0.6, 1.5};
+    static constexpr double Durations[] = {0.4, 0.3, 1.0, 0.45};
+    for (std::size_t index = 0; index < logo.size(); ++index) {
+        draw_revealed(painter, logo[index].layer, logo[index].bounds,
+                      ease_in_out(phase(t, Starts[index], Durations[index])));
+    }
 }
 
 // The mask of a brush that paints `size` in strokes back and forth, `progress` of its way.
@@ -729,57 +790,51 @@ public:
     }
 
 private:
-    // ----- Scene 1: the title
+    // ----- Scene 1: the logo
 
     void build_layers() {
         const hpq::Theme sketch = seeded(hpq::sketch_theme());
-        m_title = hand_layer(sketch, [&](QPainter &painter) {
-            painter.setPen(Graphite);
-            painter.setFont(font(m_hand_family, 150));
-            painter.drawText(QRectF(0, 300, Width, 200), Qt::AlignCenter, "Hand Painting for Qt");
-        });
-        m_underline = hand_layer(sketch, [&](QPainter &painter) {
-            QPainterPath wave(QPointF(470, 520));
-            wave.cubicTo(760, 498, 1150, 545, 1450, 512);
-            painter.setPen(QPen(QColor(0xc0, 0x39, 0x2b), 6, Qt::SolidLine, Qt::RoundCap));
-            painter.setBrush(Qt::NoBrush);
-            painter.drawPath(wave);
-        });
+        // The logo at four times its size, as docs/logo/logo.png, and what it is under its name.
+        m_title_logo = logo_parts(QPointF(160, 256), 4);
+        const QRectF name = m_title_logo[2].bounds;
         m_subtitle = hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(SoftGraphite);
             painter.setFont(font(m_hand_family, 56));
-            painter.drawText(QRectF(0, 560, Width, 90), Qt::AlignCenter, "Hand-drawn themes for your Qt widgets");
+            painter.drawText(QRectF(name.left(), 560, name.width(), 90), Qt::AlignCenter,
+                             "Hand-drawn themes for your Qt widgets");
         });
-        // Little widgets, drawn by hand: a button, a check box, a slider and a radio button.
+        // Little widgets, drawn by hand: a button, a progress bar, a slider and a radio button.
+        // The check box is the mark of the logo.
         const double y = 735;
         m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(QPen(Graphite, 3));
             painter.setBrush(QColor(0xf2, 0xed, 0xdf));
-            painter.drawRect(QRectF(560, y, 170, 72));
+            painter.drawRect(QRectF(522, y, 170, 72));
             painter.setFont(font(m_hand_family, 36));
-            painter.drawText(QRectF(560, y, 170, 72), Qt::AlignCenter, "OK");
+            painter.drawText(QRectF(522, y, 170, 72), Qt::AlignCenter, "OK");
         }));
         m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
+            painter.setPen(QPen(QColor(0x1e, 0x84, 0x49), 3));
+            painter.setBrush(QColor(0xab, 0xeb, 0xc6));
+            painter.drawRect(QRectF(762, y + 14, 120, 44));
             painter.setPen(QPen(Graphite, 3));
             painter.setBrush(Qt::NoBrush);
-            painter.drawRect(QRectF(800, y + 10, 52, 52));
-            painter.setPen(QPen(QColor(0x1e, 0x84, 0x49), 5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-            painter.drawPolyline(QPolygonF({{808, y + 36}, {822, y + 54}, {860, y + 4}}));
+            painter.drawRect(QRectF(762, y + 14, 190, 44));
         }));
         m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(QPen(Graphite, 3));
-            painter.drawLine(QPointF(920, y + 36), QPointF(1170, y + 36));
+            painter.drawLine(QPointF(1022, y + 36), QPointF(1272, y + 36));
             painter.setBrush(QColor(0xae, 0xd6, 0xf1));
             painter.setPen(QPen(QColor(0x2a, 0x6f, 0xdb), 3));
-            painter.drawRect(QRectF(1060, y + 14, 28, 44));
+            painter.drawRect(QRectF(1162, y + 14, 28, 44));
         }));
         m_doodles.push_back(hand_layer(sketch, [&](QPainter &painter) {
             painter.setPen(QPen(Graphite, 3));
             painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(QPointF(1270, y + 36), 28, 28);
+            painter.drawEllipse(QPointF(1370, y + 36), 28, 28);
             painter.setPen(Qt::NoPen);
             painter.setBrush(QColor(0xc0, 0x39, 0x2b));
-            painter.drawEllipse(QPointF(1270, y + 36), 13, 13);
+            painter.drawEllipse(QPointF(1370, y + 36), 13, 13);
         }));
         m_paper = blank(sketch.palette.color(QPalette::Window));
         {
@@ -787,28 +842,16 @@ private:
             painter.fillRect(m_paper.rect(), sketch.palette.window());
         }
 
-        // The end: the title again, and where to find the library.
-        m_end_title = hand_layer(sketch, [&](QPainter &painter) {
-            painter.setPen(Graphite);
-            painter.setFont(font(m_hand_family, 132));
-            painter.drawText(QRectF(0, 250, Width, 180), Qt::AlignCenter, "Hand Painting for Qt");
-        });
-        m_end_underline = hand_layer(sketch, [&](QPainter &painter) {
-            QPainterPath wave(QPointF(560, 445));
-            wave.cubicTo(820, 425, 1120, 468, 1360, 440);
-            painter.setPen(QPen(QColor(0xc0, 0x39, 0x2b), 6, Qt::SolidLine, Qt::RoundCap));
-            painter.setBrush(Qt::NoBrush);
-            painter.drawPath(wave);
-        });
+        // The end: the logo again, over where to find the library.
+        m_end_logo = logo_parts(QPointF(260, 150), 3.5);
     }
 
     QImage title_scene(double t) {
         QImage frame = m_paper;
         QPainter painter(&frame);
-        draw_revealed(painter, m_title, QRectF(360, 300, 1200, 200), ease_in_out(phase(t, 0.15, 1.2)));
-        draw_revealed(painter, m_underline, QRectF(460, 480, 1000, 60), ease_in_out(phase(t, 1.15, 0.5)));
+        draw_logo(painter, m_title_logo, t - 0.1);
         {
-            const double u = ease_out(phase(t, 1.45, 0.6));
+            const double u = ease_out(phase(t, 1.75, 0.6));
             painter.save();
             painter.translate(0, (1 - u) * 24);
             painter.setOpacity(u);
@@ -816,7 +859,7 @@ private:
             painter.restore();
         }
         for (std::size_t index = 0; index < m_doodles.size(); ++index) {
-            const double u = ease_out(phase(t, 1.95 + index * 0.16, 0.35));
+            const double u = ease_out(phase(t, 2.2 + index * 0.14, 0.35));
             if (u <= 0) {
                 continue;
             }
@@ -1108,10 +1151,12 @@ private:
             color.setAlphaF(0.9 * veil);
             painter.fillRect(frame.rect(), color);
         }
-        draw_revealed(painter, m_end_title, QRectF(400, 250, 1120, 180), ease_in_out(phase(w, 2.9, 1.0)));
-        draw_revealed(painter, m_end_underline, QRectF(550, 420, 820, 60), ease_in_out(phase(w, 3.7, 0.45)));
-        draw_text(painter, QRectF(0, 480, Width, 70), Qt::AlignCenter, "Nine hand-drawn themes for your Qt widgets",
-                  font(m_hand_family, 50), SoftGraphite, phase(w, 4.0, 0.5));
+        // The logo is drawn a little faster than in the title.
+        draw_logo(painter, m_end_logo, (w - 2.8) * 1.3);
+        const QRectF name = m_end_logo[2].bounds;
+        draw_text(painter, QRectF(name.left(), 440, name.width(), 70), Qt::AlignCenter | Qt::TextDontClip,
+                  "Nine hand-drawn themes for your Qt widgets", font(m_hand_family, 46), SoftGraphite,
+                  phase(w, 4.1, 0.5));
         draw_text(painter, QRectF(0, 610, Width, 70), Qt::AlignCenter,
                   "Try it in your browser:  qnope.github.io/HandPaintingForQt", font(m_hand_family, 46), Graphite,
                   phase(w, 4.5, 0.5));
@@ -1131,12 +1176,10 @@ private:
     QString m_hand_family;
     QImage m_plain_image;
     QImage m_paper;
-    QImage m_title;
-    QImage m_underline;
+    Logo m_title_logo;
     QImage m_subtitle;
     std::vector<QImage> m_doodles;
-    QImage m_end_title;
-    QImage m_end_underline;
+    Logo m_end_logo;
     std::vector<QImage> m_mosaic;
     std::vector<QImage> m_mosaic_tiles;
 };
@@ -1256,11 +1299,12 @@ int main(int argc, char *argv[]) {
     }
 
     // The preview of the README: 12 frames a second, 960 pixels wide, with one palette made
-    // for the whole video.
+    // for the whole video, from all its pixels: the colors of a drawing that stays still, as
+    // the logo does, weigh as much as those of what moves.
     QProcess converter;
     const QStringList arguments = {"-i", video, "-vf",
                                    "fps=12,scale=960:-1:flags=lanczos,split[a][b];"
-                                   "[a]palettegen=max_colors=192:stats_mode=diff[p];"
+                                   "[a]palettegen=max_colors=192:stats_mode=full[p];"
                                    "[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle",
                                    "-loop", "0", preview};
     if (!start_ffmpeg(converter, arguments, err) || !finish_ffmpeg(converter, err)) {

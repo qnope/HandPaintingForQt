@@ -182,7 +182,7 @@ painter.setBrush(QColor("#aed6f1"));
 painter.drawEllipse(50, 50, 300, 200);
 ```
 
-The logo at the top of this page is drawn this way, by [`tools/logo`](tools/logo/Logo.cpp):
+The logo at the top of this page is drawn this way, by [`tools/logo`](tools/logo/LogoDrawing.h):
 the same drawing with the sketch theme on a light page, and with the slate theme on a dark one.
 
 ## Use hpq in your project

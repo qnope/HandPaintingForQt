@@ -1,5 +1,8 @@
-# Draws the logo of the README (docs/logo), with hpq.
-hpq_add_executable(HpqLogo Logo.cpp)
+# Draws the logo of the README (docs/logo), with hpq. LogoDrawing.h is the drawing itself:
+# tools/teaser draws it too.
+hpq_add_executable(HpqLogo
+  Logo.cpp
+  LogoDrawing.h)
 target_link_libraries(HpqLogo PRIVATE Qt6::Widgets hpq::hpq)
 
 if(HPQ_BUILD_TESTS)

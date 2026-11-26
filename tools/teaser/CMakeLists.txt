@@ -2,8 +2,11 @@
 # example (Examples/Integration). It needs ffmpeg at run time, not to build.
 hpq_add_executable(HpqTeaserVideo TeaserVideo.cpp
   ${PROJECT_SOURCE_DIR}/Examples/Integration/GalleryWindow.cpp
-  ${PROJECT_SOURCE_DIR}/Examples/Integration/GalleryWindow.h)
-target_include_directories(HpqTeaserVideo PRIVATE ${PROJECT_SOURCE_DIR}/Examples/Integration)
+  ${PROJECT_SOURCE_DIR}/Examples/Integration/GalleryWindow.h
+  ${PROJECT_SOURCE_DIR}/tools/logo/LogoDrawing.h)
+target_include_directories(HpqTeaserVideo PRIVATE
+  ${PROJECT_SOURCE_DIR}/Examples/Integration
+  ${PROJECT_SOURCE_DIR}/tools/logo)
 target_link_libraries(HpqTeaserVideo PRIVATE Qt6::Widgets hpq::hpq)
 
 if(HPQ_BUILD_TESTS)
