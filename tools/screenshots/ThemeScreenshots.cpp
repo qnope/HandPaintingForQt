@@ -5,10 +5,14 @@
 //
 // Writes <theme>.png and <theme>-hachure.png in the directory for the themes sketch,
 // china-ink, slate, notebook, velleda, watercolor, blueprint, invisible-ink and highlighter,
-// and themes.png, the nine solid images side by side.
-// The themes have a fixed seed: the same code draws the same images.
+// themes.png, the nine solid images side by side, and plain.png, the window as Qt draws it
+// without a theme.
+// The themes have a fixed seed and their own fonts: the same code draws the same images.
+// plain.png has the style and the font of the machine.
 
 #include "GalleryWindow.h"
+
+#include <hpq/Theming.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -18,6 +22,7 @@
 #include <QFont>
 #include <QImage>
 #include <QPainter>
+#include <QSignalBlocker>
 #include <QTextStream>
 
 #include <cstdint>
@@ -104,6 +109,27 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    const auto save = [&](const QImage &image, const QString &name) {
+        const QString file_name = directory.filePath(name);
+        if (!image.save(file_name)) {
+            err << "Cannot write " << file_name << "\n";
+            return false;
+        }
+        return true;
+    };
+
+    // The window as Qt draws it: without the theme it gave itself, and with no theme named in
+    // its theme box.
+    {
+        const QSignalBlocker blocker(theme_box);
+        theme_box->setCurrentIndex(-1);
+    }
+    hpq::remove_theme(window);
+    QApplication::processEvents();
+    if (!save(window.grab().toImage(), "plain.png")) {
+        return 1;
+    }
+
     std::vector<QImage> solid_images;
     for (int index = 0; index < theme_box->count(); ++index) {
         for (const bool hachure : {false, true}) {
@@ -112,10 +138,7 @@ int main(int argc, char *argv[]) {
             QApplication::processEvents();
 
             const QImage image = window.grab().toImage();
-            const QString file_name =
-                directory.filePath(QString(FileNames[index]) + (hachure ? "-hachure.png" : ".png"));
-            if (!image.save(file_name)) {
-                err << "Cannot write " << file_name << "\n";
+            if (!save(image, QString(FileNames[index]) + (hachure ? "-hachure.png" : ".png"))) {
                 return 1;
             }
             if (!hachure) {
@@ -123,10 +146,5 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    const QString mosaic_name = directory.filePath("themes.png");
-    if (!mosaic(solid_images).save(mosaic_name)) {
-        err << "Cannot write " << mosaic_name << "\n";
-        return 1;
-    }
-    return 0;
+    return save(mosaic(solid_images), "themes.png") ? 0 : 1;
 }

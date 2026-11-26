@@ -40,6 +40,13 @@ functions and the headers are 11 instead of 27. To move an application from 0.1:
 - A teaser video at the top of the README: a Qt window drawn by hand in the nine themes while
   a pointer uses its widgets. `tools/teaser` (`HpqTeaserVideo`) renders it frame by frame,
   offscreen, with ffmpeg, and the `Pages` workflow publishes it with the site.
+- A logo, drawn by hpq with a `HandPaintDevice`: `tools/logo` (`HpqLogo`) writes
+  `docs/logo/logo.png` in pencil for a light page, `logo-dark.png` in chalk for a dark page and
+  `icon.png`, the mark alone.
+- `CONTRIBUTING.md`: how to build the project, run its tests, build the WebAssembly site,
+  render the images of the README and publish a version. The README, which held it, now opens
+  with the logo, a first call to `apply_theme` and the window before and after that call
+  (`docs/images/plain.png`, the window without a theme, is rendered by `tools/screenshots`).
 - `PaintCache::made_count()` and `HandPaintEffect::cache()`: how many times a theme had the
   paths, the pieces or the wash of a shape made, because its cache did not keep them. A test
   or a benchmark reads there whether a repaint found its shapes in the cache.
