@@ -83,7 +83,7 @@ target_sources(hpq PRIVATE
 configure_file(include/hpq/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h @ONLY)
 target_sources(hpq PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include/hpq/Version.h)
 
-# libhpq.so.0.1.0, with the soname libhpq.so.0.1: before 1.0, a minor version may break the ABI.
+# libhpq.so.0.2.0, with the soname libhpq.so.0.2: before 1.0, a minor version may break the ABI.
 if(PROJECT_VERSION_MAJOR EQUAL 0)
   set(hpq_soversion ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR})
 else()
@@ -155,8 +155,8 @@ if(HPQ_INSTALL)
   configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/HandPaintingForQtConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/HandPaintingForQtConfig.cmake
     INSTALL_DESTINATION ${hpq_config_dir})
-  # Before 1.0, only the same minor version is compatible: find_package(HandPaintingForQt 0.1)
-  # accepts 0.1.x, not 0.2.
+  # Before 1.0, only the same minor version is compatible: find_package(HandPaintingForQt 0.2)
+  # accepts 0.2.x, not 0.3.
   if(PROJECT_VERSION_MAJOR EQUAL 0)
     set(hpq_compatibility SameMinorVersion)
   else()
